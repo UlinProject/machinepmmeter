@@ -57,7 +57,7 @@ fn main() {
 	let application = Application::new(Some(APP_ID), Default::default());
 	application.connect_activate(move |app| {
 		let c_display = ViGraphDisplayInfo::new(0).unwrap();
-		let dock_window = ViDockWindow::new::<WINDOW_WIDTH, WINDOW_HEIGHT>(app, UPPERCASE_PKG_NAME);
+		let dock_window = ViDockWindow::new(app, UPPERCASE_PKG_NAME, WINDOW_WIDTH, WINDOW_HEIGHT);
 		dock_window.connect_transparent_background(&c_display, 0.5);
 
 		let vbox = GtkBox::new(gtk::Orientation::Vertical, 2);
