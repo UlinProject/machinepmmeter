@@ -1,8 +1,11 @@
+use crate::config::Config;
 use crate::core::display::ViGraphDisplayInfo;
 use crate::core::dock_window::{PosINScreen, ViDockWindow};
 use crate::widgets::indicator::ViIndicator;
 use crate::widgets::primitives::label::ViLabel;
-use anyhow::Result as anyhowResult;
+use anyhow::{Context, Result as anyhowResult};
+use clap::Parser;
+// Import Subcommand if you have subcommands
 use gtk::Box as GtkBox;
 use gtk::gio::prelude::ApplicationExtManual;
 use gtk::gio::traits::ApplicationExt;
@@ -10,9 +13,14 @@ use gtk::glib::{ControlFlow, ExitCode};
 use gtk::prelude::WidgetExt;
 use gtk::traits::{BoxExt, ContainerExt};
 use gtk::{Application, DrawingArea, cairo, glib};
+use log::{info, trace};
 use rand::random_range;
+use std::fs;
+use std::path::PathBuf;
+use std::rc::Rc;
 use std::sync::{Arc, Mutex};
 
+mod config;
 mod widgets;
 mod core {
 	pub mod constuppercase;
@@ -57,18 +65,63 @@ const APP_ID: &str = "com.ulinkot.ryzenpmmeter";
 const PKG_NAME: &str = env!("CARGO_PKG_NAME");
 const UPPERCASE_PKG_NAME: &str = const_ascii_uppercase!(PKG_NAME);
 
+#[derive(Parser, Debug)]
+#[clap(
+	name = "ryzenpmmeter",
+	about = "A tool to monitor Ryzen power consumption"
+)]
+struct Cli {
+	/// Path to the TOML configuration file
+	#[clap(short, long, value_parser, default_value = None)]
+	config: Option<PathBuf>,
+
+	/// Allow saving default config if it doesn't exist
+	#[clap(long, value_parser, default_value = "true")]
+	allow_save_default_config: bool,
+}
+
 fn main() -> anyhowResult<ExitCode> {
 	env_logger::try_init()?;
-	let c_display = ViGraphDisplayInfo::new(0)?;
+	let cli = Cli::parse();
+	
+	let config = Config::search_default_path(&cli, |config_path| {
+		info!(
+			"#[config file] open: {:?}, allow_save_default_config: {:?}",
+			config_path, cli.allow_save_default_config
+		);
+		let config = {
+			let context = || format!("Open config file {:?}.", &cli.config);
+			let config = fs::read_to_string(config_path).map_or_else(
+				|e| match cli.allow_save_default_config {
+					false => Err(e).with_context(context),
+					true => {
+						let config = Config::default();
+	
+						Ok(config)
+					}
+				},
+				|rdata| toml::from_str(&rdata).with_context(context),
+			);
+	
+			Rc::new(config?)
+		};
+		
+		Ok(config)
+	})?;
+	trace!("#[config file] current: {:?}", config);
+
+	gtk::init()?;
+	let c_display = ViGraphDisplayInfo::new(config.get_num_monitor())?;
 
 	let application = Application::new(Some(APP_ID), Default::default());
 	application.connect_activate(move |app| {
-		let dock_window = ViDockWindow::new(app, UPPERCASE_PKG_NAME, WINDOW_WIDTH, WINDOW_HEIGHT);
+		let name_window = config.get_name().unwrap_or(UPPERCASE_PKG_NAME);
+		let dock_window = ViDockWindow::new(app, name_window, WINDOW_WIDTH, WINDOW_HEIGHT);
 		dock_window.connect_transparent_background(&c_display, 0.5);
 
 		let vbox = GtkBox::new(gtk::Orientation::Vertical, 2);
 		{
-			let label = ViLabel::new(UPPERCASE_PKG_NAME)
+			let label = ViLabel::new(name_window)
 				.set_margin(2)
 				.connect_background(0.0, 1.0, 0.0, 0.5);
 
