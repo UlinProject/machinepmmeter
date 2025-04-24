@@ -1,3 +1,5 @@
+use anyhow::Result as anyhowResult;
+use anyhow::anyhow;
 use gtk::gdk::{self, Visual, traits::MonitorExt};
 
 #[derive(Debug)]
@@ -30,17 +32,22 @@ impl AsRef<gdk::Monitor> for ViGraphDisplayInfo {
 }
 
 impl ViGraphDisplayInfo {
-	pub fn new(num_monitor: i32) -> Option<Self> {
-		let display = gdk::Display::default()?;
-		let monitor = display.monitor(num_monitor)?;
+	pub fn new(num_monitor: i32) -> anyhowResult<Self> {
+		let display = gdk::Display::default()
+			.ok_or_else(|| anyhow!("Failed to read display characteristics"))?;
+		let monitor = display.monitor(num_monitor).ok_or_else(|| {
+			anyhow!(
+				"Failed to read monitor characteristics, args: num_monitor={}",
+				num_monitor
+			)
+		})?;
 		let screen = display.default_screen();
 
-		Self {
+		Ok(Self {
 			display,
 			screen,
 			monitor,
-		}
-		.into()
+		})
 	}
 
 	pub fn monitor_width_and_height(&self) -> (i32, i32) {
