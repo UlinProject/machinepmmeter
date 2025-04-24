@@ -1,4 +1,4 @@
-use crate::{__gen_transparent_gtk_type, core::maybe::Maybe, maybe};
+use crate::__gen_transparent_gtk_type;
 use gtk::{
 	Label,
 	ffi::GtkLabel,
@@ -26,9 +26,8 @@ __gen_transparent_gtk_type! {
 }
 
 impl ViLabel {
-	pub fn new(value: &str, margin: impl Maybe<i32>) -> Self {
+	pub fn new(value: &str) -> Self {
 		let label = Label::new(Some(value));
-		maybe!(margin, |v| { label.set_margin(v) });
 
 		let mut font_desc = FontDescription::new();
 		font_desc.set_family("Monospace");
@@ -43,7 +42,13 @@ impl ViLabel {
 		Self(label)
 	}
 
-	pub fn connect_background(&self, red: f64, green: f64, blue: f64, alpha: f64) -> &Self {
+	pub fn set_margin(self, margin: i32) -> Self {
+		self.0.set_margin(margin);
+
+		self
+	}
+
+	pub fn connect_background(self, red: f64, green: f64, blue: f64, alpha: f64) -> Self {
 		self.0.connect_draw(move |window, cr| {
 			let allocation = window.allocation();
 			cr.set_source_rgba(red, green, blue, alpha);

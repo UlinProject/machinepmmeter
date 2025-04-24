@@ -65,24 +65,35 @@ fn main() -> anyhowResult<ExitCode> {
 
 		let vbox = GtkBox::new(gtk::Orientation::Vertical, 2);
 		{
-			let label = ViLabel::new(UPPERCASE_PKG_NAME, 2);
-			label.connect_background(0.0, 1.0, 0.0, 0.5);
+			let label = ViLabel::new(UPPERCASE_PKG_NAME)
+				.set_margin(2)
+				.connect_background(0.0, 1.0, 0.0, 0.5);
 
 			vbox.pack_start(&label, true, true, 0); // expand: true, fill: true
 		}
 		{
-			vbox.pack_start(&ViLabel::new("CPU Family: Raven", 2), true, true, 0); // expand: true, fill: true
-		}
-		{
 			vbox.pack_start(
-				&ViLabel::new("SMU BIOS Interface Version: 5", 2),
+				&ViLabel::new("CPU Family: Raven").set_margin(2),
 				true,
 				true,
 				0,
 			); // expand: true, fill: true
 		}
 		{
-			vbox.pack_start(&ViLabel::new("PM Table Version: 1e0004", 2), true, true, 0); // expand: true, fill: true
+			vbox.pack_start(
+				&ViLabel::new("SMU BIOS Interface Version: 5").set_margin(2),
+				true,
+				true,
+				0,
+			); // expand: true, fill: true
+		}
+		{
+			vbox.pack_start(
+				&ViLabel::new("PM Table Version: 1e0004").set_margin(2),
+				true,
+				true,
+				0,
+			); // expand: true, fill: true
 		}
 
 		vbox.pack_start(

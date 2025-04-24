@@ -28,16 +28,16 @@ __gen_transparent_gtk_type! {
 impl ViIndicator {
 	pub fn new<'a, 'b>(value: &'_ str, max: impl Maybe<&'a str>, avg: impl Maybe<&'b str>) -> Self {
 		let hbox = Box::new(Orientation::Horizontal, 0);
-		hbox.pack_start(&ViLabel::new(value, 10), true, true, 0);
+		hbox.pack_start(&ViLabel::new(value).set_margin(10), true, true, 0);
 
 		maybe!(max, |max| hbox.pack_start(
-			&ViLabel::new(max, 10),
+			&ViLabel::new(max).set_margin(10),
 			true,
 			true,
 			0
 		));
 		maybe!(avg, |avg| hbox.pack_start(
-			&ViLabel::new(avg, 10),
+			&ViLabel::new(avg).set_margin(10),
 			true,
 			true,
 			0
