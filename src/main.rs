@@ -5,7 +5,6 @@ use crate::widgets::indicator::ViIndicator;
 use crate::widgets::primitives::label::ViLabel;
 use anyhow::{Context, Result as anyhowResult};
 use clap::Parser;
-// Import Subcommand if you have subcommands
 use gtk::Box as GtkBox;
 use gtk::gio::prelude::ApplicationExtManual;
 use gtk::gio::traits::ApplicationExt;
@@ -83,7 +82,7 @@ struct Cli {
 fn main() -> anyhowResult<ExitCode> {
 	env_logger::try_init()?;
 	let cli = Cli::parse();
-	
+
 	let config = Config::search_default_path(&cli, |config_path| {
 		info!(
 			"#[config file] open: {:?}, allow_save_default_config: {:?}",
@@ -96,16 +95,16 @@ fn main() -> anyhowResult<ExitCode> {
 					false => Err(e).with_context(context),
 					true => {
 						let config = Config::default();
-	
+
 						Ok(config)
 					}
 				},
 				|rdata| toml::from_str(&rdata).with_context(context),
 			);
-	
+
 			Rc::new(config?)
 		};
-		
+
 		Ok(config)
 	})?;
 	trace!("#[config file] current: {:?}", config);

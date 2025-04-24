@@ -51,7 +51,10 @@ impl Default for Config {
 }
 
 impl Config {
-	pub fn search_default_path<R>(cli: &Cli, next: impl FnOnce(&'_ Path) -> anyhowResult<R>) -> anyhowResult<R> {
+	pub fn search_default_path<R>(
+		cli: &Cli,
+		next: impl FnOnce(&'_ Path) -> anyhowResult<R>,
+	) -> anyhowResult<R> {
 		let mut owned_path = PathBuf::new();
 		let config_path = cli.config.as_deref().map_or_else(
 			|| {
@@ -65,7 +68,7 @@ impl Config {
 			},
 			Ok,
 		)?;
-		
+
 		next(config_path)
 	}
 
