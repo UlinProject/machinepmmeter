@@ -1,32 +1,42 @@
 use gtk::gdk::RGBA;
 
-pub trait ConstOption<T = Self> {
-	const IS_SOME: bool;
+pub trait Maybe<T = Self> {
+	const HAS_VALUE: bool;
 
 	#[inline(always)]
-	fn is_some(&self) -> bool {
-		Self::IS_SOME
+	fn has_value(&self) -> bool {
+		Self::HAS_VALUE
 	}
 
 	fn value(self) -> T;
 }
 
-__always_some_types!(i32, RGBA, &'_ str, String);
+__always_has_value_types!(i32, RGBA, &'_ str, String);
 
-impl<T> ConstOption<T> for () {
-	const IS_SOME: bool = false;
+impl<T> Maybe<T> for () {
+	const HAS_VALUE: bool = false;
 
-	#[inline]
+	#[track_caller]
 	fn value(self) -> T {
-		unreachable!()
+		#[track_caller]
+		#[cold]
+		fn __cold_panic(v: &str) -> ! {
+			panic!("{}", v);
+		}
+		
+		__cold_panic("Called value() on a Maybe with IS_SOME = false");
 	}
 }
 
-macro_rules! __always_some_types {
-	[ $($t:ty),* $(,)? ] => {
+macro_rules! __always_has_value_types {
+	[
+		$($t:ty),*
+		
+		$(,)?
+	] => {
 		$(
-			impl ConstOption for $t {
-				const IS_SOME: bool = true;
+			impl Maybe for $t {
+				const HAS_VALUE: bool = true;
 
 				#[inline]
 				fn value(self) -> Self {
@@ -36,22 +46,34 @@ macro_rules! __always_some_types {
 		)*
 	};
 }
-use __always_some_types;
+use __always_has_value_types;
 
 #[macro_export]
-macro_rules! fn_const_option {
-	[ $name: ident, |$true_v: ident| {$($true_code:tt)*} else || {$($false_code:tt)*} ] => {
-		if $name.is_some() {
+macro_rules! maybe {
+	[
+		$name: ident, |$true_v: ident| {
+			$($true_code:tt)*
+		}
+		
+		$( else {
+			$($false_code:tt)*
+		})?
+	] => {
+		if $name.has_value() {
 			let $true_v = $name.value();
 
 			$($true_code)*
-		}else {
-			$($false_code)*
 		}
+		
+		$(else {
+			$($false_code)*
+		})?
 	};
 
-	[ $name: ident, |$v: ident| $($code:tt)* ] => {
-		if $name.is_some() {
+	[
+		$name: ident, |$v: ident| $($code:tt)*
+	] => {
+		if $name.has_value() {
 			let $v = $name.value();
 
 			$($code)*
