@@ -1,4 +1,4 @@
-use crate::{__gen_transparent_gtk_type, core::constopt::ConstOption, fn_const_option};
+use crate::{__gen_transparent_gtk_type, core::maybe::Maybe, maybe};
 use gtk::{
 	Label,
 	ffi::GtkLabel,
@@ -26,9 +26,13 @@ __gen_transparent_gtk_type! {
 }
 
 impl ViLabel {
-	pub fn new<MARGIN: ConstOption<i32>>(value: &str, margin: MARGIN) -> Self {
+	pub fn new<MARGIN: Maybe<i32>>(value: &str, margin: MARGIN) -> Self {
 		let label = Label::new(Some(value));
-		fn_const_option!(margin, |v| label.set_margin(v));
+		maybe!(margin, |v| {
+			label.set_margin(v)
+		} else {
+			
+		});
 
 		let mut font_desc = FontDescription::new();
 		font_desc.set_family("Monospace");

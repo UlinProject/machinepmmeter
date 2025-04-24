@@ -11,7 +11,7 @@ use std::sync::{Arc, Mutex};
 
 mod widgets;
 mod core {
-	pub mod constopt;
+	pub mod maybe;
 	pub mod constuppercase;
 	pub mod display;
 	pub mod dock_window;
