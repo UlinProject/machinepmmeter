@@ -28,7 +28,7 @@ fn draw_peak_graph(da: &DrawingArea, cr: &cairo::Context, data: &[f64]) {
 
 	cr.set_source_rgba(0.0, 0.0, 0.0, 0.5);
 	cr.rectangle(0.0, 0.0, width, height);
-	cr.fill();
+	let _e = cr.fill();
 
 	cr.set_source_rgba(0.0, 1.0, 0.0, 1.0);
 	cr.set_line_width(1.5);
@@ -46,7 +46,7 @@ fn draw_peak_graph(da: &DrawingArea, cr: &cairo::Context, data: &[f64]) {
 		}
 	}
 
-	cr.stroke();
+	let _e = cr.stroke();
 }
 
 const APP_ID: &str = "com.ulinkot.ryzenpmmeter";

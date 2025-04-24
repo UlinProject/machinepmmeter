@@ -45,7 +45,7 @@ impl ViColorBlock {
 
 			cr.set_source_rgba(red, green, blue, alpha);
 			cr.rectangle(0.0, 0.0, allocation.width() as _, allocation.height() as _);
-			cr.fill();
+			let _ = cr.fill();
 
 			ALLOW_ONEDRAW_OPTIMIZE.into()
 		});
@@ -67,7 +67,7 @@ impl ViColorBlock {
 			};
 			cr.set_source_rgba(rgba.0, rgba.1, rgba.2, rgba.3);
 			cr.rectangle(0.0, 0.0, allocation.width() as _, allocation.height() as _);
-			cr.fill();
+			let _e = cr.fill();
 
 			ALLOW_ONEDRAW_OPTIMIZE.into()
 		});

@@ -68,7 +68,7 @@ impl ViDockWindow {
 						allocation.width().into(),
 						allocation.height().into(),
 					);
-					cr.fill();
+					let _e = cr.fill();
 
 					false.into()
 				});
