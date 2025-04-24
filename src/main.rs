@@ -2,8 +2,9 @@ use crate::core::display::ViGraphDisplayInfo;
 use crate::core::dock_window::{PosINScreen, ViDockWindow};
 use crate::widgets::indicator::ViIndicator;
 use crate::widgets::primitives::label::ViLabel;
+use anyhow::Result as anyhowResult;
 use gtk::Box as GtkBox;
-use gtk::glib::ControlFlow;
+use gtk::glib::{ControlFlow, ExitCode};
 use gtk::prelude::*;
 use gtk::{Application, DrawingArea, cairo, glib};
 use rand::random_range;
@@ -53,7 +54,9 @@ const APP_ID: &str = "com.ulinkot.ryzenpmmeter";
 const PKG_NAME: &str = env!("CARGO_PKG_NAME");
 const UPPERCASE_PKG_NAME: &str = const_ascii_uppercase!(PKG_NAME);
 
-fn main() {
+fn main() -> anyhowResult<ExitCode> {
+	env_logger::try_init()?;
+
 	let application = Application::new(Some(APP_ID), Default::default());
 	application.connect_activate(move |app| {
 		let c_display = ViGraphDisplayInfo::new(0).unwrap();
@@ -168,5 +171,5 @@ fn main() {
 		dock_window.connect_show(|_| {});
 	});
 
-	application.run();
+	Ok(application.run())
 }
