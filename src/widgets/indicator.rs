@@ -1,5 +1,8 @@
 use crate::{
-	__gen_transparent_gtk_type, core::maybe::Maybe, maybe, widgets::primitives::{color_block::ViColorBlock, label::ViLabel}
+	__gen_transparent_gtk_type,
+	core::maybe::Maybe,
+	maybe,
+	widgets::primitives::{color_block::ViColorBlock, label::ViLabel},
 };
 use gtk::{Box, Orientation, ffi::GtkBox, traits::BoxExt};
 
@@ -23,13 +26,8 @@ __gen_transparent_gtk_type! {
 }
 
 impl ViIndicator {
-	pub fn new<'a, 'b, MAX: Maybe<&'a str>, AVG: Maybe<&'b str>>(
-		value: &str,
-		max: MAX,
-		avg: AVG,
-	) -> Self {
+	pub fn new<'a, 'b>(value: &'_ str, max: impl Maybe<&'a str>, avg: impl Maybe<&'b str>) -> Self {
 		let hbox = Box::new(Orientation::Horizontal, 0);
-
 		hbox.pack_start(&ViLabel::new(value, 10), true, true, 0);
 
 		maybe!(max, |max| hbox.pack_start(

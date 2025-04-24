@@ -102,9 +102,9 @@ impl ViDockWindow {
 			PosINScreen::CenterLeft | PosINScreen::Center | PosINScreen::RightCenter => {
 				(display_height - window_height) / 2
 			}
-			PosINScreen::BottomLeft
-			| PosINScreen::BottomCenter
-			| PosINScreen::BottomRight => display_height - window_height,
+			PosINScreen::BottomLeft | PosINScreen::BottomCenter | PosINScreen::BottomRight => {
+				display_height - window_height
+			}
 		};
 
 		self.0.move_(x, y);
@@ -120,7 +120,7 @@ pub enum PosINScreen {
 	TopCenter = 3,
 	Center = 4,
 	BottomCenter = 5,
-	
+
 	#[default]
 	TopRight = 6,
 	RightCenter = 7,

@@ -11,11 +11,11 @@ use std::sync::{Arc, Mutex};
 
 mod widgets;
 mod core {
-	pub mod maybe;
 	pub mod constuppercase;
 	pub mod display;
 	pub mod dock_window;
 	pub mod gtk_codegen;
+	pub mod maybe;
 }
 
 const WINDOW_WIDTH: i32 = 240;
@@ -142,36 +142,30 @@ fn main() {
 
 			vbox.pack_start(&graph_area, true, true, 0);
 
-			glib::timeout_add_local(
-				std::time::Duration::from_millis(60 / 30),
-				move || {
-					{
-						let mut lock = arc.lock().unwrap();
+			glib::timeout_add_local(std::time::Duration::from_millis(60 / 30), move || {
+				{
+					let mut lock = arc.lock().unwrap();
 
-						while lock.len() > 20 {
-							let _e = lock.remove(0);
-						}
-
-						lock.push(random_range(0.0..1.0));
+					while lock.len() > 20 {
+						let _e = lock.remove(0);
 					}
 
-					graph_area.queue_draw();
-					ControlFlow::Continue
-				},
-			);
+					lock.push(random_range(0.0..1.0));
+				}
+
+				graph_area.queue_draw();
+				ControlFlow::Continue
+			});
 
 			dock_window.add(&vbox);
 		}
 
 		dock_window.add(&vbox);
-		
+
 		dock_window.show_all();
 		dock_window.set_pos_inscreen(&c_display, PosINScreen::Center);
-		
-		dock_window.connect_show(|_| {
-			
-		});
-		
+
+		dock_window.connect_show(|_| {});
 	});
 
 	application.run();

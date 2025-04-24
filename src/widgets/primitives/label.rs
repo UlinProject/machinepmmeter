@@ -26,13 +26,9 @@ __gen_transparent_gtk_type! {
 }
 
 impl ViLabel {
-	pub fn new<MARGIN: Maybe<i32>>(value: &str, margin: MARGIN) -> Self {
+	pub fn new(value: &str, margin: impl Maybe<i32>) -> Self {
 		let label = Label::new(Some(value));
-		maybe!(margin, |v| {
-			label.set_margin(v)
-		} else {
-			
-		});
+		maybe!(margin, |v| { label.set_margin(v) });
 
 		let mut font_desc = FontDescription::new();
 		font_desc.set_family("Monospace");
