@@ -1,9 +1,9 @@
+use crate::{__gen_transparent_gtk_type, config::ColorConfig};
+use gtk::{DrawingArea, ffi::GtkDrawingArea, traits::WidgetExt};
 use std::{
 	cell::{Ref, RefCell},
 	rc::Rc,
 };
-use crate::{__gen_transparent_gtk_type, config::ColorConfig};
-use gtk::{DrawingArea, ffi::GtkDrawingArea, traits::WidgetExt};
 
 #[repr(transparent)]
 #[derive(Debug)]

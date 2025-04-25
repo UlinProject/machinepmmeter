@@ -133,7 +133,7 @@ impl ColorConfig {
 	pub const fn orange(&self) -> (u8, u8, u8) {
 		self.orange
 	}
-	
+
 	#[inline]
 	pub const fn red(&self) -> (u8, u8, u8) {
 		self.red

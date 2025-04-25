@@ -1,6 +1,9 @@
 use crate::{__gen_transparent_gtk_type, config::FontConfig};
 use gtk::{
-	ffi::GtkLabel, pango::{self, AttrFontDesc, AttrList, FontDescription}, traits::{LabelExt, WidgetExt}, Label
+	Label,
+	ffi::GtkLabel,
+	pango::{self, AttrFontDesc, AttrList, FontDescription},
+	traits::{LabelExt, WidgetExt},
 };
 
 #[repr(transparent)]

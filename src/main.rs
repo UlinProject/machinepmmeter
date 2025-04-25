@@ -134,13 +134,13 @@ fn main() -> anyhowResult<ExitCode> {
 		let vbox = GtkBox::new(gtk::Orientation::Vertical, 0);
 		{
 			let (r, g, b) = config.get_window_config().get_head_color();
-			
+
 			let label = ViLabel::new(&*config, name_window)
 				//.set_margin(2)
 				.connect_nonblack_background(
-					(r as f64) / 255.0, 
-					(g as f64) / 255.0, 
-					(b as f64) / 255.0, 
+					(r as f64) / 255.0,
+					(g as f64) / 255.0,
+					(b as f64) / 255.0,
 					transparent
 				);
 
