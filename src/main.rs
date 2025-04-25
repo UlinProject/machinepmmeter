@@ -1,10 +1,9 @@
 use crate::config::Config;
 use crate::core::display::ViGraphDisplayInfo;
 use crate::core::dock_window::ViDockWindow;
+use crate::widgets::ViMeter;
 use crate::widgets::dock_head::ViDockHead;
-use crate::widgets::primitives::graph::ViGraph;
 use crate::widgets::primitives::label::ViLabel;
-use crate::widgets::text_meter::ViTextMeter;
 use anyhow::{Context, Result as anyhowResult};
 use clap::Parser;
 use enclose::enc;
@@ -156,110 +155,49 @@ fn main() -> anyhowResult<ExitCode> {
 		}
 
 		{
+			let vimetr = ViMeter::new_visender(config.clone(), "# TDP", dock_window.allocation().width(), 420, transparent);
 			vbox.pack_start(
-				&ViLabel::new("info_ViTextMeter", &*config, "# TDP")
-				.set_margin_top(4)
-				.set_margin_start(4)
-				.set_margin_bottom(3)
-				.set_align(Align::Start)
-					.connect_nonblack_background(0.0, 0.0, 0.0, transparent),
-				true,
-				true,
+				&*vimetr,
+				false,
+				false,
 				0,
-			); // expand: true, fill: true
-		}
-		vbox.pack_start(
-			&ViTextMeter::new(&*config, "90", "MAX: 90", "AVG: 90", transparent),
-			false,
-			false,
-			0,
-		);
-
-		{
-			let graph = ViGraph::new_graphsender(
-				config.clone(), dock_window.allocation().width(), 42, 420, transparent
 			);
-			
-			vbox.pack_start(&*graph, true, true, 0);
-
 			glib::timeout_add_local(std::time::Duration::from_millis(60), move || {
-				graph.push_next_and_queue_draw(random_range(0.8..0.9));
-				
+				vimetr.push_next_and_queue_draw(random_range(0.8..0.9));
+
 				ControlFlow::Continue
 			});
 		}
 
 		{
+			let vimetr = ViMeter::new_visender(config.clone(), "# VRM", dock_window.allocation().width(), 420, transparent);
 			vbox.pack_start(
-				&ViLabel::new("info_ViTextMeter", &*config, "# VRM")
-				.set_margin_top(4)
-				.set_margin_start(4)
-				.set_margin_bottom(3)
-				.set_align(Align::Start)
-					.connect_nonblack_background(0.0, 0.0, 0.0, transparent),
-				true,
-				true,
+				&*vimetr,
+				false,
+				false,
 				0,
-			); // expand: true, fill: true
-		}
-		vbox.pack_start(
-			&ViTextMeter::new(&*config, "90", "MAX: 90", "AVG: 90", transparent),
-			false,
-			false,
-			0,
-		);
-		
-		{
-			let graph = ViGraph::new_graphsender(
-				config.clone(), dock_window.allocation().width(), 42, 420, transparent
 			);
-			
-			vbox.pack_start(&*graph, true, true, 0);
-
-			glib::timeout_add_local(std::time::Duration::from_millis(10), move || {
-				graph.push_next(random_range(0.8..0.9));
-				graph.push_next(random_range(0.8..0.9));
-				graph.push_next(random_range(0.8..0.9));
-				
-				graph.queue_draw();
-				
-				ControlFlow::Continue
-			});
-		}
-
-		{
-			vbox.pack_start(
-				&ViLabel::new("info_ViTextMeter", &*config, "# VOLTAGE")
-				.set_margin_top(4)
-				.set_margin_start(4)
-				.set_margin_bottom(3)
-				.set_align(Align::Start)
-					.connect_nonblack_background(0.0, 0.0, 0.0, transparent),
-				true,
-				true,
-				0,
-			); // expand: true, fill: true
-		}
-		vbox.pack_start(
-			&ViTextMeter::new(&*config, "90", "MAX: 90", "AVG: 90", transparent),
-			false,
-			false,
-			0,
-		);
-
-		{
-			let graph = ViGraph::new_graphsender(
-				config.clone(), dock_window.allocation().width(), 42, 420, transparent
-			);
-			vbox.pack_start(&*graph, true, true, 0);
-
 			glib::timeout_add_local(std::time::Duration::from_millis(60), move || {
-				graph.push_next_and_queue_draw(random_range(0.8..0.9));
-				
+				vimetr.push_next_and_queue_draw(random_range(0.8..0.9));
+
 				ControlFlow::Continue
 			});
 		}
 
+		{
+			let vimetr = ViMeter::new_visender(config.clone(), "# VOLTAGE", dock_window.allocation().width(), 420, transparent);
+			vbox.pack_start(
+				&*vimetr,
+				false,
+				false,
+				0,
+			);
+			glib::timeout_add_local(std::time::Duration::from_millis(60), move || {
+				vimetr.push_next_and_queue_draw(random_range(0.8..0.9));
+
+				ControlFlow::Continue
+			});
+		}
 		dock_window.add(&vbox);
 		dock_window.show_all();
 

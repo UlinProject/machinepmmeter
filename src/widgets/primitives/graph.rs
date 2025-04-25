@@ -83,7 +83,7 @@ impl ViGraphSender {
 
 	pub fn push_next(&self, v: f64) {
 		let mut lock = RefCell::borrow_mut(&self.0);
-					
+
 		lock.pop_front();
 		lock.push_back(v);
 	}
