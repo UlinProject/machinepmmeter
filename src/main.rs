@@ -2,6 +2,7 @@ use crate::config::Config;
 use crate::core::display::ViGraphDisplayInfo;
 use crate::core::dock_window::ViDockWindow;
 use crate::widgets::indicator::ViIndicator;
+use crate::widgets::primitives::dock_head::ViDockHead;
 use crate::widgets::primitives::label::ViLabel;
 use anyhow::{Context, Result as anyhowResult};
 use clap::Parser;
@@ -143,40 +144,11 @@ fn main() -> anyhowResult<ExitCode> {
 		);
 
 		let vbox = GtkBox::new(gtk::Orientation::Vertical, 0);
-		{
-			let head = GtkBox::new(gtk::Orientation::Horizontal, 0);
-
-			let (r, g, b) = config.get_window_config().get_head_color();
-
-			let name_label = ViLabel::new("namehead_vilabel", &*config, name_window)
-				.set_margin_start(4)
-				.set_margin_top(2)
-				.set_margin_bottom(6)
-				.connect_nonblack_background(
-					(r as f64) / 255.0,
-					(g as f64) / 255.0,
-					(b as f64) / 255.0,
-					transparent
-				);
-			head.pack_start(&name_label, false, true, 0); // expand: true, fill: true
-
-			let version_label = ViLabel::new("versionhead_vilabel", &*config, UPPERCASE_PKG_VERSION)
-			//.set_align(Align::End)
-				.set_margin_top(2)
-				.set_margin_bottom(6)
-				.connect_nonblack_background(
-					(r as f64) / 255.0,
-					(g as f64) / 255.0,
-					(b as f64) / 255.0,
-					transparent
-				);
-			head.pack_start(&version_label, true, true, 0); // expand: true, fill: true
-
-			vbox.pack_start(&head, true, true, 0); // expand: true, fill: true
-		}
+		vbox.pack_start(&ViDockHead::new(&*config, name_window, UPPERCASE_PKG_VERSION, transparent), true, true, 0); // expand: true, fill: true
 		{
 			vbox.pack_start(
 				&ViLabel::new("head_info", &*config, "CPU Family: Raven")
+				.set_margin_top(8)
 					.set_margin_start(4)
 					.set_margin_bottom(3)
 					.set_align(Align::Start)

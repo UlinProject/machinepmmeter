@@ -890,7 +890,7 @@ dependencies = [
 
 [[package]]
 name = "ryzenpmmeter"
-version = "0.1.0"
+version = "0.1.0-alpa"
 dependencies = [
  "anyhow",
  "appindicator3",
