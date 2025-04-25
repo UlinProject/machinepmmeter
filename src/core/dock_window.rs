@@ -1,6 +1,6 @@
 use crate::{__gen_transparent_gtk_type, config::WindowConfig};
 use gtk::{
-	Application, ApplicationWindow,
+	Application, ApplicationWindow, cairo,
 	ffi::GtkApplicationWindow,
 	gdk::{Monitor, Screen, WindowTypeHint, traits::MonitorExt},
 	traits::{GtkWindowExt, WidgetExt},
@@ -70,6 +70,7 @@ impl ViDockWindow {
 				app_window.connect_draw(move |window, cr| {
 					let allocation = window.allocation();
 					cr.set_source_rgba(0.0, 0.0, 0.0, alpha);
+					cr.set_operator(cairo::Operator::Screen);
 
 					cr.rectangle(
 						0.0,

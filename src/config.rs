@@ -97,8 +97,9 @@ impl FontConfig {
 impl Default for FontConfig {
 	fn default() -> Self {
 		Self {
-			family: "Monospace".into(),
-			size: 13.0,
+			//family: "Monospace".into(),
+			family: "Inter,sans-serif".into(),
+			size: 12.0,
 			scale: Default::default(),
 		}
 	}
