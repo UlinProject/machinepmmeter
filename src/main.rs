@@ -274,8 +274,9 @@ fn main() -> anyhowResult<ExitCode> {
 			graph_area.set_size_request(allocation.width(), 42);
 
 			graph_area.connect_draw(enc!((config) move |da, cr| {
-				let array = &[1.0];
-				draw_peak_graph(&*config, da, cr, array.into_iter(), array.len(), transparent);
+				let array = vec![0.5; 6];
+				draw_peak_graph(&*config, da, cr, array.iter(), array.len(), transparent);
+				
 				false.into()
 			}));
 
@@ -309,8 +310,9 @@ fn main() -> anyhowResult<ExitCode> {
 			graph_area.set_size_request(allocation.width(), 42);
 			graph_area.set_margin_bottom(6);
 			graph_area.connect_draw(enc!((config) move |da, cr| {
-				let array = &[1.0];
-				draw_peak_graph(&*config, da, cr, array.into_iter(), array.len(), transparent);
+				let array = vec![0.5; 6];
+				draw_peak_graph(&*config, da, cr, array.iter(), array.len(), transparent);
+				
 				false.into()
 			}));
 
@@ -346,7 +348,7 @@ fn main() -> anyhowResult<ExitCode> {
 
 			let arc = Arc::new(Mutex::new({
 				let mut v = VecDeque::<f64>::new();
-				for _ in 0..220 {
+				for _ in 0..420 {
 					v.push_back(0.0);
 				}
 				
@@ -354,7 +356,6 @@ fn main() -> anyhowResult<ExitCode> {
 			}));
 			graph_area.connect_draw(enc!((config, arc) move |da, cr| {
 				let lock = arc.lock().unwrap();
-				
 				
 				draw_peak_graph(&*config, da, cr, lock.iter(), lock.len(), transparent);
 
