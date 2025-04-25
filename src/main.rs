@@ -257,7 +257,6 @@ fn main() -> anyhowResult<ExitCode> {
 		}
 
 		dock_window.add(&vbox);
-
 		dock_window.show_all();
 
 		dock_window.set_pos_inscreen(&*c_display, config.get_window_config().get_pos());
