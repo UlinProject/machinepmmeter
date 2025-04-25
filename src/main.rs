@@ -155,14 +155,29 @@ fn main() -> anyhowResult<ExitCode> {
 		}
 
 		{
-			let vimetr = ViMeter::new_visender(config.clone(), "# TDP", dock_window.allocation().width(), 420, transparent);
+			let vimetr = ViMeter::new_visender(config.clone(), "# TDP", dock_window.allocation().width(), 200, transparent);
 			vbox.pack_start(
 				&*vimetr,
 				false,
 				false,
 				0,
 			);
-			glib::timeout_add_local(std::time::Duration::from_millis(60), move || {
+			glib::timeout_add_local(std::time::Duration::from_millis(100), move || {
+				vimetr.push_next_and_queue_draw(random_range(1..9) as f64 * 0.10);
+
+				ControlFlow::Continue
+			});
+		}
+
+		{
+			let vimetr = ViMeter::new_visender(config.clone(), "# VRM", dock_window.allocation().width(), 200, transparent);
+			vbox.pack_start(
+				&*vimetr,
+				false,
+				false,
+				0,
+			);
+			glib::timeout_add_local(std::time::Duration::from_millis(600), move || {
 				vimetr.push_next_and_queue_draw(random_range(0.8..0.9));
 
 				ControlFlow::Continue
@@ -170,29 +185,14 @@ fn main() -> anyhowResult<ExitCode> {
 		}
 
 		{
-			let vimetr = ViMeter::new_visender(config.clone(), "# VRM", dock_window.allocation().width(), 420, transparent);
+			let vimetr = ViMeter::new_visender(config.clone(), "# VOLTAGE", dock_window.allocation().width(), 200, transparent);
 			vbox.pack_start(
 				&*vimetr,
 				false,
 				false,
 				0,
 			);
-			glib::timeout_add_local(std::time::Duration::from_millis(60), move || {
-				vimetr.push_next_and_queue_draw(random_range(0.8..0.9));
-
-				ControlFlow::Continue
-			});
-		}
-
-		{
-			let vimetr = ViMeter::new_visender(config.clone(), "# VOLTAGE", dock_window.allocation().width(), 420, transparent);
-			vbox.pack_start(
-				&*vimetr,
-				false,
-				false,
-				0,
-			);
-			glib::timeout_add_local(std::time::Duration::from_millis(60), move || {
+			glib::timeout_add_local(std::time::Duration::from_millis(600), move || {
 				vimetr.push_next_and_queue_draw(random_range(0.8..0.9));
 
 				ControlFlow::Continue

@@ -6,6 +6,7 @@ use crate::widgets::primitives::graph::ViGraph;
 use crate::widgets::primitives::graph::ViGraphSender;
 use crate::widgets::primitives::label::ViLabel;
 use crate::widgets::text_meter::ViTextMeter;
+use crate::widgets::text_meter::ViTextMeterSender;
 use gtk::Align;
 use gtk::Box;
 use gtk::ffi::GtkBox;
@@ -65,23 +66,53 @@ impl ViMeter {
 			)
 		);
 
-		let textmeter = ViTextMeter::new(&*config, "90", "MAX: 90", "AVG: 90", transparent);
-		vbox.pack_start(&textmeter, false, false, 0);
+		let textmeter_sender = ViTextMeter::new_sender(&*config, transparent);
+		vbox.pack_start(&*textmeter_sender, false, false, 0);
 
-		let graphsender = ViGraph::new_graphsender(config, width, 42, len, transparent);
+		let graphsender = ViGraph::new_graphsender(config.clone(), width, 42, len, transparent);
 		vbox.pack_start(&*graphsender, true, true, 0);
 
-		ViMeterSender(textmeter, graphsender, Self(vbox))
+		ViMeterSender {
+			config,
+			color_and_text: textmeter_sender,
+			graph: graphsender,
+			meter: Self(vbox),
+		}
 	}
 }
 
 #[allow(dead_code)]
-pub struct ViMeterSender(ViTextMeter, ViGraphSender, ViMeter);
+pub struct ViMeterSender {
+	config: Rc<Config>,
+	color_and_text: ViTextMeterSender,
+	graph: ViGraphSender,
+	meter: ViMeter,
+}
 
 impl ViMeterSender {
 	pub fn push_next_and_queue_draw(&self, v: f64) {
-		self.1.push_next(v);
-		self.1.queue_draw();
+		self.graph.push_next(v);
+
+		let color = self.config.get_color_config();
+		let (red, green, blue) = if v >= 0.85 {
+			color.red()
+		} else if v >= 0.75 {
+			color.orange()
+		} else {
+			color.green()
+		};
+		let red = (red as f64) / 255.0;
+		let green = (green as f64) / 255.0;
+		let blue = (blue as f64) / 255.0;
+		self.color_and_text
+			.set_color_and_queue_draw(red, green, blue);
+
+		self.color_and_text
+			.set_current_and_queue_draw(&v.to_string()); // TODO REFACTOING ME
+		self.color_and_text.set_avg_and_queue_draw(&v.to_string()); // TODO REFACTOING ME
+		self.color_and_text.set_limit_and_queue_draw(&v.to_string()); // TODO REFACTOING ME
+
+		self.graph.queue_draw();
 	}
 }
 
@@ -89,6 +120,6 @@ impl Deref for ViMeterSender {
 	type Target = ViMeter;
 
 	fn deref(&self) -> &Self::Target {
-		&self.2
+		&self.meter
 	}
 }

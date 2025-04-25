@@ -6,7 +6,9 @@ use crate::{
 	widgets::primitives::label::ViLabel,
 };
 use gtk::{
-	ffi::GtkBox, traits::{BoxExt, WidgetExt}, Align, Box
+	Align, Box,
+	ffi::GtkBox,
+	traits::{BoxExt, WidgetExt},
 };
 
 #[repr(transparent)]

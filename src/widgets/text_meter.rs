@@ -1,10 +1,15 @@
+use std::{cell::RefCell, ops::Deref, rc::Rc};
+
 use crate::{
 	__gen_transparent_gtk_type,
 	config::{ColorConfig, FontConfig},
 	widgets::primitives::{color_block::ViColorBlock, label::ViLabel},
 };
 use gtk::{
-	ffi::GtkBox, pango::Weight, traits::{BoxExt, WidgetExt}, Align, Box, Orientation
+	Align, Box, Orientation,
+	ffi::GtkBox,
+	pango::Weight,
+	traits::{BoxExt, WidgetExt},
 };
 
 #[repr(transparent)]
@@ -27,15 +32,11 @@ __gen_transparent_gtk_type! {
 }
 
 impl ViTextMeter {
-	pub fn new(
+	pub fn new_sender(
 		config: impl AsRef<FontConfig> + AsRef<ColorConfig> + Copy,
 
-		value: &str,
-		max: &str,
-		avg: &str,
-
 		transparent: f64,
-	) -> Self {
+	) -> ViTextMeterSender {
 		let hbox = Box::new(Orientation::Horizontal, 0);
 		hbox.connect_draw(move |window, cr| {
 			let allocation = window.allocation();
@@ -54,44 +55,47 @@ impl ViTextMeter {
 		let margin_top = 3 + 3;
 		let margin_bottom = 3;
 
-		hbox.pack_start(
-			&ViColorBlock::new(2, 0).connect_color::<true>(config, |c| c.green(), transparent),
-			false,
-			true,
-			2,
-		);
+		let color = {
+			let (red, green, blue) = (config.as_ref() as &ColorConfig).green();
 
-		hbox.pack_start(
-			&ViLabel::new("arg_ViTextMeter", config, value, Weight::Ultrabold)
-				.set_align(Align::Center)
-				.set_margin_top(margin_top)
-				.set_margin_bottom(margin_bottom),
-			true,
-			true,
-			0,
-		);
+			let red = (red as f64) / 255.0;
+			let green = (green as f64) / 255.0;
+			let blue = (blue as f64) / 255.0;
 
-		hbox.pack_start(
-			&ViLabel::new("arg_ViTextMeter", config, avg, Weight::Normal)
-				.set_align(Align::Center)
-				.set_margin_top(margin_top)
-				.set_margin_bottom(margin_bottom),
-			true,
-			true,
-			0
-		);
-		
-		hbox.pack_start(
-			&ViLabel::new("arg_ViTextMeter", config, max, Weight::Normal)
-				.set_align(Align::Center)
-				.set_margin_top(margin_top)
-				.set_margin_bottom(margin_bottom),
-			true,
-			true,
-			0
-		);
+			let state_color = Rc::new(RefCell::new((red, green, blue, transparent)));
+			let color_block =
+				ViColorBlock::new(2, 0).connect_state_background::<true>(state_color.clone());
 
-		Self(hbox)
+			hbox.pack_start(&color_block, false, true, 0);
+
+			(state_color, color_block)
+		};
+
+		let current = ViLabel::new("arg_ViTextMeter", config, "0.0", Weight::Ultrabold)
+			.set_align(Align::Center)
+			.set_margin_top(margin_top)
+			.set_margin_bottom(margin_bottom);
+		hbox.pack_start(&current, true, true, 0);
+
+		let avg = ViLabel::new("arg_ViTextMeter", config, "AVG: 0.0", Weight::Normal)
+			.set_align(Align::Center)
+			.set_margin_top(margin_top)
+			.set_margin_bottom(margin_bottom);
+		hbox.pack_start(&avg, true, true, 0);
+
+		let limit = ViLabel::new("arg_ViTextMeter", config, "LIMIT: 0.0", Weight::Normal)
+			.set_align(Align::Center)
+			.set_margin_top(margin_top)
+			.set_margin_bottom(margin_bottom);
+		hbox.pack_start(&limit, true, true, 0);
+
+		ViTextMeterSender {
+			color,
+			current,
+			avg,
+			limit,
+			gui: Self(hbox),
+		}
 	}
 
 	#[inline]
@@ -127,5 +131,75 @@ impl ViTextMeter {
 		self.0.set_margin_bottom(margin);
 
 		self
+	}
+}
+
+pub struct ViTextMeterSender {
+	#[allow(clippy::type_complexity)]
+	color: (Rc<RefCell<(f64, f64, f64, f64)>>, ViColorBlock),
+	current: ViLabel,
+	avg: ViLabel,
+	limit: ViLabel,
+
+	gui: ViTextMeter,
+}
+
+impl ViTextMeterSender {
+	pub fn set_colordata<R>(&self, next: impl FnOnce(&mut (f64, f64, f64, f64)) -> R) -> R {
+		let mut write = RefCell::borrow_mut(&self.color.0);
+
+		next(&mut write)
+	}
+
+	pub fn set_color(&self, r: f64, g: f64, b: f64) {
+		self.set_colordata(|w| {
+			w.0 = r;
+			w.1 = g;
+			w.2 = b;
+		});
+	}
+
+	pub fn set_color_and_queue_draw(&self, r: f64, g: f64, b: f64) {
+		self.set_color(r, g, b);
+		self.color.1.queue_draw();
+	}
+
+	pub fn set_current_and_queue_draw(&self, v: &str) {
+		let len = v.len();
+		let v = match len >= 6 {
+			true => &v[..6],
+			false => v,
+		};
+
+		self.current.set_text(v);
+	}
+
+	pub fn set_avg_and_queue_draw(&self, v: &str) {
+		let len = v.len();
+		let v = match len >= 6 {
+			true => &v[..6],
+			false => v,
+		};
+
+		self.avg.set_text(&format!("AVG: {v}")); // TODO REFACTORING ME
+	}
+
+	pub fn set_limit_and_queue_draw(&self, v: &str) {
+		let len = v.len();
+		let v = match len >= 6 {
+			true => &v[..6],
+			false => v,
+		};
+
+		self.limit.set_text(&format!("LIMIT: {v}")); // TODO REFACTORING ME
+	}
+}
+
+impl Deref for ViTextMeterSender {
+	type Target = ViTextMeter;
+
+	#[inline]
+	fn deref(&self) -> &Self::Target {
+		&self.gui
 	}
 }

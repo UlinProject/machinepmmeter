@@ -61,6 +61,10 @@ impl ViLabel {
 		Self(label)
 	}
 
+	pub fn set_text(&self, text: &str) {
+		self.0.set_text(text);
+	}
+
 	pub fn set_align(self, align: Align) -> Self {
 		self.0.set_halign(align);
 		self.0.set_valign(align);
