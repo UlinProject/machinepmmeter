@@ -90,9 +90,19 @@ impl ViDockWindow {
 		__connect_transparent_background(&self.0, screen.as_ref(), alpha)
 	}
 
-	pub fn set_pos_inscreen(&self, vi: &ViGraphDisplayInfo, pos: PosINScreen) {
+	pub fn set_pos_inscreen(&self, monitor: impl AsRef<Monitor>, pos: PosINScreen) {
 		let (window_width, window_height) = (self.0.allocated_width(), self.0.allocated_height());
-		let (display_width, display_height) = vi.monitor_width_and_height();
+		let (display_width, display_height) = {
+			let rect = monitor.as_ref().geometry();
+			let w = rect.width();
+			let h = rect.height();
+
+			(w, h)
+		};
+		trace!(
+			"#[display] width: {}, height: {}",
+			display_width, display_height
+		);
 
 		let x = match pos {
 			PosINScreen::TopLeft | PosINScreen::CenterLeft | PosINScreen::BottomLeft => 0,
@@ -118,7 +128,7 @@ impl ViDockWindow {
 	}
 }
 
-#[derive(Debug, Clone, Copy, Default)]
+#[derive(Debug, Deserialize, Clone, Copy, Default)]
 pub enum PosINScreen {
 	TopLeft = 0,
 	CenterLeft = 1,
