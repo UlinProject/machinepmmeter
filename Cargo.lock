@@ -650,6 +650,23 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "13dc2df351e3202783a1fe0d44375f7295ffb4049267b0f3018346dc122a1d94"
 
 [[package]]
+name = "machinepmmeter"
+version = "0.1.0-alpa"
+dependencies = [
+ "anyhow",
+ "appindicator3",
+ "clap",
+ "directories",
+ "enclose",
+ "env_logger",
+ "gtk",
+ "log",
+ "rand",
+ "serde",
+ "toml",
+]
+
+[[package]]
 name = "memchr"
 version = "2.7.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -886,23 +903,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cfcb3a22ef46e85b45de6ee7e79d063319ebb6594faafcf1c225ea92ab6e9b92"
 dependencies = [
  "semver",
-]
-
-[[package]]
-name = "ryzenpmmeter"
-version = "0.1.0-alpa"
-dependencies = [
- "anyhow",
- "appindicator3",
- "clap",
- "directories",
- "enclose",
- "env_logger",
- "gtk",
- "log",
- "rand",
- "serde",
- "toml",
 ]
 
 [[package]]

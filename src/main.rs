@@ -124,7 +124,7 @@ fn draw_peak_graph<'a>(
 	let _e = cr.stroke();
 }
 
-const APP_ID: &str = "com.ulinkot.ryzenpmmeter";
+const APP_ID: &str = "com.ulinkot.machinepmmeter";
 const PKG_NAME: &str = env!("CARGO_PKG_NAME");
 const UPPERCASE_PKG_NAME: &str = const_ascii_uppercase!(PKG_NAME);
 
@@ -133,8 +133,8 @@ const UPPERCASE_PKG_VERSION: &str = const_ascii_uppercase!(PKG_VERSION);
 
 #[derive(Parser, Debug)]
 #[clap(
-	name = "ryzenpmmeter",
-	about = "A tool to monitor Ryzen power consumption"
+	name = "machinepmmeter",
+	about = "A tool to monitor Machine power consumption"
 )]
 struct Cli {
 	/// Path to the TOML configuration file
