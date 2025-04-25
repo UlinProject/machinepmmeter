@@ -5,7 +5,7 @@ use crate::{
 	maybe,
 	widgets::primitives::{color_block::ViColorBlock, label::ViLabel},
 };
-use gtk::{Box, Orientation, ffi::GtkBox, traits::BoxExt};
+use gtk::{Align, Box, Orientation, ffi::GtkBox, traits::BoxExt};
 
 #[repr(transparent)]
 #[derive(Debug)]
@@ -38,8 +38,8 @@ impl ViIndicator {
 	) -> Self {
 		let hbox = Box::new(Orientation::Horizontal, 0);
 		hbox.pack_start(
-			&ViLabel::new(config, value)
-				.set_margin(10)
+			&ViLabel::new("arg_viindicator", config, value)
+				.set_align(Align::Center)
 				.connect_nonblack_background(0.0, 0.0, 0.0, transparent),
 			true,
 			true,
@@ -47,16 +47,16 @@ impl ViIndicator {
 		);
 
 		maybe!(max, |max| hbox.pack_start(
-			&ViLabel::new(config, max)
-				.set_margin(10)
+			&ViLabel::new("arg_viindicator", config, max)
+				.set_align(Align::Center)
 				.connect_nonblack_background(0.0, 0.0, 0.0, transparent),
 			true,
 			true,
 			0
 		));
 		maybe!(avg, |avg| hbox.pack_start(
-			&ViLabel::new(config, avg)
-				.set_margin(10)
+			&ViLabel::new("arg_viindicator", config, avg)
+				.set_align(Align::Center)
 				.connect_nonblack_background(0.0, 0.0, 0.0, transparent),
 			true,
 			true,
