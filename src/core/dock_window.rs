@@ -49,12 +49,16 @@ impl ViDockWindow {
 		Self(window)
 	}
 
-	pub fn connect_transparent_background(&self, screen: impl AsRef<Screen>, alpha: f64) -> bool {
+	pub fn connect_transparent_background(
+		&self,
+		screen: impl AsRef<Screen>,
+		alpha: f64,
+	) -> HasTransparent {
 		fn __connect_transparent_background(
 			app_window: &ApplicationWindow,
 			screen: &Screen,
 			alpha: f64,
-		) -> bool {
+		) -> HasTransparent {
 			if let Some(visual) = screen.rgba_visual() {
 				app_window.set_visual(Some(&visual));
 
@@ -73,10 +77,9 @@ impl ViDockWindow {
 					false.into()
 				});
 
-				true
+				HasTransparent::True
 			} else {
-				//eprintln!("RGBA visual не поддерживается.  Прозрачность не будет работать.");
-				false
+				HasTransparent::False
 			}
 		}
 
@@ -125,4 +128,26 @@ pub enum PosINScreen {
 	TopRight = 6,
 	RightCenter = 7,
 	BottomRight = 8,
+}
+
+#[derive(Debug, Clone, Copy)]
+#[repr(u8)]
+pub enum HasTransparent {
+	True = true as _,
+	False = false as _,
+}
+
+impl HasTransparent {
+	#[inline]
+	pub const fn is_true(&self) -> bool {
+		matches!(self, Self::True)
+	}
+
+	#[inline]
+	pub const fn unwrap_or(&self, default: bool) -> bool {
+		match self {
+			Self::False => default,
+			Self::True => true,
+		}
+	}
 }
