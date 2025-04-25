@@ -1,9 +1,10 @@
-use crate::{__gen_transparent_gtk_type, config::FontConfig};
+use crate::maybe;
+use crate::{__gen_transparent_gtk_type, config::FontConfig, core::maybe::Maybe};
 use gtk::{
-	Label,
+	Align, Label,
 	ffi::GtkLabel,
-	pango::{self, AttrFontDesc, AttrList, FontDescription},
-	traits::{LabelExt, WidgetExt},
+	pango::{AttrFontDesc, AttrList, FontDescription},
+	traits::{LabelExt, StyleContextExt, WidgetExt},
 };
 
 #[repr(transparent)]
@@ -26,19 +27,33 @@ __gen_transparent_gtk_type! {
 }
 
 impl ViLabel {
-	pub fn new(fconfig: impl AsRef<FontConfig>, value: &str) -> Self {
+	pub fn new<'c>(
+		class: impl Maybe<&'c str>,
+		fconfig: impl AsRef<FontConfig>,
+		value: &str,
+	) -> Self {
 		let fconfig = fconfig.as_ref();
 		let label = Label::new(Some(value));
 
-		let mut font_desc = FontDescription::new();
-		font_desc.set_family(fconfig.get_family());
-		font_desc.set_absolute_size(fconfig.calc_font_size());
-		font_desc.set_weight(pango::Weight::Ultrabold);
-
-		let font_attr = AttrFontDesc::new(&font_desc);
-		let attrs = AttrList::new();
-		attrs.insert(font_attr);
-		label.set_attributes(Some(&attrs));
+		{
+			// font
+			let mut font_desc;
+			let font_attr = AttrFontDesc::new({
+				font_desc = FontDescription::new();
+				font_desc.set_family(fconfig.get_family());
+				font_desc.set_absolute_size(fconfig.calc_font_size());
+				//font_desc.set_weight(pango::Weight::Normal);
+				&font_desc
+			});
+			let attrs = AttrList::new();
+			attrs.insert(font_attr);
+			label.set_attributes(Some(&attrs));
+		}
+		{
+			let style = label.style_context();
+			style.add_class("vilabel");
+			maybe!(class, |class| style.add_class(class));
+		}
 
 		Self(label)
 	}
