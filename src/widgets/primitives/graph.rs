@@ -51,7 +51,7 @@ impl ViGraph {
 		let graph_area = DrawingArea::new();
 		graph_area.set_margin_bottom(6);
 		graph_area.set_size_request(width, height);
-		
+
 		graph_area.connect_draw(enc!((rc_data) move |da, cr| {
 			{
 				let data = RefCell::borrow(&rc_data);
@@ -80,14 +80,14 @@ impl ViGraphSender {
 		self.push_next(v);
 		self.queue_draw();
 	}
-	
+
 	pub fn push_next(&self, v: f64) {
 		let mut lock = RefCell::borrow_mut(&self.0);
 					
 		lock.pop_front();
 		lock.push_back(v);
 	}
-	
+
 	#[inline]
 	pub fn queue_draw(&self) {
 		self.1.queue_draw();

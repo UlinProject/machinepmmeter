@@ -6,9 +6,7 @@ use crate::{
 	widgets::primitives::label::ViLabel,
 };
 use gtk::{
-	Align, Box,
-	ffi::GtkBox,
-	traits::{BoxExt, WidgetExt},
+	ffi::GtkBox, traits::{BoxExt, WidgetExt}, Align, Box
 };
 
 #[repr(transparent)]
@@ -67,8 +65,8 @@ impl ViDockHead {
 			.set_margin_top(2);
 		head.pack_start(&name_label, false, true, 0); // expand: true, fill: true
 
-		maybe!(version, |v| {
-			let version_label = ViLabel::new("versionhead_vilabel", config, v)
+		maybe!((version) {
+			let version_label = ViLabel::new("versionhead_vilabel", config, version)
 				.set_align(Align::End)
 				.set_margin_top(2);
 

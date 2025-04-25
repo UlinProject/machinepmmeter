@@ -51,7 +51,7 @@ use __always_has_value_types;
 #[macro_export]
 macro_rules! maybe {
 	[
-		$name: ident, |$true_v: ident| {
+		($name: ident) {
 			$($true_code:tt)*
 		}
 
@@ -60,7 +60,7 @@ macro_rules! maybe {
 		})?
 	] => {
 		if $name.has_value() {
-			let $true_v = $name.value();
+			let $name = $name.value();
 
 			$($true_code)*
 		}
@@ -71,10 +71,10 @@ macro_rules! maybe {
 	};
 
 	[
-		$name: ident, |$v: ident| $($code:tt)*
+		($name: ident) $($code:tt)*
 	] => {
 		if $name.has_value() {
-			let $v = $name.value();
+			let $name = $name.value();
 
 			$($code)*
 		}

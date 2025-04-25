@@ -52,7 +52,7 @@ impl ViLabel {
 		{
 			let style = label.style_context();
 			style.add_class("vilabel");
-			maybe!(class, |class| style.add_class(class));
+			maybe!((class) style.add_class(class));
 		}
 
 		Self(label)

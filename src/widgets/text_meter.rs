@@ -75,7 +75,7 @@ impl ViTextMeter {
 			0,
 		);
 
-		maybe!(max, |max| hbox.pack_start(
+		maybe!((max) hbox.pack_start(
 			&ViLabel::new("arg_ViTextMeter", config, max)
 				.set_align(Align::Center)
 				.set_margin_top(margin_top)
@@ -84,7 +84,8 @@ impl ViTextMeter {
 			true,
 			0
 		));
-		maybe!(avg, |avg| hbox.pack_start(
+		
+		maybe!((avg) hbox.pack_start(
 			&ViLabel::new("arg_ViTextMeter", config, avg)
 				.set_align(Align::Center)
 				.set_margin_top(margin_top)
