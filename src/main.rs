@@ -1,4 +1,4 @@
-use crate::config::Config;
+use crate::config::{ColorConfig, Config};
 use crate::core::display::ViGraphDisplayInfo;
 use crate::core::dock_window::ViDockWindow;
 use crate::widgets::indicator::ViIndicator;
@@ -32,29 +32,74 @@ mod core {
 	pub mod maybe;
 }
 
-fn draw_peak_graph(da: &DrawingArea, cr: &cairo::Context, data: &[f64]) {
+fn draw_peak_graph(
+	color: impl AsRef<ColorConfig>,
+	da: &DrawingArea,
+	cr: &cairo::Context,
+	data: &[f64],
+	transparent: f64,
+) {
+	let color = color.as_ref();
 	let allocation = da.allocation();
-	let width = allocation.width() as f64;
-	let height = allocation.height() as f64;
+	let width = allocation.width().into();
+	let height = allocation.height().into();
 
-	cr.set_source_rgba(0.0, 0.0, 0.0, 0.5);
-	cr.rectangle(0.0, 0.0, width, height);
-	let _e = cr.fill();
+	{
+		// background
+		cr.move_to(0.0, 0.0);
+		cr.set_source_rgba(0.255, 0.255, 0.255, transparent);
 
-	cr.set_source_rgba(0.0, 1.0, 0.0, 1.0);
-	cr.set_line_width(1.5);
+		cr.rectangle(0.0, 0.0, width, height);
+		let _e = cr.fill();
+	}
+
+	let num_horizontal_lines = 10;
+	let num_vertical_lines = 10;
+
+	cr.set_source_rgba(0.8, 0.8, 0.8, transparent * 0.5);
+	cr.set_line_width(0.1);
+
+	for i in 1..num_horizontal_lines {
+		let y = height / num_horizontal_lines as f64 * i as f64;
+		cr.move_to(0.0, y);
+		cr.line_to(width, y);
+		let _e = cr.stroke();
+	}
+	for i in 1..num_vertical_lines {
+		let x = width / num_vertical_lines as f64 * i as f64;
+		cr.move_to(x, 0.0);
+		cr.line_to(x, height);
+		let _e = cr.stroke();
+	}
+
+	cr.set_line_width(2.0);
 
 	let x_step = width / (data.len() - 1) as f64;
 
 	for (enumerate, a) in data.iter().enumerate() {
 		let x = enumerate as f64 * x_step;
-		let y = height * (1.0 - a); // Инвертируем y, чтобы 0 был внизу
+		let y = height * (1.0 - a);
 
 		if enumerate == 0 {
-			cr.move_to(x, y);
+			cr.move_to(0.0, height * (1.0 - data[0])); // Start at the first data point
 		} else {
 			cr.line_to(x, y);
 		}
+
+		let (r, g, b) = if a > &0.9 {
+			color.orange()
+		} else if a > &0.7 {
+			color.orange()
+		} else {
+			color.green()
+		};
+
+		cr.set_source_rgba(
+			r as f64 / 255.0,
+			g as f64 / 255.0,
+			b as f64 / 255.0,
+			transparent,
+		);
 	}
 
 	let _e = cr.stroke();
@@ -183,72 +228,116 @@ fn main() -> anyhowResult<ExitCode> {
 			); // expand: true, fill: true
 		}
 
+		{
+			vbox.pack_start(
+				&ViLabel::new("info_viindicator", &*config, "# TDP")
+				.set_margin_top(4)
+				.set_margin_start(4)
+				.set_margin_bottom(3)
+				.set_align(Align::Start)
+					.connect_nonblack_background(0.0, 0.0, 0.0, transparent),
+				true,
+				true,
+				0,
+			); // expand: true, fill: true
+		}
 		vbox.pack_start(
-			&ViIndicator::new(&*config, "TDP: 90", "MAX: 90", "AVG: 90", transparent),
+			&ViIndicator::new(&*config, "90", "MAX: 90", "AVG: 90", transparent),
 			false,
 			false,
-			2,
+			0,
 		);
 
 		{
 			let allocation = dock_window.allocation();
 			let graph_area = DrawingArea::new();
-			graph_area.set_size_request(allocation.width(), 30);
+			graph_area.set_margin_bottom(6);
+			graph_area.set_size_request(allocation.width(), 42);
 
-			graph_area.connect_draw(move |da, cr| {
-				draw_peak_graph(da, cr, &[1.0]);
+			graph_area.connect_draw(enc!((config) move |da, cr| {
+				draw_peak_graph(&*config, da, cr, &[1.0], transparent);
 				false.into()
-			});
+			}));
 
 			vbox.pack_start(&graph_area, true, true, 0);
 			dock_window.add(&vbox);
 		}
 
+		{
+			vbox.pack_start(
+				&ViLabel::new("info_viindicator", &*config, "# VRM")
+				.set_margin_top(4)
+				.set_margin_start(4)
+				.set_margin_bottom(3)
+				.set_align(Align::Start)
+					.connect_nonblack_background(0.0, 0.0, 0.0, transparent),
+				true,
+				true,
+				0,
+			); // expand: true, fill: true
+		}
 		vbox.pack_start(
-			&ViIndicator::new(&*config, "TDP: 90", "MAX: 90", "AVG: 90", transparent),
+			&ViIndicator::new(&*config, "90", "MAX: 90", "AVG: 90", transparent),
 			false,
 			false,
-			2,
+			0,
 		);
 
 		{
+			let allocation = dock_window.allocation();
 			let graph_area = DrawingArea::new();
-			graph_area.set_size_request(200, 30);
-			graph_area.connect_draw(move |da, cr| {
-				draw_peak_graph(da, cr, &[1.0]);
+			graph_area.set_size_request(allocation.width(), 42);
+			graph_area.set_margin_bottom(6);
+			graph_area.connect_draw(enc!((config) move |da, cr| {
+				draw_peak_graph(&*config, da, cr, &[1.0], transparent);
 				false.into()
-			});
+			}));
 
 			vbox.pack_start(&graph_area, true, true, 0);
 			dock_window.add(&vbox);
 		}
 
+		{
+			vbox.pack_start(
+				&ViLabel::new("info_viindicator", &*config, "# VOLTAGE")
+				.set_margin_top(4)
+				.set_margin_start(4)
+				.set_margin_bottom(3)
+				.set_align(Align::Start)
+					.connect_nonblack_background(0.0, 0.0, 0.0, transparent),
+				true,
+				true,
+				0,
+			); // expand: true, fill: true
+		}
 		vbox.pack_start(
-			&ViIndicator::new(&*config, "TDP: 90", "MAX: 90", "AVG: 90", transparent),
+			&ViIndicator::new(&*config, "90", "MAX: 90", "AVG: 90", transparent),
 			false,
 			false,
-			2,
+			0,
 		);
 
 		{
+			let allocation = dock_window.allocation();
 			let graph_area = DrawingArea::new();
-			graph_area.set_size_request(200, 30);
+			graph_area.set_margin_bottom(6);
+			graph_area.set_size_request(allocation.width(), 42);
 
 			let arc = Arc::new(Mutex::new(vec![1.0]));
 			let arc2 = arc.clone();
-			graph_area.connect_draw(move |da, cr| {
-				draw_peak_graph(da, cr, &arc2.lock().unwrap());
+			graph_area.connect_draw(enc!((config) move |da, cr| {
+				draw_peak_graph(&*config, da, cr, &arc2.lock().unwrap(), transparent);
 
 				false.into()
-			});
+			}));
 
 			vbox.pack_start(&graph_area, true, true, 0);
 
-			glib::timeout_add_local(std::time::Duration::from_millis(60 / 30), move || {
+			glib::timeout_add_local(std::time::Duration::from_millis(60), move || {
 				{
 					let mut lock = arc.lock().unwrap();
 
-					while lock.len() > 20 {
+					while lock.len() > 120 {
 						let _e = lock.remove(0);
 					}
 
@@ -258,8 +347,6 @@ fn main() -> anyhowResult<ExitCode> {
 				graph_area.queue_draw();
 				ControlFlow::Continue
 			});
-
-			dock_window.add(&vbox);
 		}
 
 		dock_window.add(&vbox);

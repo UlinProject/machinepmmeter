@@ -17,7 +17,7 @@ pub struct Config {
 	name: Option<String>,
 
 	window: WindowConfig,
-	font: FontConfig,
+	all_font: FontConfig,
 	color: ColorConfig,
 }
 
@@ -111,7 +111,7 @@ impl Default for Config {
 		Self {
 			name: None,
 			window: WindowConfig::default(),
-			font: FontConfig::default(),
+			all_font: FontConfig::default(),
 			color: ColorConfig::default(),
 		}
 	}
@@ -190,7 +190,7 @@ impl Config {
 
 	#[inline]
 	pub const fn get_font_config(&self) -> &FontConfig {
-		&self.font
+		&self.all_font
 	}
 
 	#[inline]
