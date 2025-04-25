@@ -1,6 +1,6 @@
 use anyhow::Result as anyhowResult;
 use anyhow::anyhow;
-use gtk::gdk::{self, Visual, traits::MonitorExt};
+use gtk::gdk::{self, Visual};
 
 #[derive(Debug)]
 pub struct ViGraphDisplayInfo {
@@ -35,14 +35,6 @@ impl ViGraphDisplayInfo {
 		let screen = display.default_screen();
 
 		Ok(Self { screen, monitor })
-	}
-
-	pub fn monitor_width_and_height(&self) -> (i32, i32) {
-		let rect = self.monitor.geometry();
-		let w = rect.width();
-		let h = rect.height();
-
-		(w, h)
 	}
 
 	#[allow(dead_code)]
