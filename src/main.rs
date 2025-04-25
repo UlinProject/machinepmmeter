@@ -113,10 +113,22 @@ fn main() -> anyhowResult<ExitCode> {
 	let c_display = ViGraphDisplayInfo::new(config.get_num_monitor())?;
 
 	let application = Application::new(Some(APP_ID), Default::default());
-	application.connect_activate(move |app| {
-		let name_window = config.get_name().unwrap_or(UPPERCASE_PKG_NAME);
-		let dock_window = ViDockWindow::new(app, name_window, WINDOW_WIDTH, WINDOW_HEIGHT);
-		dock_window.connect_transparent_background(&c_display, 0.5);
+	application.connect_activate(enc!((config, c_display) move |app| {
+		let name_window = config.get_name_or_default();
+		trace!("#[gui] Start initialization, name: {:?}", name_window);
+
+		let dock_window = ViDockWindow::new(app, name_window, &*config);
+		let transparent = config.get_window_config().get_transparent().map_or_else(
+			|| 1.0,
+			|level| match !dock_window.connect_transparent_background(&*c_display, level).is_true() {
+				false => {
+					warn!("#[gui] Transparency was expected, but the system does not support it");
+
+					1.0
+				},
+				true => level
+			}
+		);
 
 		let vbox = GtkBox::new(gtk::Orientation::Vertical, 2);
 		{
@@ -135,7 +147,9 @@ fn main() -> anyhowResult<ExitCode> {
 		}
 		{
 			vbox.pack_start(
-				&ViLabel::new("CPU Family: Raven").set_margin(2),
+				&ViLabel::new(&*config, "CPU Family: Raven")
+					.set_margin(2)
+					.connect_nonblack_background(0.0, 0.0, 0.0, transparent),
 				true,
 				true,
 				0,
