@@ -5,14 +5,16 @@ use crate::widgets::indicator::ViIndicator;
 use crate::widgets::primitives::label::ViLabel;
 use anyhow::{Context, Result as anyhowResult};
 use clap::Parser;
+use enclose::enc;
 use gtk::Box as GtkBox;
+use gtk::gdk::Monitor;
 use gtk::gio::prelude::ApplicationExtManual;
 use gtk::gio::traits::ApplicationExt;
 use gtk::glib::{ControlFlow, ExitCode};
 use gtk::prelude::WidgetExt;
 use gtk::traits::{BoxExt, ContainerExt};
 use gtk::{Application, DrawingArea, cairo, glib};
-use log::{info, trace};
+use log::{info, trace, warn};
 use rand::random_range;
 use std::fs;
 use std::path::PathBuf;
@@ -28,9 +30,6 @@ mod core {
 	pub mod gtk_codegen;
 	pub mod maybe;
 }
-
-const WINDOW_WIDTH: i32 = 240;
-const WINDOW_HEIGHT: i32 = 50;
 
 fn draw_peak_graph(da: &DrawingArea, cr: &cairo::Context, data: &[f64]) {
 	let allocation = da.allocation();
@@ -110,7 +109,9 @@ fn main() -> anyhowResult<ExitCode> {
 	trace!("#[config file] current: {:?}", config);
 
 	gtk::init()?;
-	let c_display = ViGraphDisplayInfo::new(config.get_num_monitor())?;
+	let c_display = Rc::new(ViGraphDisplayInfo::new(
+		config.get_window_config().get_num_monitor(),
+	)?);
 
 	let application = Application::new(Some(APP_ID), Default::default());
 	application.connect_activate(enc!((config, c_display) move |app| {
@@ -130,7 +131,7 @@ fn main() -> anyhowResult<ExitCode> {
 			}
 		);
 
-		let vbox = GtkBox::new(gtk::Orientation::Vertical, 2);
+		let vbox = GtkBox::new(gtk::Orientation::Vertical, 0);
 		{
 			let (r, g, b) = config.get_window_config().get_head_color();
 			
@@ -186,7 +187,7 @@ fn main() -> anyhowResult<ExitCode> {
 		{
 			let allocation = dock_window.allocation();
 			let graph_area = DrawingArea::new();
-			graph_area.set_size_request(WINDOW_WIDTH, 30);
+			graph_area.set_size_request(allocation.width(), 30);
 
 			graph_area.connect_draw(move |da, cr| {
 				draw_peak_graph(da, cr, &[1.0]);
