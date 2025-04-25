@@ -4,8 +4,6 @@ use gtk::gdk::{self, Visual, traits::MonitorExt};
 
 #[derive(Debug)]
 pub struct ViGraphDisplayInfo {
-	#[allow(dead_code)]
-	display: gdk::Display,
 	screen: gdk::Screen,
 	monitor: gdk::Monitor,
 }
@@ -14,13 +12,6 @@ impl AsRef<gdk::Screen> for ViGraphDisplayInfo {
 	#[inline]
 	fn as_ref(&self) -> &gdk::Screen {
 		&self.screen
-	}
-}
-
-impl AsRef<gdk::Display> for ViGraphDisplayInfo {
-	#[inline]
-	fn as_ref(&self) -> &gdk::Display {
-		&self.display
 	}
 }
 
@@ -43,11 +34,7 @@ impl ViGraphDisplayInfo {
 		})?;
 		let screen = display.default_screen();
 
-		Ok(Self {
-			display,
-			screen,
-			monitor,
-		})
+		Ok(Self { screen, monitor })
 	}
 
 	pub fn monitor_width_and_height(&self) -> (i32, i32) {
