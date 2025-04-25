@@ -1,5 +1,9 @@
 use crate::{__gen_transparent_gtk_type, config::ColorConfig};
-use gtk::{DrawingArea, ffi::GtkDrawingArea, traits::WidgetExt};
+use gtk::{
+	DrawingArea,
+	ffi::GtkDrawingArea,
+	traits::{StyleContextExt, WidgetExt},
+};
 use std::{
 	cell::{Ref, RefCell},
 	rc::Rc,
@@ -27,6 +31,7 @@ __gen_transparent_gtk_type! {
 impl ViColorBlock {
 	pub fn new(width: i32, height: i32) -> Self {
 		let drawing_area = DrawingArea::new();
+		drawing_area.style_context().add_class("vicolorblock");
 		drawing_area.set_size_request(width, height);
 
 		Self(drawing_area)

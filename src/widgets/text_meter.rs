@@ -9,7 +9,7 @@ use gtk::{
 	Align, Box, Orientation,
 	ffi::GtkBox,
 	pango::Weight,
-	traits::{BoxExt, WidgetExt},
+	traits::{BoxExt, StyleContextExt, WidgetExt},
 };
 
 #[repr(transparent)]
@@ -38,6 +38,7 @@ impl ViTextMeter {
 		transparent: f64,
 	) -> ViTextMeterSender {
 		let hbox = Box::new(Orientation::Horizontal, 0);
+		hbox.style_context().add_class("vitextmeter");
 		hbox.connect_draw(move |window, cr| {
 			let allocation = window.allocation();
 			cr.set_source_rgba(0.220, 0.220, 0.220, transparent);
@@ -71,19 +72,19 @@ impl ViTextMeter {
 			(state_color, color_block)
 		};
 
-		let current = ViLabel::new("arg_ViTextMeter", config, "0.0", Weight::Ultrabold)
+		let current = ViLabel::new("arg_vitextmeter", config, "0.0", Weight::Ultrabold)
 			.set_align(Align::Center)
 			.set_margin_top(margin_top)
 			.set_margin_bottom(margin_bottom);
 		hbox.pack_start(&current, true, true, 0);
 
-		let avg = ViLabel::new("arg_ViTextMeter", config, "AVG: 0.0", Weight::Normal)
+		let avg = ViLabel::new("arg_vitextmeter", config, "AVG: 0.0", Weight::Normal)
 			.set_align(Align::Center)
 			.set_margin_top(margin_top)
 			.set_margin_bottom(margin_bottom);
 		hbox.pack_start(&avg, true, true, 0);
 
-		let limit = ViLabel::new("arg_ViTextMeter", config, "LIMIT: 0.0", Weight::Normal)
+		let limit = ViLabel::new("arg_vitextmeter", config, "LIMIT: 0.0", Weight::Normal)
 			.set_align(Align::Center)
 			.set_margin_top(margin_top)
 			.set_margin_bottom(margin_bottom);

@@ -70,8 +70,14 @@
 	font-weight: normal;
 }
 
+.namehead {
+	border-bottom-color: rgba(220, 220, 220, 0.8);
+	border-bottom-width: 2px;
+	border-bottom-style: solid;
+}
+
 .namehead_vilabel {
-	padding-top: 2px;
+	padding-top: 3px;
 	color: rgb(0, 0, 0);
 	font-weight: bold;
 }
@@ -83,11 +89,23 @@
 	font-weight: bold;
 }
 
-.info_ViTextMeter {
+.vitextmeter {
+	border-bottom-color: rgba(220, 220, 220, 0.2);
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+.vicolorblock {
+	border-bottom-color: rgba(220, 220, 220, 0.2);
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+.info_vitextmeter {
 	font-weight: bold;
 }
 
-.arg_ViTextMeter {
+.arg_vitextmeter {
 	padding-top: 5px;
 	padding: 0;
 	margin: 0;
