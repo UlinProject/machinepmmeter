@@ -1,6 +1,6 @@
 use crate::config::Config;
 use crate::core::display::ViGraphDisplayInfo;
-use crate::core::dock_window::{PosINScreen, ViDockWindow};
+use crate::core::dock_window::ViDockWindow;
 use crate::widgets::indicator::ViIndicator;
 use crate::widgets::primitives::label::ViLabel;
 use anyhow::{Context, Result as anyhowResult};
@@ -259,10 +259,21 @@ fn main() -> anyhowResult<ExitCode> {
 		dock_window.add(&vbox);
 
 		dock_window.show_all();
-		dock_window.set_pos_inscreen(&c_display, PosINScreen::Center);
 
-		dock_window.connect_show(|_| {});
-	});
+		dock_window.set_pos_inscreen(&*c_display, config.get_window_config().get_pos());
+		dock_window.connect_screen_changed(enc!((config, c_display) move |dock_window, screen| {
+			let mut owned_motitor = None;
+			let c_monitor: &Monitor = ViGraphDisplayInfo::as_ref(&*c_display);
+			let monitor: &Monitor = screen
+				.map(|a| a.display())
+				.and_then(|a| {
+					owned_motitor = a.monitor(config.get_window_config().get_num_monitor());
+					owned_motitor.as_ref()
+			}).unwrap_or(c_monitor);
+
+			dock_window.set_pos_inscreen(monitor, config.get_window_config().get_pos());
+		}));
+	}));
 
 	Ok(application.run())
 }
