@@ -113,10 +113,18 @@ fn main() -> anyhowResult<ExitCode> {
 		config.get_window_config().get_num_monitor(),
 	)?);
 
+	let defcss = {
+		let a_css = CssProvider::new();
+		a_css.load_from_data(include_bytes!("../style/def.css"))?;
+
+		a_css
+	};
+
 	let application = Application::new(Some(APP_ID), Default::default());
 	application.connect_activate(enc!((config, c_display) move |app| {
 		let name_window = config.get_name_or_default();
 		trace!("#[gui] Start initialization, name: {:?}", name_window);
+		gtk::StyleContext::add_provider_for_screen(AsRef::<Screen>::as_ref(&c_display as &ViGraphDisplayInfo), &defcss, gtk::STYLE_PROVIDER_PRIORITY_APPLICATION);
 
 		let dock_window = ViDockWindow::new(app, name_window, &*config);
 		let transparent = config.get_window_config().get_transparent().map_or_else(
