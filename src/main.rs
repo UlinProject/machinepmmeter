@@ -17,6 +17,7 @@ use gtk::{Align, Application, DrawingArea, cairo, glib};
 use gtk::{Box as GtkBox, CssProvider};
 use log::{info, trace, warn};
 use rand::random_range;
+use std::collections::VecDeque;
 use std::fs;
 use std::path::PathBuf;
 use std::rc::Rc;
@@ -32,11 +33,12 @@ mod core {
 	pub mod maybe;
 }
 
-fn draw_peak_graph(
+fn draw_peak_graph<'a>(
 	color: impl AsRef<ColorConfig>,
 	da: &DrawingArea,
 	cr: &cairo::Context,
-	data: &[f64],
+	iter: impl Iterator<Item =&'a f64> + Clone,
+	len: usize,
 	transparent: f64,
 ) {
 	let color = color.as_ref();
@@ -56,7 +58,7 @@ fn draw_peak_graph(
 	let num_horizontal_lines = 10;
 	let num_vertical_lines = 10;
 
-	cr.set_source_rgba(0.8, 0.8, 0.8, transparent * 0.5);
+	cr.set_source_rgba(0.8, 0.8, 0.8, transparent);
 	cr.set_line_width(0.1);
 
 	for i in 1..num_horizontal_lines {
@@ -73,33 +75,50 @@ fn draw_peak_graph(
 	}
 
 	cr.set_line_width(2.0);
+	
+	let a_max = {
+		let mut max = 0.0;
+		
+		let iter = iter.clone();
+		for a in iter {
+			let a = *a;
+			if a > max {
+				max = a;
+			}
+		}
+		
+		max
+	};
+	
+	let (r, g, b) = if a_max >= 0.85 {
+		color.orange()
+	} else if a_max >= 0.75 {
+		color.orange()
+	} else {
+		color.green()
+	};
 
-	let x_step = width / (data.len() - 1) as f64;
-
-	for (enumerate, a) in data.iter().enumerate() {
-		let x = enumerate as f64 * x_step;
+	cr.set_source_rgba(
+		r as f64 / 255.0,
+		g as f64 / 255.0,
+		b as f64 / 255.0,
+		transparent,
+	);
+	
+	let x_step = width / (len - 1) as f64;
+	let mut iter = iter;
+	if let Some(a) = iter.next() {
+		cr.move_to(0.0, height * (1.0 - a));
+	}
+		
+	let mut i = 1;
+	for a in iter {
+		let x = i as f64 * x_step;
 		let y = height * (1.0 - a);
 
-		if enumerate == 0 {
-			cr.move_to(0.0, height * (1.0 - data[0])); // Start at the first data point
-		} else {
-			cr.line_to(x, y);
-		}
-
-		let (r, g, b) = if a > &0.9 {
-			color.orange()
-		} else if a > &0.7 {
-			color.orange()
-		} else {
-			color.green()
-		};
-
-		cr.set_source_rgba(
-			r as f64 / 255.0,
-			g as f64 / 255.0,
-			b as f64 / 255.0,
-			transparent,
-		);
+		cr.line_to(x, y);
+		
+		i += 1;
 	}
 
 	let _e = cr.stroke();
@@ -255,7 +274,8 @@ fn main() -> anyhowResult<ExitCode> {
 			graph_area.set_size_request(allocation.width(), 42);
 
 			graph_area.connect_draw(enc!((config) move |da, cr| {
-				draw_peak_graph(&*config, da, cr, &[1.0], transparent);
+				let array = &[1.0];
+				draw_peak_graph(&*config, da, cr, array.into_iter(), array.len(), transparent);
 				false.into()
 			}));
 
@@ -289,7 +309,8 @@ fn main() -> anyhowResult<ExitCode> {
 			graph_area.set_size_request(allocation.width(), 42);
 			graph_area.set_margin_bottom(6);
 			graph_area.connect_draw(enc!((config) move |da, cr| {
-				draw_peak_graph(&*config, da, cr, &[1.0], transparent);
+				let array = &[1.0];
+				draw_peak_graph(&*config, da, cr, array.into_iter(), array.len(), transparent);
 				false.into()
 			}));
 
@@ -323,10 +344,19 @@ fn main() -> anyhowResult<ExitCode> {
 			graph_area.set_margin_bottom(6);
 			graph_area.set_size_request(allocation.width(), 42);
 
-			let arc = Arc::new(Mutex::new(vec![1.0]));
-			let arc2 = arc.clone();
-			graph_area.connect_draw(enc!((config) move |da, cr| {
-				draw_peak_graph(&*config, da, cr, &arc2.lock().unwrap(), transparent);
+			let arc = Arc::new(Mutex::new({
+				let mut v = VecDeque::<f64>::new();
+				for _ in 0..220 {
+					v.push_back(0.0);
+				}
+				
+				v
+			}));
+			graph_area.connect_draw(enc!((config, arc) move |da, cr| {
+				let lock = arc.lock().unwrap();
+				
+				
+				draw_peak_graph(&*config, da, cr, lock.iter(), lock.len(), transparent);
 
 				false.into()
 			}));
@@ -336,12 +366,10 @@ fn main() -> anyhowResult<ExitCode> {
 			glib::timeout_add_local(std::time::Duration::from_millis(60), move || {
 				{
 					let mut lock = arc.lock().unwrap();
-
-					while lock.len() > 120 {
-						let _e = lock.remove(0);
-					}
-
-					lock.push(random_range(0.0..1.0));
+					
+					lock.pop_front();
+					lock.push_back(random_range(0.8..0.9)); // Добавляем новый элемент в конец
+					
 				}
 
 				graph_area.queue_draw();
