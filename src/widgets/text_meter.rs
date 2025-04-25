@@ -13,11 +13,11 @@ use gtk::{
 
 #[repr(transparent)]
 #[derive(Debug)]
-pub struct ViIndicator(Box);
+pub struct ViTextMeter(Box);
 
 __gen_transparent_gtk_type! {
 	#[sys(GtkBox)]
-	ViIndicator(
+	ViTextMeter(
 		new |a: Box| {
 			Self(a)
 		},
@@ -30,7 +30,7 @@ __gen_transparent_gtk_type! {
 	)
 }
 
-impl ViIndicator {
+impl ViTextMeter {
 	pub fn new<'a, 'b>(
 		config: impl AsRef<FontConfig> + AsRef<ColorConfig> + Copy,
 
@@ -66,7 +66,7 @@ impl ViIndicator {
 		);
 
 		hbox.pack_start(
-			&ViLabel::new("arg_viindicator", config, value)
+			&ViLabel::new("arg_ViTextMeter", config, value)
 				.set_align(Align::Center)
 				.set_margin_top(margin_top)
 				.set_margin_bottom(margin_bottom),
@@ -76,7 +76,7 @@ impl ViIndicator {
 		);
 
 		maybe!(max, |max| hbox.pack_start(
-			&ViLabel::new("arg_viindicator", config, max)
+			&ViLabel::new("arg_ViTextMeter", config, max)
 				.set_align(Align::Center)
 				.set_margin_top(margin_top)
 				.set_margin_bottom(margin_bottom),
@@ -85,7 +85,7 @@ impl ViIndicator {
 			0
 		));
 		maybe!(avg, |avg| hbox.pack_start(
-			&ViLabel::new("arg_viindicator", config, avg)
+			&ViLabel::new("arg_ViTextMeter", config, avg)
 				.set_align(Align::Center)
 				.set_margin_top(margin_top)
 				.set_margin_bottom(margin_bottom),

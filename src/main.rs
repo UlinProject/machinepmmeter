@@ -1,9 +1,10 @@
-use crate::config::{ColorConfig, Config};
+use crate::config::Config;
 use crate::core::display::ViGraphDisplayInfo;
 use crate::core::dock_window::ViDockWindow;
-use crate::widgets::indicator::ViIndicator;
-use crate::widgets::primitives::dock_head::ViDockHead;
+use crate::widgets::dock_head::ViDockHead;
+use crate::widgets::primitives::graph::ViGraph;
 use crate::widgets::primitives::label::ViLabel;
+use crate::widgets::text_meter::ViTextMeter;
 use anyhow::{Context, Result as anyhowResult};
 use clap::Parser;
 use enclose::enc;
@@ -13,15 +14,13 @@ use gtk::gio::traits::ApplicationExt;
 use gtk::glib::{ControlFlow, ExitCode};
 use gtk::prelude::WidgetExt;
 use gtk::traits::{BoxExt, ContainerExt, CssProviderExt};
-use gtk::{Align, Application, DrawingArea, cairo, glib};
+use gtk::{Align, Application, glib};
 use gtk::{Box as GtkBox, CssProvider};
 use log::{info, trace, warn};
 use rand::random_range;
-use std::collections::VecDeque;
 use std::fs;
 use std::path::PathBuf;
 use std::rc::Rc;
-use std::sync::{Arc, Mutex};
 
 mod config;
 mod widgets;
@@ -31,97 +30,6 @@ mod core {
 	pub mod dock_window;
 	pub mod gtk_codegen;
 	pub mod maybe;
-}
-
-fn draw_peak_graph<'a>(
-	color: impl AsRef<ColorConfig>,
-	da: &DrawingArea,
-	cr: &cairo::Context,
-	iter: impl Iterator<Item =&'a f64> + Clone,
-	len: usize,
-	transparent: f64,
-) {
-	let color = color.as_ref();
-	let allocation = da.allocation();
-	let width = allocation.width().into();
-	let height = allocation.height().into();
-
-	{
-		// background
-		cr.move_to(0.0, 0.0);
-		cr.set_source_rgba(0.255, 0.255, 0.255, transparent);
-
-		cr.rectangle(0.0, 0.0, width, height);
-		let _e = cr.fill();
-	}
-
-	let num_horizontal_lines = 10;
-	let num_vertical_lines = 10;
-
-	cr.set_source_rgba(0.8, 0.8, 0.8, transparent);
-	cr.set_line_width(0.1);
-
-	for i in 1..num_horizontal_lines {
-		let y = height / num_horizontal_lines as f64 * i as f64;
-		cr.move_to(0.0, y);
-		cr.line_to(width, y);
-		let _e = cr.stroke();
-	}
-	for i in 1..num_vertical_lines {
-		let x = width / num_vertical_lines as f64 * i as f64;
-		cr.move_to(x, 0.0);
-		cr.line_to(x, height);
-		let _e = cr.stroke();
-	}
-
-	cr.set_line_width(2.0);
-	
-	let a_max = {
-		let mut max = 0.0;
-		
-		let iter = iter.clone();
-		for a in iter {
-			let a = *a;
-			if a > max {
-				max = a;
-			}
-		}
-		
-		max
-	};
-	
-	let (r, g, b) = if a_max >= 0.85 {
-		color.orange()
-	} else if a_max >= 0.75 {
-		color.orange()
-	} else {
-		color.green()
-	};
-
-	cr.set_source_rgba(
-		r as f64 / 255.0,
-		g as f64 / 255.0,
-		b as f64 / 255.0,
-		transparent,
-	);
-	
-	let x_step = width / (len - 1) as f64;
-	let mut iter = iter;
-	if let Some(a) = iter.next() {
-		cr.move_to(0.0, height * (1.0 - a));
-	}
-		
-	let mut i = 1;
-	for a in iter {
-		let x = i as f64 * x_step;
-		let y = height * (1.0 - a);
-
-		cr.line_to(x, y);
-		
-		i += 1;
-	}
-
-	let _e = cr.stroke();
 }
 
 const APP_ID: &str = "com.ulinkot.machinepmmeter";
@@ -136,7 +44,7 @@ const UPPERCASE_PKG_VERSION: &str = const_ascii_uppercase!(PKG_VERSION);
 	name = "machinepmmeter",
 	about = "A tool to monitor Machine power consumption"
 )]
-struct Cli {
+pub struct Cli {
 	/// Path to the TOML configuration file
 	#[clap(short, long, value_parser, default_value = None)]
 	config: Option<PathBuf>,
@@ -249,7 +157,7 @@ fn main() -> anyhowResult<ExitCode> {
 
 		{
 			vbox.pack_start(
-				&ViLabel::new("info_viindicator", &*config, "# TDP")
+				&ViLabel::new("info_ViTextMeter", &*config, "# TDP")
 				.set_margin_top(4)
 				.set_margin_start(4)
 				.set_margin_bottom(3)
@@ -261,119 +169,93 @@ fn main() -> anyhowResult<ExitCode> {
 			); // expand: true, fill: true
 		}
 		vbox.pack_start(
-			&ViIndicator::new(&*config, "90", "MAX: 90", "AVG: 90", transparent),
+			&ViTextMeter::new(&*config, "90", "MAX: 90", "AVG: 90", transparent),
 			false,
 			false,
 			0,
 		);
 
 		{
-			let allocation = dock_window.allocation();
-			let graph_area = DrawingArea::new();
-			graph_area.set_margin_bottom(6);
-			graph_area.set_size_request(allocation.width(), 42);
-
-			graph_area.connect_draw(enc!((config) move |da, cr| {
-				let array = vec![0.5; 6];
-				draw_peak_graph(&*config, da, cr, array.iter(), array.len(), transparent);
-				
-				false.into()
-			}));
-
-			vbox.pack_start(&graph_area, true, true, 0);
-			dock_window.add(&vbox);
-		}
-
-		{
-			vbox.pack_start(
-				&ViLabel::new("info_viindicator", &*config, "# VRM")
-				.set_margin_top(4)
-				.set_margin_start(4)
-				.set_margin_bottom(3)
-				.set_align(Align::Start)
-					.connect_nonblack_background(0.0, 0.0, 0.0, transparent),
-				true,
-				true,
-				0,
-			); // expand: true, fill: true
-		}
-		vbox.pack_start(
-			&ViIndicator::new(&*config, "90", "MAX: 90", "AVG: 90", transparent),
-			false,
-			false,
-			0,
-		);
-
-		{
-			let allocation = dock_window.allocation();
-			let graph_area = DrawingArea::new();
-			graph_area.set_size_request(allocation.width(), 42);
-			graph_area.set_margin_bottom(6);
-			graph_area.connect_draw(enc!((config) move |da, cr| {
-				let array = vec![0.5; 6];
-				draw_peak_graph(&*config, da, cr, array.iter(), array.len(), transparent);
-				
-				false.into()
-			}));
-
-			vbox.pack_start(&graph_area, true, true, 0);
-			dock_window.add(&vbox);
-		}
-
-		{
-			vbox.pack_start(
-				&ViLabel::new("info_viindicator", &*config, "# VOLTAGE")
-				.set_margin_top(4)
-				.set_margin_start(4)
-				.set_margin_bottom(3)
-				.set_align(Align::Start)
-					.connect_nonblack_background(0.0, 0.0, 0.0, transparent),
-				true,
-				true,
-				0,
-			); // expand: true, fill: true
-		}
-		vbox.pack_start(
-			&ViIndicator::new(&*config, "90", "MAX: 90", "AVG: 90", transparent),
-			false,
-			false,
-			0,
-		);
-
-		{
-			let allocation = dock_window.allocation();
-			let graph_area = DrawingArea::new();
-			graph_area.set_margin_bottom(6);
-			graph_area.set_size_request(allocation.width(), 42);
-
-			let arc = Arc::new(Mutex::new({
-				let mut v = VecDeque::<f64>::new();
-				for _ in 0..420 {
-					v.push_back(0.0);
-				}
-				
-				v
-			}));
-			graph_area.connect_draw(enc!((config, arc) move |da, cr| {
-				let lock = arc.lock().unwrap();
-				
-				draw_peak_graph(&*config, da, cr, lock.iter(), lock.len(), transparent);
-
-				false.into()
-			}));
-
-			vbox.pack_start(&graph_area, true, true, 0);
+			let graph = ViGraph::new_graphsender(
+				config.clone(), dock_window.allocation().width(), 42, 420, transparent
+			);
+			
+			vbox.pack_start(&*graph, true, true, 0);
 
 			glib::timeout_add_local(std::time::Duration::from_millis(60), move || {
-				{
-					let mut lock = arc.lock().unwrap();
-					
-					lock.pop_front();
-					lock.push_back(random_range(0.8..0.9)); // Добавляем новый элемент в конец
-					
-				}
+				graph.push_next_and_queue_draw(random_range(0.8..0.9));
+				
+				ControlFlow::Continue
+			});
+		}
 
-				graph_area.queue_draw();
+		{
+			vbox.pack_start(
+				&ViLabel::new("info_ViTextMeter", &*config, "# VRM")
+				.set_margin_top(4)
+				.set_margin_start(4)
+				.set_margin_bottom(3)
+				.set_align(Align::Start)
+					.connect_nonblack_background(0.0, 0.0, 0.0, transparent),
+				true,
+				true,
+				0,
+			); // expand: true, fill: true
+		}
+		vbox.pack_start(
+			&ViTextMeter::new(&*config, "90", "MAX: 90", "AVG: 90", transparent),
+			false,
+			false,
+			0,
+		);
+		
+		{
+			let graph = ViGraph::new_graphsender(
+				config.clone(), dock_window.allocation().width(), 42, 420, transparent
+			);
+			
+			vbox.pack_start(&*graph, true, true, 0);
+
+			glib::timeout_add_local(std::time::Duration::from_millis(10), move || {
+				graph.push_next(random_range(0.8..0.9));
+				graph.push_next(random_range(0.8..0.9));
+				graph.push_next(random_range(0.8..0.9));
+				
+				graph.queue_draw();
+				
+				ControlFlow::Continue
+			});
+		}
+
+		{
+			vbox.pack_start(
+				&ViLabel::new("info_ViTextMeter", &*config, "# VOLTAGE")
+				.set_margin_top(4)
+				.set_margin_start(4)
+				.set_margin_bottom(3)
+				.set_align(Align::Start)
+					.connect_nonblack_background(0.0, 0.0, 0.0, transparent),
+				true,
+				true,
+				0,
+			); // expand: true, fill: true
+		}
+		vbox.pack_start(
+			&ViTextMeter::new(&*config, "90", "MAX: 90", "AVG: 90", transparent),
+			false,
+			false,
+			0,
+		);
+
+		{
+			let graph = ViGraph::new_graphsender(
+				config.clone(), dock_window.allocation().width(), 42, 420, transparent
+			);
+			vbox.pack_start(&*graph, true, true, 0);
+
+			glib::timeout_add_local(std::time::Duration::from_millis(60), move || {
+				graph.push_next_and_queue_draw(random_range(0.8..0.9));
+				
 				ControlFlow::Continue
 			});
 		}
