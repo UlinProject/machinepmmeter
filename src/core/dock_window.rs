@@ -1,12 +1,13 @@
-use std::ops::Deref;
-
-use crate::{__gen_transparent_gtk_type, core::display::ViGraphDisplayInfo};
+use crate::{__gen_transparent_gtk_type, config::WindowConfig};
 use gtk::{
 	Application, ApplicationWindow,
 	ffi::GtkApplicationWindow,
-	gdk::{Screen, WindowTypeHint},
+	gdk::{Monitor, Screen, WindowTypeHint, traits::MonitorExt},
 	traits::{GtkWindowExt, WidgetExt},
 };
+use log::trace;
+use serde::Deserialize;
+use std::ops::Deref;
 
 #[repr(transparent)]
 #[derive(Debug)]
