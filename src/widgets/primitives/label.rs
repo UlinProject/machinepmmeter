@@ -49,6 +49,13 @@ impl ViLabel {
 		self
 	}
 
+	pub fn connect_nonblack_background(self, red: f64, green: f64, blue: f64, alpha: f64) -> Self {
+		if red != 0.0 || green != 0.0 || blue != 0.0 || alpha != 1.0 {
+			return self.connect_background(red, green, blue, alpha);
+		}
+		self
+	}
+
 	pub fn connect_background(self, red: f64, green: f64, blue: f64, alpha: f64) -> Self {
 		self.0.connect_draw(move |window, cr| {
 			let allocation = window.allocation();

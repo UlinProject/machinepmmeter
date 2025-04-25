@@ -120,9 +120,16 @@ fn main() -> anyhowResult<ExitCode> {
 
 		let vbox = GtkBox::new(gtk::Orientation::Vertical, 2);
 		{
-			let label = ViLabel::new(name_window)
-				.set_margin(2)
-				.connect_background(0.0, 1.0, 0.0, 0.5);
+			let (r, g, b) = config.get_window_config().get_head_color();
+			
+			let label = ViLabel::new(&*config, name_window)
+				//.set_margin(2)
+				.connect_nonblack_background(
+					(r as f64) / 255.0, 
+					(g as f64) / 255.0, 
+					(b as f64) / 255.0, 
+					transparent
+				);
 
 			vbox.pack_start(&label, true, true, 0); // expand: true, fill: true
 		}
@@ -136,7 +143,9 @@ fn main() -> anyhowResult<ExitCode> {
 		}
 		{
 			vbox.pack_start(
-				&ViLabel::new("SMU BIOS Interface Version: 5").set_margin(2),
+				&ViLabel::new(&*config, "SMU BIOS Interface Version: 5")
+					.set_margin(2)
+					.connect_nonblack_background(0.0, 0.0, 0.0, transparent),
 				true,
 				true,
 				0,
@@ -144,7 +153,9 @@ fn main() -> anyhowResult<ExitCode> {
 		}
 		{
 			vbox.pack_start(
-				&ViLabel::new("PM Table Version: 1e0004").set_margin(2),
+				&ViLabel::new(&*config, "PM Table Version: 1e0004")
+					.set_margin(2)
+					.connect_nonblack_background(0.0, 0.0, 0.0, transparent),
 				true,
 				true,
 				0,
@@ -152,13 +163,14 @@ fn main() -> anyhowResult<ExitCode> {
 		}
 
 		vbox.pack_start(
-			&ViIndicator::new("TDP: 90", "MAX: 90", "AVG: 90"),
+			&ViIndicator::new(&*config, "TDP: 90", "MAX: 90", "AVG: 90", transparent),
 			false,
 			false,
 			2,
 		);
 
 		{
+			let allocation = dock_window.allocation();
 			let graph_area = DrawingArea::new();
 			graph_area.set_size_request(WINDOW_WIDTH, 30);
 
@@ -172,7 +184,7 @@ fn main() -> anyhowResult<ExitCode> {
 		}
 
 		vbox.pack_start(
-			&ViIndicator::new("TDP: 90", "MAX: 90", "AVG: 90"),
+			&ViIndicator::new(&*config, "TDP: 90", "MAX: 90", "AVG: 90", transparent),
 			false,
 			false,
 			2,
@@ -191,7 +203,7 @@ fn main() -> anyhowResult<ExitCode> {
 		}
 
 		vbox.pack_start(
-			&ViIndicator::new("TDP: 90", "MAX: 90", "AVG: 90"),
+			&ViIndicator::new(&*config, "TDP: 90", "MAX: 90", "AVG: 90", transparent),
 			false,
 			false,
 			2,

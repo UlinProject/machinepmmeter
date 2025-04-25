@@ -2,8 +2,7 @@ use std::{
 	cell::{Ref, RefCell},
 	rc::Rc,
 };
-
-use crate::__gen_transparent_gtk_type;
+use crate::{__gen_transparent_gtk_type, config::ColorConfig};
 use gtk::{DrawingArea, ffi::GtkDrawingArea, traits::WidgetExt};
 
 #[repr(transparent)]
@@ -33,18 +32,40 @@ impl ViColorBlock {
 		Self(drawing_area)
 	}
 
+	pub fn connect_color<const ALLOW_ONEDRAW_OPTIMIZE: bool>(
+		self,
+		cconfig: impl AsRef<ColorConfig>,
+
+		get_color: impl FnOnce(&ColorConfig) -> (u8, u8, u8),
+		alpha: f64,
+	) -> Self {
+		let (red, green, blue) = get_color(cconfig.as_ref());
+
+		self.connect_background::<ALLOW_ONEDRAW_OPTIMIZE>(red, green, blue, alpha)
+	}
+
 	pub fn connect_background<const ALLOW_ONEDRAW_OPTIMIZE: bool>(
 		self,
-		red: f64,
-		green: f64,
-		blue: f64,
+		red: u8,
+		green: u8,
+		blue: u8,
 		alpha: f64,
 	) -> Self {
 		self.0.connect_draw(move |da, cr| {
 			let allocation = da.allocation();
 
-			cr.set_source_rgba(red, green, blue, alpha);
-			cr.rectangle(0.0, 0.0, allocation.width() as _, allocation.height() as _);
+			cr.set_source_rgba(
+				(red as f64) / 255.0,
+				(green as f64) / 255.0,
+				(blue as f64) / 255.0,
+				alpha,
+			);
+			cr.rectangle(
+				0.0,
+				0.0,
+				allocation.width().into(),
+				allocation.height().into(),
+			);
 			let _ = cr.fill();
 
 			ALLOW_ONEDRAW_OPTIMIZE.into()
