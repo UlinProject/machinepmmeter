@@ -26,13 +26,14 @@ __gen_transparent_gtk_type! {
 }
 
 impl ViLabel {
-	pub fn new(value: &str) -> Self {
+	pub fn new(fconfig: impl AsRef<FontConfig>, value: &str) -> Self {
+		let fconfig = fconfig.as_ref();
 		let label = Label::new(Some(value));
 
 		let mut font_desc = FontDescription::new();
-		font_desc.set_family("Monospace");
-		font_desc.set_absolute_size(12.0 * pango::SCALE as f64);
-		font_desc.set_weight(pango::Weight::Bold);
+		font_desc.set_family(fconfig.get_family());
+		font_desc.set_absolute_size(fconfig.calc_font_size());
+		font_desc.set_weight(pango::Weight::Ultrabold);
 
 		let font_attr = AttrFontDesc::new(&font_desc);
 		let attrs = AttrList::new();

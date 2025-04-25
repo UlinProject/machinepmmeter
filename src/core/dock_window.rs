@@ -37,12 +37,16 @@ impl Deref for ViDockWindow {
 }
 
 impl ViDockWindow {
-	pub fn new(app: &'_ Application, title: &'_ str, width: i32, height: i32) -> Self {
+	pub fn new(app: &'_ Application, title: &'_ str, wconfig: impl AsRef<WindowConfig>) -> Self {
+		let wconfig = wconfig.as_ref();
 		let window = ApplicationWindow::new(app);
 		window.set_title(title);
 		window.set_decorated(false);
 		window.set_app_paintable(true);
-		window.set_default_size(width, height);
+		window.set_default_size(
+			wconfig.get_width_or_default(),
+			wconfig.get_height_or_default(),
+		);
 		window.set_keep_above(true);
 		window.set_type_hint(WindowTypeHint::Dock);
 
