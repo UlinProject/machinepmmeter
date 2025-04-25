@@ -43,8 +43,44 @@ impl ViLabel {
 		Self(label)
 	}
 
+	pub fn set_align(self, align: Align) -> Self {
+		self.0.set_halign(align);
+		self.0.set_valign(align);
+
+		self
+	}
+
+	#[inline]
 	pub fn set_margin(self, margin: i32) -> Self {
 		self.0.set_margin(margin);
+
+		self
+	}
+
+	#[inline]
+	pub fn set_margin_top(self, margin: i32) -> Self {
+		self.0.set_margin_top(margin);
+
+		self
+	}
+
+	#[inline]
+	pub fn set_margin_start(self, margin: i32) -> Self {
+		self.0.set_margin_start(margin);
+
+		self
+	}
+
+	#[inline]
+	pub fn set_margin_end(self, margin: i32) -> Self {
+		self.0.set_margin_end(margin);
+
+		self
+	}
+
+	#[inline]
+	pub fn set_margin_bottom(self, margin: i32) -> Self {
+		self.0.set_margin_bottom(margin);
 
 		self
 	}
