@@ -53,7 +53,7 @@ impl ViMeter {
 
 		maybe!((head)
 			vbox.pack_start(
-				&ViLabel::new("info_ViTextMeter", &*config, head)
+				&ViLabel::new("info_ViTextMeter", &*config, head, ())
 					.set_margin_top(4)
 					.set_margin_start(4)
 					.set_margin_bottom(3)

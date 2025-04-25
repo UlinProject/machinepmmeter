@@ -11,7 +11,7 @@ pub trait Maybe<T = Self> {
 	fn value(self) -> T;
 }
 
-__always_has_value_types!(i32, RGBA, &'_ str, String, usize);
+__always_has_value_types!(i32, RGBA, &'_ str, String, usize, Weight);
 
 impl<T> Maybe<T> for () {
 	const HAS_VALUE: bool = false;
@@ -47,6 +47,7 @@ macro_rules! __always_has_value_types {
 	};
 }
 use __always_has_value_types;
+use gtk::pango::Weight;
 
 #[macro_export]
 macro_rules! maybe {

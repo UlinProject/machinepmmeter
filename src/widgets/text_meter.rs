@@ -1,14 +1,10 @@
 use crate::{
 	__gen_transparent_gtk_type,
 	config::{ColorConfig, FontConfig},
-	core::maybe::Maybe,
-	maybe,
 	widgets::primitives::{color_block::ViColorBlock, label::ViLabel},
 };
 use gtk::{
-	Align, Box, Orientation,
-	ffi::GtkBox,
-	traits::{BoxExt, WidgetExt},
+	ffi::GtkBox, pango::Weight, traits::{BoxExt, WidgetExt}, Align, Box, Orientation
 };
 
 #[repr(transparent)]
@@ -31,12 +27,12 @@ __gen_transparent_gtk_type! {
 }
 
 impl ViTextMeter {
-	pub fn new<'a, 'b>(
+	pub fn new(
 		config: impl AsRef<FontConfig> + AsRef<ColorConfig> + Copy,
 
-		value: &'_ str,
-		max: impl Maybe<&'a str>,
-		avg: impl Maybe<&'b str>,
+		value: &str,
+		max: &str,
+		avg: &str,
 
 		transparent: f64,
 	) -> Self {
@@ -66,7 +62,7 @@ impl ViTextMeter {
 		);
 
 		hbox.pack_start(
-			&ViLabel::new("arg_ViTextMeter", config, value)
+			&ViLabel::new("arg_ViTextMeter", config, value, Weight::Ultrabold)
 				.set_align(Align::Center)
 				.set_margin_top(margin_top)
 				.set_margin_bottom(margin_bottom),
@@ -75,25 +71,25 @@ impl ViTextMeter {
 			0,
 		);
 
-		maybe!((max) hbox.pack_start(
-			&ViLabel::new("arg_ViTextMeter", config, max)
+		hbox.pack_start(
+			&ViLabel::new("arg_ViTextMeter", config, avg, Weight::Normal)
 				.set_align(Align::Center)
 				.set_margin_top(margin_top)
 				.set_margin_bottom(margin_bottom),
 			true,
 			true,
 			0
-		));
+		);
 		
-		maybe!((avg) hbox.pack_start(
-			&ViLabel::new("arg_ViTextMeter", config, avg)
+		hbox.pack_start(
+			&ViLabel::new("arg_ViTextMeter", config, max, Weight::Normal)
 				.set_align(Align::Center)
 				.set_margin_top(margin_top)
 				.set_margin_bottom(margin_bottom),
 			true,
 			true,
 			0
-		));
+		);
 
 		Self(hbox)
 	}

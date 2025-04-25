@@ -60,13 +60,13 @@ impl ViDockHead {
 			});
 		}
 
-		let name_label = ViLabel::new("namehead_vilabel", config, value)
+		let name_label = ViLabel::new("namehead_vilabel", config, value, ())
 			.set_margin_start(4)
 			.set_margin_top(2);
 		head.pack_start(&name_label, false, true, 0); // expand: true, fill: true
 
 		maybe!((version) {
-			let version_label = ViLabel::new("versionhead_vilabel", config, version)
+			let version_label = ViLabel::new("versionhead_vilabel", config, version, ())
 				.set_align(Align::End)
 				.set_margin_top(2);
 

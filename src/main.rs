@@ -118,7 +118,7 @@ fn main() -> anyhowResult<ExitCode> {
 		vbox.pack_start(&ViDockHead::new(&*config, name_window, UPPERCASE_PKG_VERSION, transparent), true, true, 0); // expand: true, fill: true
 		{
 			vbox.pack_start(
-				&ViLabel::new("head_info", &*config, "CPU Family: Raven")
+				&ViLabel::new("head_info", &*config, "CPU Family: Raven", ())
 				.set_margin_top(8)
 					.set_margin_start(4)
 					.set_margin_bottom(3)
@@ -131,7 +131,7 @@ fn main() -> anyhowResult<ExitCode> {
 		}
 		{
 			vbox.pack_start(
-				&ViLabel::new("head_info", &*config, "SMU BIOS Interface Version: 5")
+				&ViLabel::new("head_info", &*config, "SMU BIOS Interface Version: 5", ())
 				.set_margin_start(4)
 				.set_margin_bottom(3)
 				.set_align(Align::Start)
@@ -143,7 +143,7 @@ fn main() -> anyhowResult<ExitCode> {
 		}
 		{
 			vbox.pack_start(
-				&ViLabel::new("head_info", &*config, "PM Table Version: 1e0004")
+				&ViLabel::new("head_info", &*config, "PM Table Version: 1e0004", ())
 				.set_margin_start(4)
 				.set_margin_bottom(3)
 				.set_align(Align::Start)
