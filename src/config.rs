@@ -66,7 +66,7 @@ impl WindowConfig {
 	}
 
 	pub fn get_height_or_default(&self) -> i32 {
-		self.height.map_or(50, |a| a)
+		self.height.map_or(0, |a| a)
 	}
 
 	#[inline]
