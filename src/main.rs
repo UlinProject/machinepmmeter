@@ -1,6 +1,7 @@
 use crate::config::Config;
 use crate::core::display::ViGraphDisplayInfo;
 use crate::core::dock_window::ViDockWindow;
+use crate::core::keyboard_listener::KeyboardListener;
 use crate::widgets::ViMeter;
 use crate::widgets::dock_head::ViDockHead;
 use crate::widgets::primitives::label::ViLabel;
@@ -20,6 +21,7 @@ use rand::random_range;
 use std::fs;
 use std::path::PathBuf;
 use std::rc::Rc;
+use core::keyboard_listener::Key;
 
 mod config;
 mod widgets;
@@ -29,6 +31,7 @@ mod core {
 	pub mod dock_window;
 	pub mod gtk_codegen;
 	pub mod maybe;
+	pub mod keyboard_listener;
 }
 
 const APP_ID: &str = "com.ulinkot.machinepmmeter";
@@ -87,7 +90,6 @@ fn main() -> anyhowResult<ExitCode> {
 	let c_display = Rc::new(ViGraphDisplayInfo::new(
 		config.get_window_config().get_num_monitor(),
 	)?);
-
 	let defcss = {
 		let a_css = CssProvider::new();
 		a_css.load_from_data(include_bytes!("../style/def.css"))?;
@@ -113,7 +115,7 @@ fn main() -> anyhowResult<ExitCode> {
 				true => level
 			}
 		);
-
+		
 		let vbox = GtkBox::new(gtk::Orientation::Vertical, 0);
 		vbox.pack_start(&ViDockHead::new(&*config, name_window, UPPERCASE_PKG_VERSION, transparent), true, true, 0); // expand: true, fill: true
 		{
@@ -214,6 +216,36 @@ fn main() -> anyhowResult<ExitCode> {
 
 			dock_window.set_pos_inscreen(monitor, config.get_window_config().get_pos());
 		}));
+		
+		let (tx, rx) = async_channel::bounded::<()>(10);
+		std::thread::spawn(move || {
+		let keyboard_listener = KeyboardListener::listen::<3>(
+			|key_table| {
+				key_table[0].set_key(Key::ShiftRight);
+				key_table[1].set_key(Key::ShiftLeft);
+				key_table[2].set_key(Key::F8);
+			},
+			move |state_array, _key, _state| {
+				if (state_array[0].is_pressed() || state_array[1].is_pressed())
+					&& state_array[2].is_pressed()
+				{
+					println!("SHIFT + F8");
+					tx.send_blocking(());
+				}
+			},
+		);});
+		let pos = config.get_window_config().get_pos();
+		let c_display = c_display.clone();
+		glib::MainContext::default().spawn_local(async move {
+			while let Ok(text) = rx.recv().await {
+				if dock_window.is_visible() {
+					dock_window.hide();
+				}else {
+					dock_window.show_all();
+				}
+				dock_window.set_pos_inscreen(&*c_display, pos);
+			}
+		});
 	}));
 
 	Ok(application.run())
