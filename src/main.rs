@@ -4,6 +4,7 @@ use crate::core::dock_window::{PosINScreen, ViDockWindow};
 use crate::core::keyboard_listener::KeyboardListener;
 use crate::widgets::ViMeter;
 use crate::widgets::dock_head::ViDockHead;
+use crate::widgets::hotkeys::ViHotkeys;
 use crate::widgets::primitives::label::ViLabel;
 use anyhow::anyhow;
 use anyhow::{Context, Result as anyhowResult};
@@ -14,9 +15,10 @@ use gtk::gdk::{Monitor, Screen};
 use gtk::gio::prelude::ApplicationExtManual;
 use gtk::gio::traits::ApplicationExt;
 use gtk::glib::{ControlFlow, ExitCode};
+use gtk::pango::Weight;
 use gtk::prelude::WidgetExt;
-use gtk::traits::{BoxExt, ContainerExt, CssProviderExt};
-use gtk::{Align, Application, glib};
+use gtk::traits::{BoxExt, ContainerExt, CssProviderExt, GtkWindowExt};
+use gtk::{Align, Application, Image, Label, Orientation, glib};
 use gtk::{Box as GtkBox, CssProvider};
 use lm_sensors::{LMSensors, SubFeatureRef};
 use log::{error, info, trace, warn};
@@ -117,6 +119,7 @@ enum KeyboardEvents {
 	KpPlus,
 	KpMinus,
 	DoubleShift,
+	Escape,
 }
 
 fn build_ui(
@@ -297,7 +300,7 @@ fn build_ui(
 
 					vbox.pack_start(&*vimetr, false, false, 0);
 
-					for _ in 0..800 {
+					for _ in 0..400 {
 						if let Some((input, sub_in)) = &c_value.input {
 							if let Some((crit_or_max, sub_crit_or_max)) =
 								c_value.crit.as_ref().or(c_value.max.as_ref())
@@ -332,7 +335,7 @@ fn build_ui(
 								);
 							}
 						}
-						std::thread::sleep_ms(1);
+						//std::thread::sleep_ms(1);
 					}
 				}
 			}
@@ -390,13 +393,14 @@ fn build_ui(
 
 	let (tx_keyboardevents, rx_keyboardevents) = async_channel::bounded(18);
 	std::thread::spawn(move || {
-		let keyboard_listener = KeyboardListener::listen::<5>(
+		let keyboard_listener = KeyboardListener::listen::<6>(
 			|key_table| {
 				key_table[0].set_key(Key::ShiftRight);
 				key_table[1].set_key(Key::ShiftLeft);
 				key_table[2].set_key(Key::F8);
 				key_table[3].set_key(Key::KpPlus);
 				key_table[4].set_key(Key::KpMinus);
+				key_table[5].set_key(Key::Escape);
 			},
 			move |state_array, _key, _state| {
 				match (
@@ -407,18 +411,23 @@ fn build_ui(
 					state_array[2].is_pressed(), // F8
 					state_array[3].is_pressed(), // KpPlus
 					state_array[4].is_pressed(), // KpMinus
+					state_array[5].is_pressed(), // Escape
 				) {
-					((true, false) | (false, true), true, false, false) => {
+					((true, false) | (false, true), true, false, false, false) => {
 						// L/R SHIFT + F8
 						let _e = tx_keyboardevents.send_blocking(KeyboardEvents::ShiftF8);
 					}
-					((true, false) | (false, true), false, true, false) => {
+					((true, false) | (false, true), false, true, false, false) => {
 						// L/R SHIFT + KpPlus
 						let _e = tx_keyboardevents.send_blocking(KeyboardEvents::KpPlus);
 					}
-					((true, false) | (false, true), false, false, true) => {
+					((true, false) | (false, true), false, false, true, false) => {
 						// L/R SHIFT + KpMinus
 						let _e = tx_keyboardevents.send_blocking(KeyboardEvents::KpMinus);
+					}
+					((true, false) | (false, true), false, false, false, true) => {
+						// L/R SHIFT + Escape
+						let _e = tx_keyboardevents.send_blocking(KeyboardEvents::Escape);
 					}
 					((true, true), ..) => {
 						// L+R SHIFT
@@ -439,6 +448,22 @@ fn build_ui(
 			}
 		};
 	});
+
+	let vihotkey = ViHotkeys::new(
+		&**config,
+		"# Hot keys",
+		[
+			("view-conceal-symbolic", "Hide | Show (Shift and F8)"),
+			(
+				"sidebar-show-right-symbolic-rtl",
+				"Next position (Left Shift and Right Shift)",
+			),
+			("system-shutdown-symbolic", "Exit (Shift and Esc)"),
+		]
+		.into_iter(),
+		c_transparent,
+	);
+	vbox.add(&vihotkey);
 
 	let pos_inscreen = Rc::new(RefCell::new(config.get_window_config().get_pos()));
 	dock_window.connect_show(enc!((pos_inscreen, c_display, dock_window) move |_| {
@@ -467,25 +492,37 @@ fn build_ui(
 		}),
 	);
 
-	glib::MainContext::default().spawn_local(enc!((c_display, dock_window) async move {
-		while let Ok(event) = rx_keyboardevents.recv().await {
-			match event {
-				KeyboardEvents::ShiftF8 if dock_window.is_visible() => dock_window.hide(),
-				KeyboardEvents::ShiftF8 => dock_window.show_all(),
-				KeyboardEvents::KpPlus => {},
-				KeyboardEvents::KpMinus => {},
-				KeyboardEvents::DoubleShift => {
-					let new_pos = { // NEXT POS IN SCREEN
-						let mut write = pos_inscreen.borrow_mut();
-						let new_pos = write.next();
-						*write = new_pos;
+	glib::MainContext::default().spawn_local(
+		enc!((c_display, dock_window, pos_inscreen) async move {
+			while let Ok(event) = rx_keyboardevents.recv().await {
+				match event {
+					KeyboardEvents::ShiftF8 if dock_window.is_visible() => {
+						dock_window.hide();
+					},
+					KeyboardEvents::ShiftF8 => {
+						dock_window.show();
+					},
+					KeyboardEvents::Escape => {
+						dock_window.close();
+					},
+					KeyboardEvents::KpPlus => {},
+					KeyboardEvents::KpMinus => {},
+					KeyboardEvents::DoubleShift => {
+						let new_pos = { // NEXT POS IN SCREEN
+							let mut write = pos_inscreen.borrow_mut();
+							let new_pos = write.next();
+							*write = new_pos;
 
-						new_pos
-					};
-					dock_window.set_pos_inscreen(&*c_display, new_pos);
-				},
+							new_pos
+						};
+						dock_window.set_pos_inscreen(&*c_display, new_pos);
+					},
+				}
 			}
-		}
+		}),
+	);
+
+	glib::MainContext::default().spawn_local(enc!((dock_window) async move {
+		dock_window.show_all();
 	}));
-	dock_window.show_all();
 }

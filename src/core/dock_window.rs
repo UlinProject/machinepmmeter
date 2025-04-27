@@ -41,6 +41,7 @@ impl ViDockWindow {
 	pub fn new(app: &'_ Application, title: &'_ str, wconfig: impl AsRef<WindowConfig>) -> Self {
 		let wconfig = wconfig.as_ref();
 		let window = ApplicationWindow::new(app);
+		window.set_visible(false);
 		window.set_title(title);
 		window.set_decorated(false);
 		window.set_app_paintable(true);

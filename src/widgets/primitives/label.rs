@@ -7,6 +7,7 @@ use gtk::{
 	pango::{AttrFontDesc, AttrList, FontDescription},
 	traits::{LabelExt, StyleContextExt, WidgetExt},
 };
+pub use pango::Weight;
 
 #[repr(transparent)]
 #[derive(Debug)]
@@ -32,7 +33,7 @@ impl ViLabel {
 		class: impl Maybe<&'c str>,
 		fconfig: impl AsRef<FontConfig>,
 		value: &str,
-		weight: impl Maybe<pango::Weight>,
+		weight: impl Maybe<Weight>,
 	) -> Self {
 		let fconfig = fconfig.as_ref();
 		let label = Label::new(Some(value));
@@ -105,6 +106,18 @@ impl ViLabel {
 		self.0.set_margin_bottom(margin);
 
 		self
+	}
+
+	#[inline]
+	pub fn set_visible(self, v: bool) -> Self {
+		self.0.set_visible(v);
+
+		self
+	}
+
+	#[inline]
+	pub fn set_visible2(&self, v: bool) {
+		self.0.set_visible(v);
 	}
 
 	pub fn connect_nonblack_background(self, red: f64, green: f64, blue: f64, alpha: f64) -> Self {

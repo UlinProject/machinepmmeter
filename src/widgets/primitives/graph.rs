@@ -51,6 +51,7 @@ impl ViGraph {
 		let graph_area = DrawingArea::new();
 		graph_area.set_margin_bottom(6);
 		graph_area.set_size_request(width, height);
+		graph_area.set_visible(true);
 
 		graph_area.connect_draw(enc!((rc_data) move |da, cr| {
 			{

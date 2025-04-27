@@ -73,20 +73,23 @@ impl ViTextMeter {
 		};
 
 		let current = ViLabel::new("arg_vitextmeter", config, "0.0", Weight::Ultrabold)
-			.set_align(Align::Center)
+			.set_align(Align::Start)
 			.set_margin_start(10)
 			.set_margin_top(margin_top)
 			.set_margin_bottom(margin_bottom);
 		hbox.pack_start(&current, false, true, 0);
 
 		let avg = ViLabel::new("arg_vitextmeter", config, "", Weight::Normal)
+			.set_visible(false)
 			.set_align(Align::Center)
 			.set_margin_top(margin_top)
 			.set_margin_bottom(margin_bottom);
 		hbox.pack_start(&avg, true, true, 0);
 
 		let limit = ViLabel::new("arg_vitextmeter", config, "", Weight::Normal)
-			.set_align(Align::Center)
+			.set_visible(false)
+			.set_margin_end(10)
+			.set_align(Align::End)
 			.set_margin_top(margin_top)
 			.set_margin_bottom(margin_bottom);
 		hbox.pack_start(&limit, true, true, 0);
@@ -205,17 +208,17 @@ impl ViTextMeterSender {
 	}
 
 	pub fn set_visible_limit(&self, v: bool) {
-		self.limit.set_visible(v);
 		if !v {
 			self.limit.set_text("");
 		}
+		self.limit.set_visible2(v);
 	}
 
 	pub fn set_visible_avg(&self, v: bool) {
-		self.avg.set_visible(v);
 		if !v {
 			self.avg.set_text("");
 		}
+		self.avg.set_visible2(v);
 	}
 }
 

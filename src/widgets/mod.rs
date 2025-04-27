@@ -18,10 +18,12 @@ use std::rc::Rc;
 pub mod primitives {
 	pub mod color_block;
 	pub mod graph;
+	pub mod hotkey;
 	pub mod label;
 }
 
 pub mod dock_head;
+pub mod hotkeys;
 pub mod text_meter;
 
 #[repr(transparent)]
@@ -108,7 +110,7 @@ impl ViMeterSender {
 		}else {
 			if self.graph.is_visible() {
 				self.graph.set_visible(false);
-				
+
 				self.graph.hide();
 			}
 		});
