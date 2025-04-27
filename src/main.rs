@@ -1,7 +1,7 @@
 use crate::config::Config;
 use crate::core::display::ViGraphDisplayInfo;
-use crate::core::dock_window::ViDockWindow;
-use crate::core::keyboard_listener::{self, KeyboardListener};
+use crate::core::dock_window::{PosINScreen, ViDockWindow};
+use crate::core::keyboard_listener::KeyboardListener;
 use crate::widgets::ViMeter;
 use crate::widgets::dock_head::ViDockHead;
 use crate::widgets::primitives::label::ViLabel;
@@ -12,13 +12,14 @@ use enclose::enc;
 use gtk::gdk::{Monitor, Screen};
 use gtk::gio::prelude::ApplicationExtManual;
 use gtk::gio::traits::ApplicationExt;
-use gtk::glib::{ControlFlow, ExitCode, SignalHandlerId};
+use gtk::glib::{ControlFlow, ExitCode};
 use gtk::prelude::WidgetExt;
 use gtk::traits::{BoxExt, ContainerExt, CssProviderExt};
 use gtk::{Align, Application, glib};
 use gtk::{Box as GtkBox, CssProvider};
 use log::{error, info, trace, warn};
 use rand::random_range;
+use std::cell::RefCell;
 use std::fs;
 use std::path::PathBuf;
 use std::rc::Rc;
@@ -108,6 +109,13 @@ fn main() -> anyhowResult<ExitCode> {
 	Ok(application.run())
 }
 
+enum KeyboardEvents {
+	ShiftF8,
+	KpPlus,
+	KpMinus,
+	DoubleShift,
+}
+
 fn build_ui(
 	app: &gtk::Application,
 	name_window: &str,
@@ -122,25 +130,26 @@ fn build_ui(
 		gtk::STYLE_PROVIDER_PRIORITY_APPLICATION,
 	);
 
-	let dock_window = ViDockWindow::new(app, name_window, &**config);
-	let transparent = config.get_window_config().get_transparent().map_or_else(
-		|| 1.0,
-		|level| match !dock_window
-			.connect_transparent_background(&**c_display, level)
-			.is_true()
-		{
-			false => {
-				warn!("#[gui] Transparency was expected, but the system does not support it");
+	let dock_window = Rc::new(ViDockWindow::new(app, name_window, &**config));
+	let (c_transparent, _is_transparent_mode) =
+		config.get_window_config().get_transparent().map_or_else(
+			|| (1.0, false),
+			|level| match !dock_window
+				.connect_transparent_background(&**c_display, level)
+				.is_true()
+			{
+				false => {
+					warn!("#[gui] Transparency was expected, but the system does not support it");
 
-				1.0
-			}
-			true => level,
-		},
-	);
+					(1.0, false)
+				}
+				true => (level, true),
+			},
+		);
 
 	let vbox = GtkBox::new(gtk::Orientation::Vertical, 0);
 	vbox.pack_start(
-		&ViDockHead::new(&**config, name_window, UPPERCASE_PKG_VERSION, transparent),
+		&ViDockHead::new(&**config, name_window, UPPERCASE_PKG_VERSION, c_transparent),
 		true,
 		true,
 		0,
@@ -152,7 +161,7 @@ fn build_ui(
 				.set_margin_start(4)
 				.set_margin_bottom(3)
 				.set_align(Align::Start)
-				.connect_nonblack_background(0.0, 0.0, 0.0, transparent),
+				.connect_nonblack_background(0.0, 0.0, 0.0, c_transparent),
 			true,
 			true,
 			0,
@@ -164,7 +173,7 @@ fn build_ui(
 				.set_margin_start(4)
 				.set_margin_bottom(3)
 				.set_align(Align::Start)
-				.connect_nonblack_background(0.0, 0.0, 0.0, transparent),
+				.connect_nonblack_background(0.0, 0.0, 0.0, c_transparent),
 			true,
 			true,
 			0,
@@ -176,7 +185,7 @@ fn build_ui(
 				.set_margin_start(4)
 				.set_margin_bottom(3)
 				.set_align(Align::Start)
-				.connect_nonblack_background(0.0, 0.0, 0.0, transparent),
+				.connect_nonblack_background(0.0, 0.0, 0.0, c_transparent),
 			true,
 			true,
 			0,
@@ -189,7 +198,7 @@ fn build_ui(
 			"# TDP",
 			dock_window.allocation().width(),
 			200,
-			transparent,
+			c_transparent,
 		);
 		vbox.pack_start(&*vimetr, false, false, 0);
 		glib::timeout_add_local(std::time::Duration::from_millis(100), move || {
@@ -205,7 +214,7 @@ fn build_ui(
 			"# VRM",
 			dock_window.allocation().width(),
 			200,
-			transparent,
+			c_transparent,
 		);
 		vbox.pack_start(&*vimetr, false, false, 0);
 		glib::timeout_add_local(std::time::Duration::from_millis(600), move || {
@@ -221,7 +230,7 @@ fn build_ui(
 			"# VOLTAGE",
 			dock_window.allocation().width(),
 			200,
-			transparent,
+			c_transparent,
 		);
 		vbox.pack_start(&*vimetr, false, false, 0);
 		glib::timeout_add_local(std::time::Duration::from_millis(600), move || {
@@ -232,63 +241,105 @@ fn build_ui(
 	}
 	dock_window.add(&vbox);
 
-	let (tx, rx) = async_channel::bounded::<()>(10);
-	let keyboard_listener = KeyboardListener::listen::<3>(
-		|key_table| {
-			key_table[0].set_key(Key::ShiftRight);
-			key_table[1].set_key(Key::ShiftLeft);
-			key_table[2].set_key(Key::F8);
-		},
-		move |state_array, _key, _state| {
-			if (state_array[0].is_pressed() || state_array[1].is_pressed())
-				&& state_array[2].is_pressed()
-			{
-				println!("SHIFT + F8");
-				tx.send_blocking(());
+	let (tx_keyboardevents, rx_keyboardevents) = async_channel::bounded(18);
+	std::thread::spawn(move || {
+		let keyboard_listener = KeyboardListener::listen::<5>(
+			|key_table| {
+				key_table[0].set_key(Key::ShiftRight);
+				key_table[1].set_key(Key::ShiftLeft);
+				key_table[2].set_key(Key::F8);
+				key_table[3].set_key(Key::KpPlus);
+				key_table[4].set_key(Key::KpMinus);
+			},
+			move |state_array, _key, _state| {
+				match (
+					(
+						state_array[0].is_pressed(), // ShiftRight
+						state_array[1].is_pressed(), // ShiftLeft
+					),
+					state_array[2].is_pressed(), // F8
+					state_array[3].is_pressed(), // KpPlus
+					state_array[4].is_pressed(), // KpMinus
+				) {
+					((true, false) | (false, true), true, false, false) => {
+						// L/R SHIFT + F8
+						let _e = tx_keyboardevents.send_blocking(KeyboardEvents::ShiftF8);
+					}
+					((true, false) | (false, true), false, true, false) => {
+						// L/R SHIFT + KpPlus
+						let _e = tx_keyboardevents.send_blocking(KeyboardEvents::KpPlus);
+					}
+					((true, false) | (false, true), false, false, true) => {
+						// L/R SHIFT + KpMinus
+						let _e = tx_keyboardevents.send_blocking(KeyboardEvents::KpMinus);
+					}
+					((true, true), ..) => {
+						// L+R SHIFT
+						let _e = tx_keyboardevents.send_blocking(KeyboardEvents::DoubleShift);
+					}
+					_ => {}
+				}
+			},
+		);
+
+		match keyboard_listener {
+			Ok(()) => {}
+			Err(e) => {
+				error!(
+					"#[global keyboard] Error initializing global keyboard listener, keyboard shortcuts not available. {}",
+					e
+				);
 			}
-		},
+		};
+	});
+
+	let pos_inscreen = Rc::new(RefCell::new(config.get_window_config().get_pos()));
+	dock_window.connect_show(enc!((pos_inscreen, c_display, dock_window) move |_| {
+		let pos_inscreen: PosINScreen = *pos_inscreen.borrow();
+
+		dock_window.set_pos_inscreen(&*c_display, pos_inscreen);
+	}));
+	dock_window.connect_resize_mode_notify(enc!((pos_inscreen, c_display, dock_window) move |_| {
+		let pos_inscreen: PosINScreen = *pos_inscreen.borrow();
+
+		dock_window.set_pos_inscreen(&*c_display, pos_inscreen);
+	}));
+	dock_window.connect_screen_changed(
+		enc!((pos_inscreen, config, c_display) move |dock_window, screen| {
+			let pos_inscreen: PosINScreen = *pos_inscreen.borrow();
+			let mut owned_motitor = None;
+			let c_monitor: &Monitor = ViGraphDisplayInfo::as_ref(&*c_display);
+			let monitor: &Monitor = screen
+				.map(|a| a.display())
+				.and_then(|a| {
+					owned_motitor = a.monitor(config.get_window_config().get_num_monitor());
+					owned_motitor.as_ref()
+			}).unwrap_or(c_monitor);
+
+			dock_window.set_pos_inscreen(monitor, pos_inscreen);
+		}),
 	);
 
-	match keyboard_listener {
-		Ok(()) => {}
-		Err(e) => {
-			error!(
-				"#[global keyboard] Error initializing global keyboard listener, keyboard shortcuts not available. {}",
-				e
-			);
-		}
-	}
-
-	let dock_window = Rc::new(dock_window);
-	dock_window.connect_show(enc!((config, c_display, dock_window) move |_| {
-		dock_window.set_pos_inscreen(&*c_display, config.get_window_config().get_pos());
-	}));
-
-	dock_window.connect_screen_changed(enc!((config, c_display) move |dock_window, screen| {
-		let mut owned_motitor = None;
-		let c_monitor: &Monitor = ViGraphDisplayInfo::as_ref(&*c_display);
-		let monitor: &Monitor = screen
-			.map(|a| a.display())
-			.and_then(|a| {
-				owned_motitor = a.monitor(config.get_window_config().get_num_monitor());
-				owned_motitor.as_ref()
-		}).unwrap_or(c_monitor);
-
-		dock_window.set_pos_inscreen(monitor, config.get_window_config().get_pos());
-	}));
-
-	let pos = config.get_window_config().get_pos();
-	let c_display = c_display.clone();
-	glib::MainContext::default().spawn_local(enc!((dock_window) async move {
-		while let Ok(()) = rx.recv().await {
-			if dock_window.is_visible() {
-				dock_window.hide();
-			} else {
-				dock_window.show_all();
+	
+	glib::MainContext::default().spawn_local(enc!((c_display, dock_window) async move {
+		while let Ok(event) = rx_keyboardevents.recv().await {
+			match event {
+				KeyboardEvents::ShiftF8 if dock_window.is_visible() => dock_window.hide(),
+				KeyboardEvents::ShiftF8 => dock_window.show_all(),
+				KeyboardEvents::KpPlus => {},
+				KeyboardEvents::KpMinus => {},
+				KeyboardEvents::DoubleShift => {
+					let new_pos = { // NEXT POS IN SCREEN
+						let mut write = pos_inscreen.borrow_mut();
+						let new_pos = write.next();
+						*write = new_pos;
+						
+						new_pos
+					};
+					dock_window.set_pos_inscreen(&*c_display, new_pos);
+				},
 			}
-			dock_window.set_pos_inscreen(&*c_display, pos);
 		}
 	}));
-
 	dock_window.show_all();
 }

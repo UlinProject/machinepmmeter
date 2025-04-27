@@ -146,6 +146,22 @@ pub enum PosINScreen {
 	BottomRight = 8,
 }
 
+impl PosINScreen {
+	pub const fn next(&mut self) -> PosINScreen {
+		match self {
+			PosINScreen::TopLeft => PosINScreen::CenterLeft,
+			PosINScreen::CenterLeft => PosINScreen::BottomLeft,
+			PosINScreen::BottomLeft => PosINScreen::TopCenter,
+			PosINScreen::TopCenter => PosINScreen::Center,
+			PosINScreen::Center => PosINScreen::BottomCenter,
+			PosINScreen::BottomCenter => PosINScreen::TopRight,
+			PosINScreen::TopRight => PosINScreen::RightCenter,
+			PosINScreen::RightCenter => PosINScreen::BottomRight,
+			PosINScreen::BottomRight => PosINScreen::TopLeft,
+		}
+	}
+}
+
 #[derive(Debug, Clone, Copy)]
 #[repr(u8)]
 pub enum HasTransparent {
