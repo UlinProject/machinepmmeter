@@ -11,6 +11,7 @@ use gtk::Align;
 use gtk::Box;
 use gtk::ffi::GtkBox;
 use gtk::traits::BoxExt;
+use gtk::traits::WidgetExt;
 use std::ops::Deref;
 use std::rc::Rc;
 
@@ -90,13 +91,32 @@ pub struct ViMeterSender {
 }
 
 impl ViMeterSender {
-	pub fn push_next_and_queue_draw(&self, v: f64) {
-		self.graph.push_next(v);
+	pub fn push_next_and_queue_draw(
+		&self,
+		current: f64,
+		graph_v: impl Maybe<f64>,
+		limit: impl Maybe<f64>,
+		l_red: f64,
+		l_orange: f64,
+	) {
+		maybe!((graph_v) {
+			if !self.graph.is_visible() {
+				self.graph.set_visible(true);
+				self.graph.show();
+			}
+			self.graph.push_next(graph_v);
+		}else {
+			if self.graph.is_visible() {
+				self.graph.set_visible(false);
+				
+				self.graph.hide();
+			}
+		});
 
 		let color = self.config.get_color_config();
-		let (red, green, blue) = if v >= 0.85 {
+		let (red, green, blue) = if current >= l_red {
 			color.red()
-		} else if v >= 0.75 {
+		} else if current >= l_orange {
 			color.orange()
 		} else {
 			color.green()
@@ -108,9 +128,21 @@ impl ViMeterSender {
 			.set_color_and_queue_draw(red, green, blue);
 
 		self.color_and_text
-			.set_current_and_queue_draw(&v.to_string()); // TODO REFACTOING ME
-		self.color_and_text.set_avg_and_queue_draw(&v.to_string()); // TODO REFACTOING ME
-		self.color_and_text.set_limit_and_queue_draw(&v.to_string()); // TODO REFACTOING ME
+			.set_current_and_queue_draw(&current.to_string()); // TODO REFACTOING ME
+		self.color_and_text
+			.set_avg_and_queue_draw(&current.to_string()); // TODO REFACTOING ME
+		maybe!((limit) {
+			if !self.color_and_text.is_visible_limit() {
+				self.color_and_text.set_visible_limit(true);
+			}
+			self.color_and_text
+					.set_limit_and_queue_draw(&limit.to_string()); // TODO REFACTOING ME
+		} else {
+			if self.color_and_text.is_visible_limit() {
+				self.color_and_text.set_visible_limit(false);
+			}
+		});
+		self.color_and_text.set_visible_avg(false);
 
 		self.graph.queue_draw();
 	}

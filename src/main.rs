@@ -5,6 +5,7 @@ use crate::core::keyboard_listener::KeyboardListener;
 use crate::widgets::ViMeter;
 use crate::widgets::dock_head::ViDockHead;
 use crate::widgets::primitives::label::ViLabel;
+use anyhow::anyhow;
 use anyhow::{Context, Result as anyhowResult};
 use clap::Parser;
 use core::keyboard_listener::Key;
@@ -17,12 +18,14 @@ use gtk::prelude::WidgetExt;
 use gtk::traits::{BoxExt, ContainerExt, CssProviderExt};
 use gtk::{Align, Application, glib};
 use gtk::{Box as GtkBox, CssProvider};
+use lm_sensors::{LMSensors, SubFeatureRef};
 use log::{error, info, trace, warn};
 use rand::random_range;
 use std::cell::RefCell;
 use std::fs;
 use std::path::PathBuf;
 use std::rc::Rc;
+use std::sync::Arc;
 
 mod config;
 mod widgets;
@@ -154,7 +157,8 @@ fn build_ui(
 		true,
 		0,
 	); // expand: true, fill: true
-	{
+
+	/*{
 		vbox.pack_start(
 			&ViLabel::new("head_info", &**config, "CPU Family: Raven", ())
 				.set_margin_top(8)
@@ -166,8 +170,8 @@ fn build_ui(
 			true,
 			0,
 		); // expand: true, fill: true
-	}
-	{
+	}*/
+	/*{
 		vbox.pack_start(
 			&ViLabel::new("head_info", &**config, "SMU BIOS Interface Version: 5", ())
 				.set_margin_start(4)
@@ -178,8 +182,8 @@ fn build_ui(
 			true,
 			0,
 		); // expand: true, fill: true
-	}
-	{
+	}*/
+	/*{
 		vbox.pack_start(
 			&ViLabel::new("head_info", &**config, "PM Table Version: 1e0004", ())
 				.set_margin_start(4)
@@ -190,9 +194,152 @@ fn build_ui(
 			true,
 			0,
 		); // expand: true, fill: true
-	}
+	}*/
+
+	let sensors: Arc<LMSensors> = Arc::new(
+		lm_sensors::Initializer::default()
+			.initialize()
+			.map_err(|e| anyhow!("{:?}", e))
+			.unwrap(),
+	); // TODO REFACTORING ME?;
 
 	{
+		vbox.pack_start(
+			&ViLabel::new("head_info", &**config, "View: lm_sensors", ())
+				.set_margin_top(8)
+				.set_margin_start(4)
+				.set_margin_bottom(3)
+				.set_align(Align::Start)
+				.connect_nonblack_background(0.0, 0.0, 0.0, c_transparent),
+			true,
+			true,
+			0,
+		); // expand: true, fill: true
+	}
+
+	// Print all chips.
+	for chip in sensors.chip_iter(None) {
+		vbox.pack_start(
+			&ViLabel::new(
+				"info_vitextmeter",
+				&**config,
+				&format!("# {} ({})", chip, chip.bus()),
+				(),
+			)
+			.set_margin_top(4)
+			.set_margin_start(4)
+			.set_margin_bottom(3)
+			.set_align(Align::Start)
+			.connect_nonblack_background(0.0, 0.0, 0.0, c_transparent),
+			false,
+			false,
+			0,
+		);
+
+		println!("{} ({})", chip, chip.bus());
+
+		// Print all features of the current chip.
+		for feature in chip.feature_iter() {
+			if let Some(name) = feature.name().transpose().unwrap() {
+				println!("    {}: {}", name, feature);
+
+				#[derive(Debug, Clone, Default)]
+				struct Value<'a> {
+					input: Option<(f64, Rc<SubFeatureRef<'a>>)>,
+					max: Option<(f64, Rc<SubFeatureRef<'a>>)>,
+					crit: Option<(f64, Rc<SubFeatureRef<'a>>)>,
+					high: Option<(f64, Rc<SubFeatureRef<'a>>)>,
+				}
+
+				let mut c_value = Value::default();
+				for sub_feature in feature.sub_feature_iter() {
+					let sub_feature = Rc::new(sub_feature);
+					if let Some(Ok(name)) = sub_feature.name() {
+						if name.ends_with("input") {
+							if let Ok(value) = sub_feature.value() {
+								let v = value.raw_value();
+								if v != 0.0 && v < 65261.0 && v > -273.0 {
+									c_value.input = (v, sub_feature).into();
+								}
+							}
+						} else if name.ends_with("max") {
+							if let Ok(value) = sub_feature.value() {
+								let v = value.raw_value();
+								if v != 0.0 && v < 65261.0 && v > -273.0 {
+									c_value.max = (v, sub_feature).into();
+								}
+							}
+						} else if name.ends_with("high") {
+							if let Ok(value) = sub_feature.value() {
+								let v = value.raw_value();
+								if v != 0.0 && v < 65261.0 && v > -273.0 {
+									c_value.high = (v, sub_feature).into();
+								}
+							}
+						} else if name.ends_with("crit") {
+							if let Ok(value) = sub_feature.value() {
+								let v = value.raw_value();
+								if v != 0.0 && v < 65261.0 && v > -273.0 {
+									c_value.crit = (v, sub_feature).into();
+								}
+							}
+						}
+					}
+				}
+				if c_value.input.is_some() {
+					let vimetr = ViMeter::new_visender(
+						config.clone(),
+						name,
+						dock_window.allocation().width(),
+						200,
+						c_transparent,
+					);
+
+					vbox.pack_start(&*vimetr, false, false, 0);
+
+					for _ in 0..800 {
+						if let Some((input, sub_in)) = &c_value.input {
+							if let Some((crit_or_max, sub_crit_or_max)) =
+								c_value.crit.as_ref().or(c_value.max.as_ref())
+							{
+								#[inline]
+								const fn map(
+									x: f64,
+									in_min: f64,
+									in_max: f64,
+									out_min: f64,
+									out_max: f64,
+								) -> f64 {
+									(x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
+								}
+
+								let v = sub_in.raw_value().unwrap();
+								let graph = map(v, 0.0, *crit_or_max, 0.0, 1.0);
+								vimetr.push_next_and_queue_draw(
+									v,
+									graph,
+									*crit_or_max,
+									*crit_or_max,
+									0.0,
+								);
+							} else {
+								vimetr.push_next_and_queue_draw(
+									sub_in.raw_value().unwrap(),
+									(),
+									(),
+									0.0,
+									0.0,
+								);
+							}
+						}
+						std::thread::sleep_ms(1);
+					}
+				}
+			}
+		}
+	}
+
+	/*{
 		let vimetr = ViMeter::new_visender(
 			config.clone(),
 			"# TDP",
@@ -238,7 +385,7 @@ fn build_ui(
 
 			ControlFlow::Continue
 		});
-	}
+	}*/
 	dock_window.add(&vbox);
 
 	let (tx_keyboardevents, rx_keyboardevents) = async_channel::bounded(18);
@@ -320,7 +467,6 @@ fn build_ui(
 		}),
 	);
 
-	
 	glib::MainContext::default().spawn_local(enc!((c_display, dock_window) async move {
 		while let Ok(event) = rx_keyboardevents.recv().await {
 			match event {
@@ -333,7 +479,7 @@ fn build_ui(
 						let mut write = pos_inscreen.borrow_mut();
 						let new_pos = write.next();
 						*write = new_pos;
-						
+
 						new_pos
 					};
 					dock_window.set_pos_inscreen(&*c_display, new_pos);

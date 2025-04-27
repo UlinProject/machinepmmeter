@@ -74,17 +74,18 @@ impl ViTextMeter {
 
 		let current = ViLabel::new("arg_vitextmeter", config, "0.0", Weight::Ultrabold)
 			.set_align(Align::Center)
+			.set_margin_start(10)
 			.set_margin_top(margin_top)
 			.set_margin_bottom(margin_bottom);
-		hbox.pack_start(&current, true, true, 0);
+		hbox.pack_start(&current, false, true, 0);
 
-		let avg = ViLabel::new("arg_vitextmeter", config, "AVG: 0.0", Weight::Normal)
+		let avg = ViLabel::new("arg_vitextmeter", config, "", Weight::Normal)
 			.set_align(Align::Center)
 			.set_margin_top(margin_top)
 			.set_margin_bottom(margin_bottom);
 		hbox.pack_start(&avg, true, true, 0);
 
-		let limit = ViLabel::new("arg_vitextmeter", config, "LIMIT: 0.0", Weight::Normal)
+		let limit = ViLabel::new("arg_vitextmeter", config, "", Weight::Normal)
 			.set_align(Align::Center)
 			.set_margin_top(margin_top)
 			.set_margin_bottom(margin_bottom);
@@ -193,6 +194,28 @@ impl ViTextMeterSender {
 		};
 
 		self.limit.set_text(&format!("LIMIT: {v}")); // TODO REFACTORING ME
+	}
+
+	pub fn is_visible_limit(&self) -> bool {
+		self.limit.is_visible()
+	}
+
+	pub fn is_visible_avg(&self) -> bool {
+		self.avg.is_visible()
+	}
+
+	pub fn set_visible_limit(&self, v: bool) {
+		self.limit.set_visible(v);
+		if !v {
+			self.limit.set_text("");
+		}
+	}
+
+	pub fn set_visible_avg(&self, v: bool) {
+		self.avg.set_visible(v);
+		if !v {
+			self.avg.set_text("");
+		}
 	}
 }
 

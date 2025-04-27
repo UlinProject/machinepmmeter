@@ -11,7 +11,7 @@ pub trait Maybe<T = Self> {
 	fn value(self) -> T;
 }
 
-__always_has_value_types!(i32, RGBA, &'_ str, String, usize, Weight);
+__always_has_value_types!(i32, f64, RGBA, &'_ str, String, usize, Weight);
 
 impl<T> Maybe<T> for () {
 	const HAS_VALUE: bool = false;
