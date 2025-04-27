@@ -1,8 +1,8 @@
+use anyhow::anyhow;
 use rdev::listen;
 use std::ops::Deref;
-use anyhow::anyhow;
 
-pub use rdev::Key as Key;
+pub use rdev::Key;
 
 pub struct KeyboardListener;
 
@@ -157,7 +157,8 @@ impl KeyboardListener {
 				}
 			}
 			_ => {}
-		}).map_err(|e| anyhow!("{:?}", e))?; // TODO REFACTORING ME
+		})
+		.map_err(|e| anyhow!("{:?}", e))?; // TODO REFACTORING ME
 
 		Ok(())
 	}
