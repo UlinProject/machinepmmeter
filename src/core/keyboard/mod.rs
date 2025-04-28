@@ -1,8 +1,14 @@
 use anyhow::anyhow;
-use rdev::listen;
 use std::ops::Deref;
 
-pub use rdev::Key;
+use crate::core::keyboard::key::Key;
+use crate::core::keyboard::sys::x11::xlib;
+
+pub mod sys {
+	pub mod x11;
+}
+pub mod err;
+pub mod key;
 
 pub struct KeyboardListener;
 
@@ -28,8 +34,8 @@ pub enum ButtonState {
 
 impl ButtonState {
 	#[inline]
-	pub const fn invert(&mut self) {
-		*self = match self {
+	pub const fn invert(self) -> Self {
+		match self {
 			ButtonState::Pressed => ButtonState::Released,
 			ButtonState::Released => ButtonState::Pressed,
 		}
@@ -48,30 +54,14 @@ impl ButtonState {
 
 impl KeyStateEntry {
 	#[inline]
-	pub const fn from_press(key: Key) -> Self {
-		Self {
-			key,
-			state: ButtonState::Pressed,
-		}
-	}
-
-	#[inline]
-	pub const fn from_release(key: Key) -> Self {
-		Self {
-			key,
-			state: ButtonState::Released,
-		}
+	pub const fn new(key: Key, state: ButtonState) -> Self {
+		Self { key, state }
 	}
 
 	#[inline]
 	#[allow(dead_code)]
 	pub const fn set_state(&mut self, state: ButtonState) {
 		self.state = state;
-	}
-
-	#[inline]
-	pub const fn invert_state(&mut self) {
-		self.state.invert();
 	}
 
 	#[inline]
@@ -137,26 +127,15 @@ impl KeyboardListener {
 		let mut key_state_table = KeyStateTable::default();
 		init_key_table(&mut key_state_table.0);
 
-		listen(move |e| match e.event_type {
-			rdev::EventType::KeyPress(key) => {
-				let entry = KeyStateEntry::from_release(key);
-				if let Some(key_entry) = key_state_table.find_entry_mut(&entry) {
-					key_entry.invert_state();
+		xlib(move |key, state| {
+			if let Some(key_entry) =
+				key_state_table.find_entry_mut(&KeyStateEntry::new(key, state.invert()))
+			{
+				key_entry.state = state;
 
-					let (key, state) = (key_entry.key, key_entry.state);
-					event_handler(&key_state_table.0, key, state);
-				}
+				let (key, state) = (key_entry.key, key_entry.state);
+				event_handler(&key_state_table.0, key, state);
 			}
-			rdev::EventType::KeyRelease(key) => {
-				let entry = KeyStateEntry::from_press(key);
-				if let Some(key_entry) = key_state_table.find_entry_mut(&entry) {
-					key_entry.invert_state();
-
-					let (key, state) = (key_entry.key, key_entry.state);
-					event_handler(&key_state_table.0, key, state);
-				}
-			}
-			_ => {}
 		})
 		.map_err(|e| anyhow!("{:?}", e))?; // TODO REFACTORING ME
 

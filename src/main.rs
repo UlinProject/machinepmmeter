@@ -2,6 +2,7 @@ use crate::config::Config;
 use crate::core::display::ViGraphDisplayInfo;
 use crate::core::dock_window::{PosINScreen, ViDockWindow};
 use crate::core::keyboard::KeyboardListener;
+use crate::core::keyboard::key::Key;
 use crate::widgets::ViMeter;
 use crate::widgets::dock_head::ViDockHead;
 use crate::widgets::hotkeys::ViHotkeys;
@@ -20,7 +21,6 @@ use gtk::{Align, Application, glib};
 use gtk::{Box as GtkBox, CssProvider};
 use lm_sensors::{LMSensors, SubFeatureRef};
 use log::{error, info, trace, warn};
-use rdev::Key;
 use std::cell::RefCell;
 use std::fs;
 use std::path::PathBuf;
@@ -30,11 +30,11 @@ use std::sync::Arc;
 mod config;
 mod widgets;
 mod core {
-	pub mod keyboard;
 	pub mod constuppercase;
 	pub mod display;
 	pub mod dock_window;
 	pub mod gtk_codegen;
+	pub mod keyboard;
 	pub mod maybe;
 }
 
