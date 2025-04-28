@@ -1,9 +1,10 @@
 use crate::core::keyboard::ButtonState;
 use crate::core::keyboard::err::ListenError;
 use crate::core::keyboard::key::Key;
+use libc::{fd_set, select};
 use std::ops::Deref;
 use std::os::raw::{c_char, c_ulong};
-use std::ptr::{NonNull, null};
+use std::ptr::{self, NonNull, null};
 use std::sync::{Mutex, OnceLock};
 use x11::xlib;
 use x11::xrecord::{self, XRecordInterceptData};
@@ -61,57 +62,52 @@ where
 	}
 
 	unsafe { xlib::XSync(dpy_control, 0) };
+
 	// Run
 	let result = unsafe {
 		xrecord::XRecordEnableContextAsync(
 			dpy_control,
 			context,
 			Some(record_callback),
-			&mut 0,
+			core::ptr::null_mut(),
 		)
 	};
 	if result == 0 {
 		return Err(ListenError::RecordContextEnabling);
 	}
-	
-	loop {
-		while unsafe { xlib::XPending(dpy_control) } != 0 {
-			let mut event: xlib::XEvent = unsafe { std::mem::zeroed() };
-			unsafe { xlib::XNextEvent(dpy_control, &mut event) };
-			
-			//dbg!(event);
-		}
-		//println!("1");
-		std::thread::sleep_ms(100);
-		
-		//let mut event: xlib::XEvent = unsafe { std::mem::zeroed() };
-		//unsafe { xlib::XNextEvent(dpy_control, &mut event) };
-		//dbg!("{:?}", event);
-		//unsafe { xrecord::XRecordProcessReplies(dpy_control) };
-		//while unsafe { xlib::XPending(dpy_control) } > 0 {
-			//let mut event: xlib::XEvent = unsafe { std::mem::zeroed() };
-			//unsafe { xlib::XNextEvent(dpy_control, &mut event) };
-			//dbg!("{:?}", event);
-		//}
-		//unsafe { xrecord::XRecordProcessReplies(dpy_control) };
-		//println!("1");
-		//while unsafe { xlib::XPending(dpy_control) } > 0 {
-			//let mut event: xlib::XEvent = unsafe { std::mem::zeroed() };
-		   //unsafe { xlib::XNextEvent(dpy_control, &mut event) };
 
-		    
-		    //dbg!("{:?}", event);
-		//}
-		
-		//dbg!("{:?}", event);
-		//unsafe { xrecord::XRecordProcessReplies(dpy_control) };
-		//let mut event: xlib::XEvent = unsafe { std::mem::zeroed() };
-	    //unsafe { xlib::XNextEvent(dpy_control, &mut event) };
+	unsafe { xlib::XFlush(dpy_control) };
+	let x11_fd = unsafe { xlib::XConnectionNumber(dpy_control) } as i32;
+	// Thank you!
+	// https://www.linuxquestions.org/questions/showthread.php?p=2431345#post2431345
+	//
+	loop {
+		let mut in_fds: fd_set = unsafe { std::mem::zeroed() };
+		unsafe { libc::FD_ZERO(&mut in_fds) };
+		unsafe { libc::FD_SET(x11_fd, &mut in_fds) };
+
+		let select_result = unsafe {
+			select(
+				x11_fd + 1,
+				&mut in_fds as *mut fd_set,
+				ptr::null_mut(),
+				ptr::null_mut(),
+				ptr::null_mut(),
+			)
+		};
+		if select_result == -1 {
+			break;
+		}
+
+		while unsafe { xlib::XPending(dpy_control) } != 0 {
+			println!("0");
+		}
+		println!("1");
 	}
-	
+
 	unsafe { xrecord::XRecordFreeContext(dpy_control, context) };
 	unsafe { xlib::XCloseDisplay(dpy_control) };
-	
+
 	Ok(())
 }
 

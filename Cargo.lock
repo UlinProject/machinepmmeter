@@ -819,6 +819,7 @@ dependencies = [
  "enclose",
  "env_logger",
  "gtk",
+ "libc",
  "lm-sensors",
  "log",
  "rand",
