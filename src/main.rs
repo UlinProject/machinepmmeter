@@ -444,10 +444,7 @@ fn build_ui(
 					_ => {}
 				}
 			}),
-		);
-
-		match keyboard_listener {
-			Ok(()) => {
+			|| {
 				let _e = tx_keyboardevents.send_blocking(Events::AppendViHotkey(vec![
 					("view-conceal-symbolic", "Hide | Show (Shift and F8)"),
 					(
@@ -456,7 +453,11 @@ fn build_ui(
 					),
 					("system-shutdown-symbolic", "Exit (Shift and Esc)"),
 				]));
-			}
+			},
+		);
+
+		match keyboard_listener {
+			Ok(()) => {}
 			Err(e) => {
 				error!(
 					"#[global keyboard] Error initializing global keyboard listener, keyboard shortcuts not available. {}",
@@ -527,7 +528,6 @@ fn build_ui(
 						);
 						vbox.add(&vihotkey);
 						vbox.show_all();
-						println!("Yes!");
 					}
 				}
 			}
