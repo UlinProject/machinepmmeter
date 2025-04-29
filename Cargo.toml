@@ -2,6 +2,7 @@
 name = "machinepmmeter"
 version = "0.1.0-alpa"
 edition = "2024"
+description = "Test"
 
 [dependencies]
 anyhow = "1.0.98"

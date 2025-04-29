@@ -9,14 +9,21 @@ use crate::widgets::hotkeys::ViHotkeys;
 use crate::widgets::primitives::label::ViLabel;
 use anyhow::anyhow;
 use anyhow::{Context, Result as anyhowResult};
+use appindicator3::prelude::AppIndicatorBuilderExt;
+use appindicator3::traits::AppIndicatorExt;
+use appindicator3::{Indicator, IndicatorCategory, IndicatorStatus};
+use async_channel::{Receiver, Sender};
 use clap::Parser;
 use enclose::enc;
 use gtk::gdk::{Monitor, Screen};
+use gtk::gio::Icon;
 use gtk::gio::prelude::ApplicationExtManual;
 use gtk::gio::traits::ApplicationExt;
 use gtk::glib::ExitCode;
 use gtk::prelude::WidgetExt;
-use gtk::traits::{BoxExt, ContainerExt, CssProviderExt, GtkWindowExt};
+use gtk::traits::{
+	BoxExt, ContainerExt, CssProviderExt, GtkMenuItemExt, GtkWindowExt, MenuShellExt,
+};
 use gtk::{Align, Application, glib};
 use gtk::{Box as GtkBox, CssProvider};
 use lm_sensors::{LMSensors, SubFeatureRef};
@@ -38,12 +45,16 @@ mod core {
 	pub mod maybe;
 }
 
+const APP_NAME: &str = "machinepmmeter";
+const UPPERCASE_APP_NAME: &str = const_ascii_uppercase!("machinepmmeter");
 const APP_ID: &str = "com.ulinkot.machinepmmeter";
 const PKG_NAME: &str = env!("CARGO_PKG_NAME");
 const UPPERCASE_PKG_NAME: &str = const_ascii_uppercase!(PKG_NAME);
 
 const PKG_VERSION: &str = env!("CARGO_PKG_VERSION");
 const UPPERCASE_PKG_VERSION: &str = const_ascii_uppercase!(PKG_VERSION);
+
+const PKG_DESCRIPTION: &str = env!("CARGO_PKG_DESCRIPTION");
 
 #[derive(Parser, Debug)]
 #[clap(
@@ -102,12 +113,15 @@ fn main() -> anyhowResult<ExitCode> {
 	};
 
 	let application = Application::new(Some(APP_ID), Default::default());
-	let config = config.clone();
-	application.connect_activate(move |app| {
+	application.connect_activate(enc!((config) move |app| {
 		let name_window = config.get_name_or_default();
 
-		build_ui(app, name_window, &config, &c_display, &defcss);
-	});
+		let (tx_keyboardevents, rx_keyboardevents) = async_channel::bounded(18);
+
+		let mut is_keyboard_allowed = false;
+		build_ui(app, name_window, &config, &c_display, &defcss, &mut is_keyboard_allowed, tx_keyboardevents.clone(), rx_keyboardevents);
+		build_menu(is_keyboard_allowed, tx_keyboardevents);
+	}));
 
 	Ok(application.run())
 }
@@ -122,15 +136,100 @@ enum KeyboardEvents {
 
 enum Events {
 	Keyboard(KeyboardEvents),
+	HideOrShow,
+	Close,
+	NextPosition,
 	AppendViHotkey(Vec<(&'static str, &'static str)>),
 }
 
+fn build_menu(is_keyboard_allowed: bool, sender: Sender<Events>) {
+	fn image_menu_item(icon: &str, label: &str) -> gtk::MenuItem {
+		let g_box = gtk::Box::new(gtk::Orientation::Horizontal, 6);
+
+		let label = gtk::Label::new(Some(label));
+		let menu_item = gtk::MenuItem::new();
+
+		if let Ok(icon) = Icon::for_string(icon) {
+			g_box.add(&gtk::Image::from_gicon(&icon, gtk::IconSize::Menu));
+		}
+		g_box.add(&label);
+
+		menu_item.set_child(Some(&g_box));
+		menu_item
+	}
+
+	let menu = gtk::Menu::new();
+	{
+		let menu_item = image_menu_item(
+			"view-conceal-symbolic",
+			match is_keyboard_allowed {
+				true => "Hide | Show (Shift and F8)",
+				false => "Hide | Show ",
+			},
+		);
+
+		menu_item.connect_activate(enc!((sender) move |_| {
+			let _e = sender.send_blocking(Events::HideOrShow);
+		}));
+		menu.append(&menu_item);
+		menu_item.show_all();
+	}
+	{
+		let menu_item = image_menu_item(
+			"sidebar-show-right-symbolic-rtl",
+			match is_keyboard_allowed {
+				true => "Next position (Left Shift and Right Shift)",
+				false => "Next position ",
+			},
+		);
+
+		menu_item.connect_activate(enc!((sender) move |_| {
+			let _e = sender.send_blocking(Events::NextPosition);
+		}));
+		menu.append(&menu_item);
+		menu_item.show_all();
+	}
+	{
+		let separator = gtk::SeparatorMenuItem::new();
+		menu.append(&separator);
+		separator.show_all();
+	}
+	{
+		let menu_item = image_menu_item(
+			"system-shutdown-symbolic",
+			match is_keyboard_allowed {
+				true => "Exit (Shift and Esc)",
+				false => "Exit",
+			},
+		);
+
+		menu_item.connect_activate(enc!((sender) move |_| {
+			let _e = sender.send_blocking(Events::Close);
+		}));
+		menu.append(&menu_item);
+		menu_item.show_all();
+	}
+
+	let icon = "help-about-symbolic";
+	let indicator = Indicator::new(APP_ID, icon, IndicatorCategory::ApplicationStatus);
+	indicator.set_status(IndicatorStatus::Active);
+	indicator.set_menu(Some(&menu));
+	indicator.set_attention_icon_full(icon, PKG_DESCRIPTION);
+
+	gtk::main();
+}
+
+#[allow(clippy::too_many_arguments)]
 fn build_ui(
 	app: &gtk::Application,
 	name_window: &str,
 	config: &Rc<Config>,
 	c_display: &Rc<ViGraphDisplayInfo>,
 	defcss: &CssProvider,
+	is_keyboard_allowed: &mut bool,
+
+	sender: Sender<Events>,
+	receiver: Receiver<Events>,
 ) {
 	trace!("#[gui] Start initialization, name: {:?}", name_window);
 	gtk::StyleContext::add_provider_for_screen(
@@ -394,8 +493,7 @@ fn build_ui(
 	}*/
 	dock_window.add(&*vbox);
 
-	let (tx_keyboardevents, rx_keyboardevents) = async_channel::bounded(18);
-	std::thread::spawn(move || {
+	std::thread::spawn(enc!((sender)move || {
 		let keyboard_listener = KeyboardListener::listen::<6>(
 			|key_table| {
 				key_table[0].set_key(Key::ShiftRight);
@@ -405,7 +503,7 @@ fn build_ui(
 				key_table[4].set_key(Key::KpMinus);
 				key_table[5].set_key(Key::Escape);
 			},
-			enc!((tx_keyboardevents) move |state_array, _key, _state| {
+			enc!((sender) move |state_array, _key, _state| {
 				match (
 					(
 						state_array[0].is_pressed(), // ShiftRight
@@ -418,34 +516,34 @@ fn build_ui(
 				) {
 					((true, false) | (false, true), true, false, false, false) => {
 						// L/R SHIFT + F8
-						let _e = tx_keyboardevents
+						let _e = sender
 							.send_blocking(Events::Keyboard(KeyboardEvents::ShiftF8));
 					}
 					((true, false) | (false, true), false, true, false, false) => {
 						// L/R SHIFT + KpPlus
-						let _e = tx_keyboardevents
+						let _e = sender
 							.send_blocking(Events::Keyboard(KeyboardEvents::KpPlus));
 					}
 					((true, false) | (false, true), false, false, true, false) => {
 						// L/R SHIFT + KpMinus
-						let _e = tx_keyboardevents
+						let _e = sender
 							.send_blocking(Events::Keyboard(KeyboardEvents::KpMinus));
 					}
 					((true, false) | (false, true), false, false, false, true) => {
 						// L/R SHIFT + Escape
-						let _e = tx_keyboardevents
+						let _e = sender
 							.send_blocking(Events::Keyboard(KeyboardEvents::Escape));
 					}
 					((true, true), ..) => {
 						// L+R SHIFT
-						let _e = tx_keyboardevents
+						let _e = sender
 							.send_blocking(Events::Keyboard(KeyboardEvents::DoubleShift));
 					}
 					_ => {}
 				}
 			}),
 			|| {
-				let _e = tx_keyboardevents.send_blocking(Events::AppendViHotkey(vec![
+				let _e = sender.send_blocking(Events::AppendViHotkey(vec![
 					("view-conceal-symbolic", "Hide | Show (Shift and F8)"),
 					(
 						"sidebar-show-right-symbolic-rtl",
@@ -465,7 +563,7 @@ fn build_ui(
 				);
 			}
 		};
-	});
+	}));
 
 	let pos_inscreen = Rc::new(RefCell::new(config.get_window_config().get_pos()));
 	dock_window.connect_show(enc!((pos_inscreen, c_display, dock_window) move |_| {
@@ -496,20 +594,21 @@ fn build_ui(
 
 	glib::MainContext::default().spawn_local(
 		enc!((c_display, dock_window, pos_inscreen, vbox, config) async move {
-			while let Ok(event) = rx_keyboardevents.recv().await {
+			while let Ok(event) = receiver.recv().await {
 				match event {
-					Events::Keyboard(KeyboardEvents::ShiftF8) if dock_window.is_visible() => {
+					Events::HideOrShow | Events::Keyboard(KeyboardEvents::ShiftF8) if dock_window.is_visible() => {
 						dock_window.hide();
 					},
-					Events::Keyboard(KeyboardEvents::ShiftF8) => {
+					Events::HideOrShow | Events::Keyboard(KeyboardEvents::ShiftF8) => {
 						dock_window.show();
 					},
-					Events::Keyboard(KeyboardEvents::Escape) => {
+					Events::Close | Events::Keyboard(KeyboardEvents::Escape) => {
 						dock_window.close();
+						gtk::main_quit();
 					},
 					Events::Keyboard(KeyboardEvents::KpPlus) => {},
-						Events::Keyboard(KeyboardEvents::KpMinus) => {},
-							Events::Keyboard(KeyboardEvents::DoubleShift) => {
+					Events::Keyboard(KeyboardEvents::KpMinus) => {},
+					Events::NextPosition | Events::Keyboard(KeyboardEvents::DoubleShift) => {
 						let new_pos = { // NEXT POS IN SCREEN
 							let mut write = pos_inscreen.borrow_mut();
 							let new_pos = write.next();
