@@ -6,17 +6,16 @@ use crate::core::keyboard::key::Key;
 use crate::widgets::ViMeter;
 use crate::widgets::dock_head::ViDockHead;
 use crate::widgets::hotkeys::ViHotkeys;
+use crate::widgets::primitives::icon_menuitem::ViIconMenuItem;
 use crate::widgets::primitives::label::ViLabel;
 use anyhow::anyhow;
 use anyhow::{Context, Result as anyhowResult};
-use appindicator3::prelude::AppIndicatorBuilderExt;
 use appindicator3::traits::AppIndicatorExt;
 use appindicator3::{Indicator, IndicatorCategory, IndicatorStatus};
 use async_channel::{Receiver, Sender};
 use clap::Parser;
 use enclose::enc;
 use gtk::gdk::{Monitor, Screen};
-use gtk::gio::Icon;
 use gtk::gio::prelude::ApplicationExtManual;
 use gtk::gio::traits::ApplicationExt;
 use gtk::glib::ExitCode;
@@ -143,24 +142,9 @@ enum Events {
 }
 
 fn build_menu(is_keyboard_allowed: bool, sender: Sender<Events>) {
-	fn image_menu_item(icon: &str, label: &str) -> gtk::MenuItem {
-		let g_box = gtk::Box::new(gtk::Orientation::Horizontal, 6);
-
-		let label = gtk::Label::new(Some(label));
-		let menu_item = gtk::MenuItem::new();
-
-		if let Ok(icon) = Icon::for_string(icon) {
-			g_box.add(&gtk::Image::from_gicon(&icon, gtk::IconSize::Menu));
-		}
-		g_box.add(&label);
-
-		menu_item.set_child(Some(&g_box));
-		menu_item
-	}
-
 	let menu = gtk::Menu::new();
 	{
-		let menu_item = image_menu_item(
+		let menu_item = ViIconMenuItem::new(
 			"view-conceal-symbolic",
 			match is_keyboard_allowed {
 				true => "Hide | Show (Shift and F8)",
@@ -171,11 +155,11 @@ fn build_menu(is_keyboard_allowed: bool, sender: Sender<Events>) {
 		menu_item.connect_activate(enc!((sender) move |_| {
 			let _e = sender.send_blocking(Events::HideOrShow);
 		}));
-		menu.append(&menu_item);
+		menu.append(&*menu_item);
 		menu_item.show_all();
 	}
 	{
-		let menu_item = image_menu_item(
+		let menu_item = ViIconMenuItem::new(
 			"sidebar-show-right-symbolic-rtl",
 			match is_keyboard_allowed {
 				true => "Next position (Left Shift and Right Shift)",
@@ -186,7 +170,7 @@ fn build_menu(is_keyboard_allowed: bool, sender: Sender<Events>) {
 		menu_item.connect_activate(enc!((sender) move |_| {
 			let _e = sender.send_blocking(Events::NextPosition);
 		}));
-		menu.append(&menu_item);
+		menu.append(&*menu_item);
 		menu_item.show_all();
 	}
 	{
@@ -195,7 +179,7 @@ fn build_menu(is_keyboard_allowed: bool, sender: Sender<Events>) {
 		separator.show_all();
 	}
 	{
-		let menu_item = image_menu_item(
+		let menu_item = ViIconMenuItem::new(
 			"system-shutdown-symbolic",
 			match is_keyboard_allowed {
 				true => "Exit (Shift and Esc)",
@@ -206,7 +190,7 @@ fn build_menu(is_keyboard_allowed: bool, sender: Sender<Events>) {
 		menu_item.connect_activate(enc!((sender) move |_| {
 			let _e = sender.send_blocking(Events::Close);
 		}));
-		menu.append(&menu_item);
+		menu.append(&*menu_item);
 		menu_item.show_all();
 	}
 

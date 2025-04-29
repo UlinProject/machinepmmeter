@@ -19,6 +19,7 @@ pub mod primitives {
 	pub mod color_block;
 	pub mod graph;
 	pub mod hotkey;
+	pub mod icon_menuitem;
 	pub mod label;
 }
 
