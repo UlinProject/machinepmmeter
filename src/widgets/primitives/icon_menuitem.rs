@@ -1,11 +1,10 @@
-use std::ops::Deref;
-
 use crate::maybe;
 use crate::{__gen_transparent_gtk_type, core::maybe::Maybe};
 use gtk::MenuItem;
 use gtk::ffi::GtkMenuItem;
 use gtk::gio::Icon;
 use gtk::traits::ContainerExt;
+use std::ops::Deref;
 
 #[repr(transparent)]
 #[derive(Debug)]

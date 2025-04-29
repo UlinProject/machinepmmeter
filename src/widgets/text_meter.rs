@@ -57,11 +57,9 @@ impl ViTextMeter {
 		let margin_bottom = 3;
 
 		let color = {
-			let (red, green, blue) = (config.as_ref() as &ColorConfig).green();
-
-			let red = (red as f64) / 255.0;
-			let green = (green as f64) / 255.0;
-			let blue = (blue as f64) / 255.0;
+			let (red, green, blue, transparent) = (config.as_ref() as &ColorConfig)
+				.green()
+				.into_rgba(transparent);
 
 			let state_color = Rc::new(RefCell::new((red, green, blue, transparent)));
 			let color_block =

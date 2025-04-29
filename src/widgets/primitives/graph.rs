@@ -153,20 +153,18 @@ fn draw_peak_graph<'a>(
 		max
 	};
 
-	let (r, g, b) = if a_max >= 0.85 {
-		color.red()
-	} else if a_max >= 0.75 {
-		color.orange()
-	} else {
-		color.green()
-	};
+	{
+		let (r, g, b, a) = if a_max >= 0.85 {
+			color.red()
+		} else if a_max >= 0.75 {
+			color.orange()
+		} else {
+			color.green()
+		}
+		.into_rgba(transparent);
 
-	cr.set_source_rgba(
-		r as f64 / 255.0,
-		g as f64 / 255.0,
-		b as f64 / 255.0,
-		transparent,
-	);
+		cr.set_source_rgba(r, g, b, a);
+	}
 
 	let x_step = width / (len - 1) as f64;
 	let mut iter = iter;

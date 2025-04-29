@@ -116,19 +116,19 @@ impl ViMeterSender {
 			}
 		});
 
-		let color = self.config.get_color_config();
-		let (red, green, blue) = if current >= l_red {
-			color.red()
-		} else if current >= l_orange {
-			color.orange()
-		} else {
-			color.green()
-		};
-		let red = (red as f64) / 255.0;
-		let green = (green as f64) / 255.0;
-		let blue = (blue as f64) / 255.0;
-		self.color_and_text
-			.set_color_and_queue_draw(red, green, blue);
+		{
+			let color = self.config.get_color_config();
+			let (red, green, blue) = (if current >= l_red {
+				color.red()
+			} else if current >= l_orange {
+				color.orange()
+			} else {
+				color.green()
+			})
+			.into_rgb();
+			self.color_and_text
+				.set_color_and_queue_draw(red, green, blue);
+		}
 
 		self.color_and_text
 			.set_current_and_queue_draw(&current.to_string()); // TODO REFACTOING ME

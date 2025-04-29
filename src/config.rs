@@ -11,6 +11,7 @@ use crate::Cli;
 use crate::PKG_NAME;
 use crate::UPPERCASE_PKG_NAME;
 use crate::core::dock_window::PosINScreen;
+use crate::core::eight_bitcolor::EightBitColor;
 
 #[derive(Deserialize, Debug)]
 pub struct Config {
@@ -23,7 +24,7 @@ pub struct Config {
 
 #[derive(Deserialize, Debug)]
 pub struct WindowConfig {
-	head: Option<(u8, u8, u8)>,
+	head: Option<EightBitColor>,
 	width: Option<i32>,
 	height: Option<i32>,
 	transparent: Option<f64>,
@@ -47,7 +48,7 @@ impl Default for WindowConfig {
 
 impl WindowConfig {
 	#[inline]
-	pub fn get_head_color(&self) -> (u8, u8, u8) {
+	pub fn get_head_color(&self) -> EightBitColor {
 		self.head.unwrap_or_else(|| ColorConfig::default().orange())
 	}
 
@@ -119,24 +120,24 @@ impl Default for Config {
 
 #[derive(Deserialize, Debug)]
 pub struct ColorConfig {
-	red: (u8, u8, u8),
-	green: (u8, u8, u8),
-	orange: (u8, u8, u8),
+	red: EightBitColor,
+	green: EightBitColor,
+	orange: EightBitColor,
 }
 
 impl ColorConfig {
 	#[inline]
-	pub const fn green(&self) -> (u8, u8, u8) {
+	pub const fn green(&self) -> EightBitColor {
 		self.green
 	}
 
 	#[inline]
-	pub const fn orange(&self) -> (u8, u8, u8) {
+	pub const fn orange(&self) -> EightBitColor {
 		self.orange
 	}
 
 	#[inline]
-	pub const fn red(&self) -> (u8, u8, u8) {
+	pub const fn red(&self) -> EightBitColor {
 		self.red
 	}
 }
@@ -144,9 +145,9 @@ impl ColorConfig {
 impl Default for ColorConfig {
 	fn default() -> Self {
 		Self {
-			red: (255, 51, 51),
-			green: (153, 255, 51),
-			orange: (255, 255, 0),
+			red: EightBitColor::new(255, 51, 51),
+			green: EightBitColor::new(153, 255, 51),
+			orange: EightBitColor::new(255, 255, 0),
 		}
 	}
 }

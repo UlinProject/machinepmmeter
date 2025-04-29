@@ -40,16 +40,14 @@ impl ViDockHead {
 	) -> Self {
 		let head = Box::new(gtk::Orientation::Horizontal, 0);
 		head.style_context().add_class("namehead");
-		let (red, green, blue) = (config.as_ref() as &WindowConfig).get_head_color();
+		let head_color = (config.as_ref() as &WindowConfig).get_head_color();
 
-		if red != 0 || green != 0 || blue != 0 || transparent != 1.0 {
-			let red = (red as f64) / 255.0;
-			let green = (green as f64) / 255.0;
-			let blue = (blue as f64) / 255.0;
+		if head_color.is_notblack(transparent) {
+			let (r, g, b, a) = head_color.into_rgba(transparent);
 
 			head.connect_draw(move |window, cr| {
 				let allocation = window.allocation();
-				cr.set_source_rgba(red, green, blue, transparent);
+				cr.set_source_rgba(r, g, b, a);
 
 				cr.rectangle(
 					0.0,

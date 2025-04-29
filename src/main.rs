@@ -39,6 +39,7 @@ mod core {
 	pub mod constuppercase;
 	pub mod display;
 	pub mod dock_window;
+	pub mod eight_bitcolor;
 	pub mod gtk_codegen;
 	pub mod keyboard;
 	pub mod maybe;
