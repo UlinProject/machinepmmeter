@@ -1,10 +1,14 @@
-use anyhow::anyhow;
+use anyhow::bail;
 use std::ops::Deref;
 
 use crate::core::keyboard::key::Key;
+#[cfg(feature = "x11_keyboard")]
+#[cfg_attr(docsrs, doc(cfg(feature = "x11_keyboard")))]
 use crate::core::keyboard::x11::xlib;
 
 pub mod key;
+#[cfg(feature = "x11_keyboard")]
+#[cfg_attr(docsrs, doc(cfg(feature = "x11_keyboard")))]
 pub mod x11;
 
 pub struct KeyboardListener;
@@ -116,30 +120,38 @@ where
 impl KeyboardListener {
 	pub fn listen<const N: usize>(
 		init_key_table: impl FnOnce(&'_ mut [KeyStateEntry; N]) + Send + Sync + 'static,
-		mut event_handler: impl FnMut(&[KeyStateEntry; N], Key, ButtonState) + Send + Sync + 'static,
+		mut event_handler: impl FnMut(&'_ [KeyStateEntry; N], Key, ButtonState) + Send + Sync + 'static,
 		success_event: impl FnOnce(),
 	) -> anyhow::Result<()>
 	where
 		[KeyStateEntry; N]: Default,
 	{
-		let mut key_state_table = KeyStateTable::default();
-		init_key_table(&mut key_state_table.0);
+		#[cfg(feature = "x11_keyboard")]
+		#[cfg_attr(docsrs, doc(cfg(feature = "x11_keyboard")))]
+		{
+			let mut key_state_table = KeyStateTable::default();
+			init_key_table(&mut key_state_table.0);
 
-		xlib(
-			move |key, state| {
-				if let Some(key_entry) =
-					key_state_table.find_entry_mut(&KeyStateEntry::new(key, state.invert()))
-				{
-					key_entry.state = state;
+			xlib(
+				move |key, state| {
+					if let Some(key_entry) =
+						key_state_table.find_entry_mut(&KeyStateEntry::new(key, state.invert()))
+					{
+						key_entry.state = state;
 
-					let (key, state) = (key_entry.key, key_entry.state);
-					event_handler(&key_state_table.0, key, state);
-				}
-			},
-			success_event,
-		)
-		.map_err(|e| anyhow!("{:?}", e))?; // TODO REFACTORING ME
+						let (key, state) = (key_entry.key, key_entry.state);
+						event_handler(&key_state_table.0, key, state);
+					}
+				},
+				success_event,
+			)?;
 
-		Ok(())
+			return Ok(());
+		}
+
+		#[allow(unreachable_code)]
+		{
+			bail!("Global keypress detection is not supported on this platform.");
+		}
 	}
 }

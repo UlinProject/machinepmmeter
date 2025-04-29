@@ -54,10 +54,13 @@ impl XDisplay {
 	/// and returns the information the stub implementor needs to access the extension.
 	///
 	///The extension number in the XExtCodes data structure is needed in the other calls that follow. This extension number is unique only to a single connection.
-	pub fn init_exeption(&mut self, name: &CStr) -> Option<NonNull<XExtCodes>> {
+	pub fn init_exeption<'name>(
+		&mut self,
+		name: &'name CStr,
+	) -> Result<NonNull<XExtCodes>, &'name CStr> {
 		let xinitext = unsafe { xlib::XInitExtension(self.as_ptr(), name.as_ptr()) };
 
-		NonNull::new(xinitext)
+		NonNull::new(xinitext).ok_or(name)
 	}
 
 	/// Return a connection number for the specified display.

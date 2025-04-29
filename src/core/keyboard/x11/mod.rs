@@ -5,7 +5,9 @@ use crate::core::keyboard::x11::display::XDisplay;
 use crate::core::keyboard::x11::record::interdata::XRecordInterceptData;
 use crate::core::keyboard::x11::record::range::XRecordRange;
 use libc::{fd_set, select};
+use std::error::Error;
 use std::ffi::CStr;
+use std::fmt::Display;
 use std::os::raw::c_char;
 use std::ptr::{self, NonNull};
 use x11::xlib::{self};
@@ -19,25 +21,16 @@ pub mod record {
 	pub mod range;
 }
 
-#[derive(Debug)]
-pub enum ListenError {
-	MissingDisplay,
-	RecordContextEnabling,
-	CreateRecordContext,
-	CreateRecordRange,
-	InitException(#[allow(dead_code)] &'static CStr),
-}
-
 pub fn xlib(
 	key_pressrelease_event: impl FnMut(Key, ButtonState) + Sync + Send + 'static,
 	success_event: impl FnOnce(),
-) -> Result<(), ListenError> {
+) -> Result<(), XLibListenError> {
 	// Thread display
-	let mut display = XDisplay::new().ok_or(ListenError::MissingDisplay)?;
+	let mut display = XDisplay::new().ok_or(XLibListenError::MissingDisplay)?;
 	let exception = c"RECORD";
 	display
 		.init_exeption(exception)
-		.ok_or(ListenError::InitException(exception))?;
+		.map_err(XLibListenError::InitException)?;
 
 	let mut extern_data_container: SafeDropExterDataContainer<
 		Box<dyn FnMut(Key, ButtonState) + Sync + Send + 'static>,
@@ -53,15 +46,15 @@ pub fn xlib(
 					w_range.device_events.first = xlib::KeyPress as _;
 					w_range.device_events.last = xlib::KeyRelease as _;
 				})
-				.ok_or(ListenError::CreateRecordRange)?],
+				.ok_or(XLibListenError::CreateRecordRange)?],
 			)
-			.map_err(|_| ListenError::CreateRecordContext)?;
+			.map_err(|_| XLibListenError::CreateRecordContext)?;
 
 		context.as_mut_display().sync(false);
 		// Run
 		let mut en = context
 			.enable(Some(&mut extern_data_container), Some(raw_record_callback))
-			.ok_or(ListenError::RecordContextEnabling)?;
+			.ok_or(XLibListenError::RecordContextEnabling)?;
 
 		success_event();
 		{
@@ -160,3 +153,26 @@ fn record_callback(
 		}
 	}
 }
+
+#[derive(Debug)]
+pub enum XLibListenError {
+	MissingDisplay,
+	RecordContextEnabling,
+	CreateRecordContext,
+	CreateRecordRange,
+	InitException(#[allow(dead_code)] &'static CStr),
+}
+
+impl Display for XLibListenError {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		match self {
+			Self::MissingDisplay => write!(f, "MissingDisplay"),
+			Self::RecordContextEnabling => write!(f, "RecordContextEnabling"),
+			Self::CreateRecordContext => write!(f, "CreateRecordContext"),
+			Self::CreateRecordRange => write!(f, "CreateRecordRange"),
+			Self::InitException(a) => write!(f, "InitException({})", a.to_string_lossy()),
+		}
+	}
+}
+
+impl Error for XLibListenError {}
