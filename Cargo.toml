@@ -12,12 +12,12 @@ directories = "6.0.0"
 enclose = "1.2.1"
 env_logger = "0.11.8"
 gtk = "0.18.2"
-libc = "0.2.172"
 lm-sensors = "0.3.2"
 log = "0.4.27"
 rand = "0.9.1"
 serde = { version = "1.0.219", features = ["derive"] }
 toml = "0.8.20"
+libc = { version = "0.2.172", optional = true }
 x11 = { version = "2.21.0", features = ["xlib", "xrecord", "xinput"], optional = true }
 
 # docs.rs-specific configuration
@@ -29,4 +29,4 @@ rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
 default = [ "x11_keyboard" ]
-x11_keyboard = [ "x11" ]
+x11_keyboard = [ "x11", "libc" ]
