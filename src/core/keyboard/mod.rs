@@ -27,6 +27,7 @@ pub struct KeyStateEntry {
 
 #[derive(Debug, PartialEq, Clone, Copy, Default)]
 pub enum ButtonState {
+	#[allow(dead_code)]
 	Pressed,
 
 	#[default]
@@ -34,6 +35,7 @@ pub enum ButtonState {
 }
 
 impl ButtonState {
+	#[allow(dead_code)]
 	#[inline]
 	pub const fn invert(self) -> Self {
 		match self {
@@ -54,6 +56,7 @@ impl ButtonState {
 }
 
 impl KeyStateEntry {
+	#[allow(dead_code)]
 	#[inline]
 	pub const fn new(key: Key, state: ButtonState) -> Self {
 		Self { key, state }
@@ -111,6 +114,7 @@ where
 		self.0.contains(entry)
 	}
 
+	#[allow(dead_code)]
 	#[inline]
 	fn find_entry_mut(&mut self, entry: &KeyStateEntry) -> Option<&mut KeyStateEntry> {
 		self.0.iter_mut().find(|elem| **elem == *entry)
@@ -118,6 +122,8 @@ where
 }
 
 impl KeyboardListener {
+	#[allow(unused_mut)]
+	#[allow(unused_variables)]
 	pub fn listen<const N: usize>(
 		init_key_table: impl FnOnce(&'_ mut [KeyStateEntry; N]) + Send + Sync + 'static,
 		mut event_handler: impl FnMut(&'_ [KeyStateEntry; N], Key, ButtonState) + Send + Sync + 'static,

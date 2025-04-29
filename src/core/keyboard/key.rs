@@ -13,6 +13,7 @@ macro_rules! codegen_keystable {
 		}
 
 		impl $name {
+			#[allow(dead_code)]
 			pub const fn new(raw_key: std::ffi::c_uint) -> Option<Self> {
 				match raw_key {
 					$($v => Some(Self::$n),)*
