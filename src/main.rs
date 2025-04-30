@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2025 Denis Kotlyarov (Денис Котляров) <denis2005991@gmail.com>
+
 use crate::app::cli::AppCli;
 use crate::app::config::AppConfig;
 use crate::app::menu::{AppMenu, AppMenuItem};
