@@ -3,6 +3,11 @@ name = "machinepmmeter"
 version = "0.1.0-alpa"
 edition = "2024"
 description = "Real-time system performance monitor for apps/games, lm_sensors/ryzenadj."
+license = "GPL-3.0" 
+repository = "https://github.com/UlinProject/machinepmmeter/tree/main"
+authors = ["Denis Kotlyarov (Денис Котляров) <denis2005991@gmail.com>"]
+keywords = ["performance", "monitor", "system", "real-time", "lm_sensors", "ryzenadj"]
+categories = ["gui", "system-utilities", "monitoring"]
 
 [dependencies]
 anyhow = "1.0.98"
