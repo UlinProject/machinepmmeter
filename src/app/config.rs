@@ -1,17 +1,9 @@
-use anyhow::Result as anyhowResult;
-use anyhow::anyhow;
-use directories::ProjectDirs;
-use gtk::pango;
-use serde::Deserialize;
-use std::borrow::Cow;
-use std::path::Path;
-use std::path::PathBuf;
-
-use crate::Cli;
-use crate::PKG_NAME;
 use crate::UPPERCASE_PKG_NAME;
 use crate::core::dock_window::PosINScreen;
 use crate::core::eight_bitcolor::EightBitColor;
+use gtk::pango;
+use serde::Deserialize;
+use std::borrow::Cow;
 
 #[derive(Deserialize, Debug)]
 pub struct AppConfig {
@@ -154,27 +146,6 @@ impl Default for ColorAppConfig {
 }
 
 impl AppConfig {
-	pub fn search_default_path<R>(
-		cli: &Cli,
-		next: impl FnOnce(&'_ Path) -> anyhowResult<R>,
-	) -> anyhowResult<R> {
-		let mut owned_path = PathBuf::new();
-		let appconfig_path = cli.app_config.as_deref().map_or_else(
-			|| {
-				ProjectDirs::from("com", "ulinkot", PKG_NAME)
-					.ok_or(anyhow!("Could not determine project directories"))
-					.map(|a| {
-						owned_path = a.config_dir().join("AppConfig.toml");
-
-						owned_path.as_path()
-					})
-			},
-			Ok,
-		)?;
-
-		next(appconfig_path)
-	}
-
 	#[inline]
 	pub fn get_name(&self) -> Option<&str> {
 		self.name.as_deref()

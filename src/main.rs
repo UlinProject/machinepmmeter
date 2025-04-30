@@ -1,3 +1,4 @@
+use crate::app::cli::AppCli;
 use crate::app::config::AppConfig;
 use crate::app::menu::{AppMenu, AppMenuItem};
 use crate::core::display::ViGraphDisplayInfo;
@@ -26,7 +27,6 @@ use lm_sensors::{LMSensors, SubFeatureRef};
 use log::{error, info, trace, warn};
 use std::cell::RefCell;
 use std::fs;
-use std::path::PathBuf;
 use std::rc::Rc;
 use std::sync::Arc;
 
@@ -41,6 +41,7 @@ mod core {
 	pub mod maybe;
 }
 pub mod app {
+	pub mod cli;
 	pub mod config;
 	pub mod menu;
 }
@@ -56,34 +57,20 @@ const UPPERCASE_PKG_VERSION: &str = const_ascii_uppercase!(PKG_VERSION);
 
 const PKG_DESCRIPTION: &str = env!("CARGO_PKG_DESCRIPTION");
 
-#[derive(Parser, Debug)]
-#[clap(
-	name = "machinepmmeter",
-	about = "A tool to monitor Machine power consumption"
-)]
-pub struct Cli {
-	/// Path to the TOML AppConfiguration file
-	#[clap(short, long, value_parser, default_value = None)]
-	app_config: Option<PathBuf>,
-
-	/// Allow saving default AppConfig if it doesn't exist
-	#[clap(long, value_parser, default_value = "true")]
-	allow_save_default_app_config: bool,
-}
-
 fn main() -> anyhowResult<ExitCode> {
 	env_logger::try_init()?;
-	let cli = Cli::parse();
+	let cli = AppCli::parse();
 
-	let app_config = AppConfig::search_default_path(&cli, |app_config_path| {
+	let app_config = cli.search_default_appconfigpath(|app_config_path| {
+		let allow_save_default_app_config = cli.get_allow_save_default_app_config();
 		info!(
 			"#[AppConfig file] open: {:?}, allow_save_default_AppConfig: {:?}",
-			app_config_path, cli.allow_save_default_app_config
+			app_config_path, allow_save_default_app_config
 		);
 		let app_config = {
-			let context = || format!("Open AppConfig file {:?}.", &cli.app_config);
+			let context = || format!("Open AppConfig file {:?}.", cli.get_app_config());
 			let app_config = fs::read_to_string(app_config_path).map_or_else(
-				|e| match cli.allow_save_default_app_config {
+				|e| match allow_save_default_app_config {
 					false => Err(e).with_context(context),
 					true => {
 						let app_config = AppConfig::default();
