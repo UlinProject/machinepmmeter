@@ -1,8 +1,6 @@
-use std::{cell::RefCell, ops::Deref, rc::Rc};
-
 use crate::{
 	__gen_transparent_gtk_type,
-	config::{ColorConfig, FontConfig},
+	app::config::{ColorAppConfig, FontAppConfig},
 	widgets::primitives::{color_block::ViColorBlock, label::ViLabel},
 };
 use gtk::{
@@ -11,6 +9,7 @@ use gtk::{
 	pango::Weight,
 	traits::{BoxExt, StyleContextExt, WidgetExt},
 };
+use std::{cell::RefCell, ops::Deref, rc::Rc};
 
 #[repr(transparent)]
 #[derive(Debug)]
@@ -33,7 +32,7 @@ __gen_transparent_gtk_type! {
 
 impl ViTextMeter {
 	pub fn new_sender(
-		config: impl AsRef<FontConfig> + AsRef<ColorConfig> + Copy,
+		app_config: impl AsRef<FontAppConfig> + AsRef<ColorAppConfig> + Copy,
 
 		transparent: f64,
 	) -> ViTextMeterSender {
@@ -57,7 +56,7 @@ impl ViTextMeter {
 		let margin_bottom = 3;
 
 		let color = {
-			let (red, green, blue, transparent) = (config.as_ref() as &ColorConfig)
+			let (red, green, blue, transparent) = (app_config.as_ref() as &ColorAppConfig)
 				.green()
 				.into_rgba(transparent);
 
@@ -70,21 +69,21 @@ impl ViTextMeter {
 			(state_color, color_block)
 		};
 
-		let current = ViLabel::new("arg_vitextmeter", config, "0.0", Weight::Ultrabold)
+		let current = ViLabel::new("arg_vitextmeter", app_config, "0.0", Weight::Ultrabold)
 			.set_align(Align::Start)
 			.set_margin_start(10)
 			.set_margin_top(margin_top)
 			.set_margin_bottom(margin_bottom);
 		hbox.pack_start(&current, false, true, 0);
 
-		let avg = ViLabel::new("arg_vitextmeter", config, "", Weight::Normal)
+		let avg = ViLabel::new("arg_vitextmeter", app_config, "", Weight::Normal)
 			.set_visible(false)
 			.set_align(Align::Center)
 			.set_margin_top(margin_top)
 			.set_margin_bottom(margin_bottom);
 		hbox.pack_start(&avg, true, true, 0);
 
-		let limit = ViLabel::new("arg_vitextmeter", config, "", Weight::Normal)
+		let limit = ViLabel::new("arg_vitextmeter", app_config, "", Weight::Normal)
 			.set_visible(false)
 			.set_margin_end(10)
 			.set_align(Align::End)

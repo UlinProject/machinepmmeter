@@ -1,5 +1,5 @@
 use crate::__gen_transparent_gtk_type;
-use crate::config::FontConfig;
+use crate::app::config::FontAppConfig;
 use crate::core::maybe::Maybe;
 use crate::maybe;
 use crate::widgets::primitives::hotkey::ViHotkey;
@@ -32,7 +32,7 @@ __gen_transparent_gtk_type! {
 
 impl ViHotkeys {
 	pub fn new<'a, 'n>(
-		fconfig: impl AsRef<FontConfig> + Copy,
+		f_app_config: impl AsRef<FontAppConfig> + Copy,
 		head: impl Maybe<&'n str>,
 		array: impl Iterator<Item = (&'a str, &'a str)>,
 		c_transparent: f64,
@@ -41,7 +41,7 @@ impl ViHotkeys {
 
 		maybe!((head) {
 			all.pack_start(
-				&ViLabel::new((), fconfig, head, Weight::Bold)
+				&ViLabel::new((), f_app_config, head, Weight::Bold)
 					.set_margin_top(4)
 					.set_margin_start(4)
 					.set_margin_bottom(3)
@@ -55,7 +55,7 @@ impl ViHotkeys {
 		{
 			let shortcasthbox = Box::new(Orientation::Vertical, 1);
 			for (icon, text) in array {
-				shortcasthbox.pack_start(&ViHotkey::new(fconfig, icon, text), false, false, 0);
+				shortcasthbox.pack_start(&ViHotkey::new(f_app_config, icon, text), false, false, 0);
 			}
 			all.pack_start(&shortcasthbox, false, false, 0);
 		}

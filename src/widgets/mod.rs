@@ -1,5 +1,5 @@
 use crate::__gen_transparent_gtk_type;
-use crate::config::Config;
+use crate::app::config::AppConfig;
 use crate::core::maybe::Maybe;
 use crate::maybe;
 use crate::widgets::primitives::graph::ViGraph;
@@ -48,7 +48,7 @@ __gen_transparent_gtk_type! {
 
 impl ViMeter {
 	pub fn new_visender<'a>(
-		config: Rc<Config>,
+		app_config: Rc<AppConfig>,
 		head: impl Maybe<&'a str>,
 		width: i32,
 		len: usize,
@@ -58,7 +58,7 @@ impl ViMeter {
 
 		maybe!((head)
 			vbox.pack_start(
-				&ViLabel::new("info_vitextmeter", &*config, head, ())
+				&ViLabel::new("info_vitextmeter", &*app_config, head, ())
 					.set_margin_top(4)
 					.set_margin_start(4)
 					.set_margin_bottom(3)
@@ -70,14 +70,14 @@ impl ViMeter {
 			)
 		);
 
-		let textmeter_sender = ViTextMeter::new_sender(&*config, transparent);
+		let textmeter_sender = ViTextMeter::new_sender(&*app_config, transparent);
 		vbox.pack_start(&*textmeter_sender, false, false, 0);
 
-		let graphsender = ViGraph::new_graphsender(config.clone(), width, 42, len, transparent);
+		let graphsender = ViGraph::new_graphsender(app_config.clone(), width, 42, len, transparent);
 		vbox.pack_start(&*graphsender, true, true, 0);
 
 		ViMeterSender {
-			config,
+			app_config,
 			color_and_text: textmeter_sender,
 			graph: graphsender,
 			meter: Self(vbox),
@@ -87,7 +87,7 @@ impl ViMeter {
 
 #[allow(dead_code)]
 pub struct ViMeterSender {
-	config: Rc<Config>,
+	app_config: Rc<AppConfig>,
 	color_and_text: ViTextMeterSender,
 	graph: ViGraphSender,
 	meter: ViMeter,
@@ -117,7 +117,7 @@ impl ViMeterSender {
 		});
 
 		{
-			let color = self.config.get_color_config();
+			let color = self.app_config.get_color_app_config();
 			let (red, green, blue) = (if current >= l_red {
 				color.red()
 			} else if current >= l_orange {

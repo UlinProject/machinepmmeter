@@ -1,5 +1,6 @@
+use crate::app::config::FontAppConfig;
 use crate::maybe;
-use crate::{__gen_transparent_gtk_type, config::FontConfig, core::maybe::Maybe};
+use crate::{__gen_transparent_gtk_type, core::maybe::Maybe};
 use gtk::pango;
 use gtk::{
 	Align, Label,
@@ -31,11 +32,11 @@ __gen_transparent_gtk_type! {
 impl ViLabel {
 	pub fn new<'c>(
 		class: impl Maybe<&'c str>,
-		fconfig: impl AsRef<FontConfig>,
+		f_app_config: impl AsRef<FontAppConfig>,
 		value: &str,
 		weight: impl Maybe<Weight>,
 	) -> Self {
-		let fconfig = fconfig.as_ref();
+		let f_app_config = f_app_config.as_ref();
 		let label = Label::new(Some(value));
 
 		{
@@ -43,8 +44,8 @@ impl ViLabel {
 			let mut font_desc;
 			let font_attr = AttrFontDesc::new({
 				font_desc = FontDescription::new();
-				font_desc.set_family(fconfig.get_family());
-				font_desc.set_absolute_size(fconfig.calc_font_size());
+				font_desc.set_family(f_app_config.get_family());
+				font_desc.set_absolute_size(f_app_config.calc_font_size());
 				//font_desc.set_weight(pango::Weight::Normal);
 				maybe!((weight) font_desc.set_weight(weight));
 				&font_desc

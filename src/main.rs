@@ -1,4 +1,5 @@
-use crate::config::Config;
+use crate::app::config::AppConfig;
+use crate::app::menu::{AppMenu, AppMenuItem};
 use crate::core::display::ViGraphDisplayInfo;
 use crate::core::dock_window::{PosINScreen, ViDockWindow};
 use crate::core::keyboard::KeyboardListener;
@@ -10,8 +11,6 @@ use crate::widgets::primitives::icon_menuitem::ViIconMenuItem;
 use crate::widgets::primitives::label::ViLabel;
 use anyhow::anyhow;
 use anyhow::{Context, Result as anyhowResult};
-use appindicator3::traits::AppIndicatorExt;
-use appindicator3::{Indicator, IndicatorCategory, IndicatorStatus};
 use async_channel::{Receiver, Sender};
 use clap::Parser;
 use enclose::enc;
@@ -20,9 +19,7 @@ use gtk::gio::prelude::ApplicationExtManual;
 use gtk::gio::traits::ApplicationExt;
 use gtk::glib::ExitCode;
 use gtk::prelude::WidgetExt;
-use gtk::traits::{
-	BoxExt, ContainerExt, CssProviderExt, GtkMenuItemExt, GtkWindowExt, MenuShellExt,
-};
+use gtk::traits::{BoxExt, ContainerExt, CssProviderExt, GtkMenuItemExt, GtkWindowExt};
 use gtk::{Align, Application, glib};
 use gtk::{Box as GtkBox, CssProvider};
 use lm_sensors::{LMSensors, SubFeatureRef};
@@ -33,7 +30,6 @@ use std::path::PathBuf;
 use std::rc::Rc;
 use std::sync::Arc;
 
-mod config;
 mod widgets;
 mod core {
 	pub mod constuppercase;
@@ -43,6 +39,10 @@ mod core {
 	pub mod gtk_codegen;
 	pub mod keyboard;
 	pub mod maybe;
+}
+pub mod app {
+	pub mod config;
+	pub mod menu;
 }
 
 const APP_NAME: &str = "machinepmmeter";
@@ -62,48 +62,48 @@ const PKG_DESCRIPTION: &str = env!("CARGO_PKG_DESCRIPTION");
 	about = "A tool to monitor Machine power consumption"
 )]
 pub struct Cli {
-	/// Path to the TOML configuration file
+	/// Path to the TOML AppConfiguration file
 	#[clap(short, long, value_parser, default_value = None)]
-	config: Option<PathBuf>,
+	app_config: Option<PathBuf>,
 
-	/// Allow saving default config if it doesn't exist
+	/// Allow saving default AppConfig if it doesn't exist
 	#[clap(long, value_parser, default_value = "true")]
-	allow_save_default_config: bool,
+	allow_save_default_app_config: bool,
 }
 
 fn main() -> anyhowResult<ExitCode> {
 	env_logger::try_init()?;
 	let cli = Cli::parse();
 
-	let config = Config::search_default_path(&cli, |config_path| {
+	let app_config = AppConfig::search_default_path(&cli, |app_config_path| {
 		info!(
-			"#[config file] open: {:?}, allow_save_default_config: {:?}",
-			config_path, cli.allow_save_default_config
+			"#[AppConfig file] open: {:?}, allow_save_default_AppConfig: {:?}",
+			app_config_path, cli.allow_save_default_app_config
 		);
-		let config = {
-			let context = || format!("Open config file {:?}.", &cli.config);
-			let config = fs::read_to_string(config_path).map_or_else(
-				|e| match cli.allow_save_default_config {
+		let app_config = {
+			let context = || format!("Open AppConfig file {:?}.", &cli.app_config);
+			let app_config = fs::read_to_string(app_config_path).map_or_else(
+				|e| match cli.allow_save_default_app_config {
 					false => Err(e).with_context(context),
 					true => {
-						let config = Config::default();
+						let app_config = AppConfig::default();
 
-						Ok(config)
+						Ok(app_config)
 					}
 				},
 				|rdata| toml::from_str(&rdata).with_context(context),
 			);
 
-			Rc::new(config?)
+			Rc::new(app_config?)
 		};
 
-		Ok(config)
+		Ok(app_config)
 	})?;
-	trace!("#[config file] current: {:?}", config);
+	trace!("#[AppConfig file] current: {:?}", app_config);
 
 	gtk::init()?;
 	let c_display = Rc::new(ViGraphDisplayInfo::new(
-		config.get_window_config().get_num_monitor(),
+		app_config.get_window_app_config().get_num_monitor(),
 	)?);
 	let defcss = {
 		let a_css = CssProvider::new();
@@ -113,14 +113,40 @@ fn main() -> anyhowResult<ExitCode> {
 	};
 
 	let application = Application::new(Some(APP_ID), Default::default());
-	application.connect_activate(enc!((config) move |app| {
-		let name_window = config.get_name_or_default();
+	application.connect_activate(enc!((app_config) move |app| {
+		let name_window = app_config.get_name_or_default();
 
 		let (tx_keyboardevents, rx_keyboardevents) = async_channel::bounded(18);
 
 		let mut is_keyboard_allowed = false;
-		build_ui(app, name_window, &config, &c_display, &defcss, &mut is_keyboard_allowed, tx_keyboardevents.clone(), rx_keyboardevents);
-		build_menu(is_keyboard_allowed, tx_keyboardevents);
+		build_ui(app, name_window, &app_config, &c_display, &defcss, &mut is_keyboard_allowed, tx_keyboardevents.clone(), rx_keyboardevents);
+		{
+			let hide_or_show = enc!((tx_keyboardevents) &mut move |vi: &mut ViIconMenuItem| {
+				vi.connect_activate(enc!((tx_keyboardevents) move |_| {
+					let _e = tx_keyboardevents.send_blocking(Events::HideOrShow);
+				}));
+			}) as &'_ mut dyn FnMut(&'_ mut ViIconMenuItem);
+
+			let next_position = enc!((tx_keyboardevents) &mut move |vi: &mut ViIconMenuItem| {
+				vi.connect_activate(enc!((tx_keyboardevents) move |_| {
+					let _e = tx_keyboardevents.send_blocking(Events::HideOrShow);
+				}));
+			});
+
+			let exit = enc!((tx_keyboardevents) &mut move |vi: &mut ViIconMenuItem| {
+				vi.connect_activate(enc!((tx_keyboardevents) move |_| {
+					let _e = tx_keyboardevents.send_blocking(Events::Exit);
+				}));
+			});
+
+			let menu = AppMenu::new(APP_ID, "help-about-symbolic", PKG_DESCRIPTION, [
+				AppMenuItem::icon_item("view-conceal-symbolic", "Hide | Show", hide_or_show),
+				AppMenuItem::icon_item("sidebar-show-right-symbolic-rtl", "Next position", next_position),
+				AppMenuItem::Separator,
+				AppMenuItem::icon_item("system-shutdown-symbolic", "Exit", exit)
+			].into_iter());
+			menu.main();
+		}
 	}));
 
 	Ok(application.run())
@@ -137,78 +163,16 @@ enum KeyboardEvents {
 enum Events {
 	Keyboard(KeyboardEvents),
 	HideOrShow,
-	Close,
+	Exit,
 	NextPosition,
 	AppendViHotkey(Vec<(&'static str, &'static str)>),
-}
-
-fn build_menu(is_keyboard_allowed: bool, sender: Sender<Events>) {
-	let menu = gtk::Menu::new();
-	{
-		let menu_item = ViIconMenuItem::new(
-			"view-conceal-symbolic",
-			match is_keyboard_allowed {
-				true => "Hide | Show (Shift and F8)",
-				false => "Hide | Show ",
-			},
-		);
-
-		menu_item.connect_activate(enc!((sender) move |_| {
-			let _e = sender.send_blocking(Events::HideOrShow);
-		}));
-		menu.append(&*menu_item);
-		menu_item.show_all();
-	}
-	{
-		let menu_item = ViIconMenuItem::new(
-			"sidebar-show-right-symbolic-rtl",
-			match is_keyboard_allowed {
-				true => "Next position (Left Shift and Right Shift)",
-				false => "Next position ",
-			},
-		);
-
-		menu_item.connect_activate(enc!((sender) move |_| {
-			let _e = sender.send_blocking(Events::NextPosition);
-		}));
-		menu.append(&*menu_item);
-		menu_item.show_all();
-	}
-	{
-		let separator = gtk::SeparatorMenuItem::new();
-		menu.append(&separator);
-		separator.show_all();
-	}
-	{
-		let menu_item = ViIconMenuItem::new(
-			"system-shutdown-symbolic",
-			match is_keyboard_allowed {
-				true => "Exit (Shift and Esc)",
-				false => "Exit",
-			},
-		);
-
-		menu_item.connect_activate(enc!((sender) move |_| {
-			let _e = sender.send_blocking(Events::Close);
-		}));
-		menu.append(&*menu_item);
-		menu_item.show_all();
-	}
-
-	let icon = "help-about-symbolic";
-	let indicator = Indicator::new(APP_ID, icon, IndicatorCategory::ApplicationStatus);
-	indicator.set_status(IndicatorStatus::Active);
-	indicator.set_menu(Some(&menu));
-	indicator.set_attention_icon_full(icon, PKG_DESCRIPTION);
-
-	gtk::main();
 }
 
 #[allow(clippy::too_many_arguments)]
 fn build_ui(
 	app: &gtk::Application,
 	name_window: &str,
-	config: &Rc<Config>,
+	app_config: &Rc<AppConfig>,
 	c_display: &Rc<ViGraphDisplayInfo>,
 	defcss: &CssProvider,
 	is_keyboard_allowed: &mut bool,
@@ -223,9 +187,11 @@ fn build_ui(
 		gtk::STYLE_PROVIDER_PRIORITY_APPLICATION,
 	);
 
-	let dock_window = Rc::new(ViDockWindow::new(app, name_window, &**config));
-	let (c_transparent, _is_transparent_mode) =
-		config.get_window_config().get_transparent().map_or_else(
+	let dock_window = Rc::new(ViDockWindow::new(app, name_window, &**app_config));
+	let (c_transparent, _is_transparent_mode) = app_config
+		.get_window_app_config()
+		.get_transparent()
+		.map_or_else(
 			|| (1.0, false),
 			|level| match !dock_window
 				.connect_transparent_background(&**c_display, level)
@@ -242,7 +208,12 @@ fn build_ui(
 
 	let vbox = Rc::new(GtkBox::new(gtk::Orientation::Vertical, 0));
 	vbox.pack_start(
-		&ViDockHead::new(&**config, name_window, UPPERCASE_PKG_VERSION, c_transparent),
+		&ViDockHead::new(
+			&**app_config,
+			name_window,
+			UPPERCASE_PKG_VERSION,
+			c_transparent,
+		),
 		true,
 		true,
 		0,
@@ -250,7 +221,7 @@ fn build_ui(
 
 	/*{
 		vbox.pack_start(
-			&ViLabel::new("head_info", &**config, "CPU Family: Raven", ())
+			&ViLabel::new("head_info", &**AppConfig, "CPU Family: Raven", ())
 				.set_margin_top(8)
 				.set_margin_start(4)
 				.set_margin_bottom(3)
@@ -263,7 +234,7 @@ fn build_ui(
 	}*/
 	/*{
 		vbox.pack_start(
-			&ViLabel::new("head_info", &**config, "SMU BIOS Interface Version: 5", ())
+			&ViLabel::new("head_info", &**AppConfig, "SMU BIOS Interface Version: 5", ())
 				.set_margin_start(4)
 				.set_margin_bottom(3)
 				.set_align(Align::Start)
@@ -275,7 +246,7 @@ fn build_ui(
 	}*/
 	/*{
 		vbox.pack_start(
-			&ViLabel::new("head_info", &**config, "PM Table Version: 1e0004", ())
+			&ViLabel::new("head_info", &**AppConfig, "PM Table Version: 1e0004", ())
 				.set_margin_start(4)
 				.set_margin_bottom(3)
 				.set_align(Align::Start)
@@ -295,7 +266,7 @@ fn build_ui(
 
 	{
 		vbox.pack_start(
-			&ViLabel::new("head_info", &**config, "View: lm_sensors", ())
+			&ViLabel::new("head_info", &**app_config, "View: lm_sensors", ())
 				.set_margin_top(8)
 				.set_margin_start(4)
 				.set_margin_bottom(3)
@@ -312,7 +283,7 @@ fn build_ui(
 		vbox.pack_start(
 			&ViLabel::new(
 				"info_vitextmeter",
-				&**config,
+				&**app_config,
 				&format!("# {} ({})", chip, chip.bus()),
 				(),
 			)
@@ -378,7 +349,7 @@ fn build_ui(
 				}
 				if c_value.input.is_some() {
 					let vimetr = ViMeter::new_visender(
-						config.clone(),
+						app_config.clone(),
 						name,
 						dock_window.allocation().width(),
 						200,
@@ -431,7 +402,7 @@ fn build_ui(
 
 	/*{
 		let vimetr = ViMeter::new_visender(
-			config.clone(),
+			AppConfig.clone(),
 			"# TDP",
 			dock_window.allocation().width(),
 			200,
@@ -447,7 +418,7 @@ fn build_ui(
 
 	{
 		let vimetr = ViMeter::new_visender(
-			config.clone(),
+			AppConfig.clone(),
 			"# VRM",
 			dock_window.allocation().width(),
 			200,
@@ -463,7 +434,7 @@ fn build_ui(
 
 	{
 		let vimetr = ViMeter::new_visender(
-			config.clone(),
+			AppConfig.clone(),
 			"# VOLTAGE",
 			dock_window.allocation().width(),
 			200,
@@ -476,7 +447,7 @@ fn build_ui(
 			ControlFlow::Continue
 		});
 	}*/
-	dock_window.add(&*vbox);
+	dock_window.set_child(Some(&*vbox));
 
 	std::thread::spawn(enc!((sender)move || {
 		let keyboard_listener = KeyboardListener::listen::<6>(
@@ -550,7 +521,7 @@ fn build_ui(
 		};
 	}));
 
-	let pos_inscreen = Rc::new(RefCell::new(config.get_window_config().get_pos()));
+	let pos_inscreen = Rc::new(RefCell::new(app_config.get_window_app_config().get_pos()));
 	dock_window.connect_show(enc!((pos_inscreen, c_display, dock_window) move |_| {
 		let pos_inscreen: PosINScreen = *pos_inscreen.borrow();
 
@@ -562,14 +533,14 @@ fn build_ui(
 		dock_window.set_pos_inscreen(&*c_display, pos_inscreen);
 	}));
 	dock_window.connect_screen_changed(
-		enc!((pos_inscreen, config, c_display) move |dock_window, screen| {
+		enc!((pos_inscreen, app_config, c_display) move |dock_window, screen| {
 			let pos_inscreen: PosINScreen = *pos_inscreen.borrow();
 			let mut owned_motitor = None;
 			let c_monitor: &Monitor = ViGraphDisplayInfo::as_ref(&*c_display);
 			let monitor: &Monitor = screen
 				.map(|a| a.display())
 				.and_then(|a| {
-					owned_motitor = a.monitor(config.get_window_config().get_num_monitor());
+					owned_motitor = a.monitor(app_config.get_window_app_config().get_num_monitor());
 					owned_motitor.as_ref()
 			}).unwrap_or(c_monitor);
 
@@ -578,7 +549,7 @@ fn build_ui(
 	);
 
 	glib::MainContext::default().spawn_local(
-		enc!((c_display, dock_window, pos_inscreen, vbox, config) async move {
+		enc!((c_display, dock_window, pos_inscreen, vbox, app_config) async move {
 			while let Ok(event) = receiver.recv().await {
 				match event {
 					Events::HideOrShow | Events::Keyboard(KeyboardEvents::ShiftF8) if dock_window.is_visible() => {
@@ -587,7 +558,7 @@ fn build_ui(
 					Events::HideOrShow | Events::Keyboard(KeyboardEvents::ShiftF8) => {
 						dock_window.show();
 					},
-					Events::Close | Events::Keyboard(KeyboardEvents::Escape) => {
+					Events::Exit | Events::Keyboard(KeyboardEvents::Escape) => {
 						dock_window.close();
 						gtk::main_quit();
 					},
@@ -605,7 +576,7 @@ fn build_ui(
 					},
 					Events::AppendViHotkey(arr) => {
 						let vihotkey = ViHotkeys::new(
-							&*config,
+							&*app_config,
 							"# Hot keys",
 							arr.into_iter(),
 							c_transparent,

@@ -49,7 +49,8 @@ impl Default for WindowAppConfig {
 impl WindowAppConfig {
 	#[inline]
 	pub fn get_head_color(&self) -> EightBitColor {
-		self.head.unwrap_or_else(|| ColorAppConfig::default().orange())
+		self.head
+			.unwrap_or_else(|| ColorAppConfig::default().orange())
 	}
 
 	#[inline]

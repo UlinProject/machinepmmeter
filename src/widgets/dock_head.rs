@@ -1,6 +1,6 @@
 use crate::{
 	__gen_transparent_gtk_type,
-	config::{FontConfig, WindowConfig},
+	app::config::{FontAppConfig, WindowAppConfig},
 	core::maybe::Maybe,
 	maybe,
 	widgets::primitives::label::ViLabel,
@@ -32,7 +32,7 @@ __gen_transparent_gtk_type! {
 
 impl ViDockHead {
 	pub fn new<'a, 'b>(
-		config: impl AsRef<WindowConfig> + AsRef<FontConfig> + Copy,
+		app_config: impl AsRef<WindowAppConfig> + AsRef<FontAppConfig> + Copy,
 
 		value: &'a str,
 		version: impl Maybe<&'b str>,
@@ -40,7 +40,7 @@ impl ViDockHead {
 	) -> Self {
 		let head = Box::new(gtk::Orientation::Horizontal, 0);
 		head.style_context().add_class("namehead");
-		let head_color = (config.as_ref() as &WindowConfig).get_head_color();
+		let head_color = (app_config.as_ref() as &WindowAppConfig).get_head_color();
 
 		if head_color.is_notblack(transparent) {
 			let (r, g, b, a) = head_color.into_rgba(transparent);
@@ -61,13 +61,13 @@ impl ViDockHead {
 			});
 		}
 
-		let name_label = ViLabel::new("namehead_vilabel", config, value, ())
+		let name_label = ViLabel::new("namehead_vilabel", app_config, value, ())
 			.set_margin_start(4)
 			.set_margin_top(2);
 		head.pack_start(&name_label, false, true, 0); // expand: true, fill: true
 
 		maybe!((version) {
-			let version_label = ViLabel::new("versionhead_vilabel", config, version, ())
+			let version_label = ViLabel::new("versionhead_vilabel", app_config, version, ())
 				.set_align(Align::End)
 				.set_margin_top(2);
 

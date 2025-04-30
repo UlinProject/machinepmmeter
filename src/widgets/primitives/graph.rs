@@ -1,16 +1,15 @@
-use std::cell::RefCell;
-use std::collections::VecDeque;
-use std::ops::Deref;
-use std::rc::Rc;
-
 use crate::__gen_transparent_gtk_type;
-use crate::config::ColorConfig;
-use crate::config::Config;
+use crate::app::config::AppConfig;
+use crate::app::config::ColorAppConfig;
 use enclose::enc;
 use gtk::DrawingArea;
 use gtk::cairo;
 use gtk::ffi::GtkDrawingArea;
 use gtk::traits::WidgetExt;
+use std::cell::RefCell;
+use std::collections::VecDeque;
+use std::ops::Deref;
+use std::rc::Rc;
 
 #[repr(transparent)]
 #[derive(Debug)]
@@ -33,7 +32,7 @@ __gen_transparent_gtk_type! {
 
 impl ViGraph {
 	pub fn new_graphsender(
-		config: Rc<Config>,
+		app_config: Rc<AppConfig>,
 		width: i32,
 		height: i32,
 		len: usize,
@@ -56,7 +55,7 @@ impl ViGraph {
 		graph_area.connect_draw(enc!((rc_data) move |da, cr| {
 			{
 				let data = RefCell::borrow(&rc_data);
-				draw_peak_graph(&*config, da, cr, data.iter(), data.len(), transparent);
+				draw_peak_graph(&*app_config, da, cr, data.iter(), data.len(), transparent);
 			}
 
 			false.into()
@@ -96,7 +95,7 @@ impl ViGraphSender {
 }
 
 fn draw_peak_graph<'a>(
-	color: impl AsRef<ColorConfig>,
+	color: impl AsRef<ColorAppConfig>,
 	da: &DrawingArea,
 	cr: &cairo::Context,
 	iter: impl Iterator<Item = &'a f64> + Clone,

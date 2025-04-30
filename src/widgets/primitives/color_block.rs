@@ -1,4 +1,4 @@
-use crate::{__gen_transparent_gtk_type, config::ColorConfig};
+use crate::{__gen_transparent_gtk_type, app::config::ColorAppConfig};
 use gtk::{
 	DrawingArea,
 	ffi::GtkDrawingArea,
@@ -39,12 +39,12 @@ impl ViColorBlock {
 
 	pub fn connect_color<const ALLOW_ONEDRAW_OPTIMIZE: bool>(
 		self,
-		cconfig: impl AsRef<ColorConfig>,
+		c_app_config: impl AsRef<ColorAppConfig>,
 
-		get_color: impl FnOnce(&ColorConfig) -> (u8, u8, u8),
+		get_color: impl FnOnce(&ColorAppConfig) -> (u8, u8, u8),
 		alpha: f64,
 	) -> Self {
-		let (red, green, blue) = get_color(cconfig.as_ref());
+		let (red, green, blue) = get_color(c_app_config.as_ref());
 
 		self.connect_background::<ALLOW_ONEDRAW_OPTIMIZE>(red, green, blue, alpha)
 	}

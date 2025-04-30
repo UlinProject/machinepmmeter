@@ -1,4 +1,4 @@
-use crate::{__gen_transparent_gtk_type, config::WindowConfig};
+use crate::{__gen_transparent_gtk_type, app::config::WindowAppConfig};
 use gtk::{
 	Application, ApplicationWindow, cairo,
 	ffi::GtkApplicationWindow,
@@ -38,16 +38,20 @@ impl Deref for ViDockWindow {
 }
 
 impl ViDockWindow {
-	pub fn new(app: &'_ Application, title: &'_ str, wconfig: impl AsRef<WindowConfig>) -> Self {
-		let wconfig = wconfig.as_ref();
+	pub fn new(
+		app: &'_ Application,
+		title: &'_ str,
+		w_app_config: impl AsRef<WindowAppConfig>,
+	) -> Self {
+		let w_app_config = w_app_config.as_ref();
 		let window = ApplicationWindow::new(app);
 		window.set_visible(false);
 		window.set_title(title);
 		window.set_decorated(false);
 		window.set_app_paintable(true);
 		window.set_default_size(
-			wconfig.get_width_or_default(),
-			wconfig.get_height_or_default(),
+			w_app_config.get_width_or_default(),
+			w_app_config.get_height_or_default(),
 		);
 		window.set_keep_above(true);
 		window.set_type_hint(WindowTypeHint::Dock);

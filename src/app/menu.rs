@@ -40,7 +40,10 @@ impl Deref for AppMenu {
 	}
 }
 
-pub enum AppMenuItem<'i, 'v, F> where F: FnMut(&'_ mut ViIconMenuItem) {
+pub enum AppMenuItem<'i, 'v, F>
+where
+	F: FnMut(&'_ mut ViIconMenuItem),
+{
 	IconItem {
 		icon: &'i str,
 		value: &'v str,
@@ -53,7 +56,10 @@ pub enum AppMenuItem<'i, 'v, F> where F: FnMut(&'_ mut ViIconMenuItem) {
 	Separator,
 }
 
-impl<'i, 'v, F> AppMenuItem<'i, 'v, F> where F: FnMut(&'_ mut ViIconMenuItem) {
+impl<'i, 'v, F> AppMenuItem<'i, 'v, F>
+where
+	F: FnMut(&'_ mut ViIconMenuItem),
+{
 	#[inline]
 	pub const fn separator() -> Self {
 		Self::Separator
@@ -80,7 +86,11 @@ impl AppMenu {
 		let menu = gtk::Menu::new();
 		for item in items {
 			match item {
-				AppMenuItem::IconItem { icon, value, mut init } => {
+				AppMenuItem::IconItem {
+					icon,
+					value,
+					mut init,
+				} => {
 					let mut menu_item = ViIconMenuItem::new(icon, value);
 
 					init(&mut menu_item);
