@@ -2,7 +2,7 @@
 name = "machinepmmeter"
 version = "0.1.0-alpa"
 edition = "2024"
-description = "Test"
+description = "Real-time system performance monitor for apps/games, lm_sensors/ryzenadj."
 
 [dependencies]
 anyhow = "1.0.98"

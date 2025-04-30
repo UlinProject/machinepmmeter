@@ -1,4 +1,5 @@
 use crate::APP_NAME;
+use crate::PKG_DESCRIPTION;
 use crate::PKG_NAME;
 use anyhow::Result as anyhowResult;
 use anyhow::anyhow;
@@ -10,7 +11,7 @@ use std::path::PathBuf;
 #[derive(Parser, Debug)]
 #[clap(
 	name = APP_NAME,
-	about = "A tool to monitor Machine power consumption"
+	about = PKG_DESCRIPTION
 )]
 pub struct AppCli {
 	/// Path to the TOML AppConfiguration file
