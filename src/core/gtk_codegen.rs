@@ -25,8 +25,8 @@ macro_rules! __gen_transparent_gtk_type {
 				value::{FromValue, ToValueOptional, ValueType},
 			},
 		};
-		use std::cmp::Ordering;
 		use gtk::glib::object::ObjectRef;
+		use std::cmp::Ordering;
 		use std::hash::Hasher;
 
 		impl AsRef<Widget> for $forty {

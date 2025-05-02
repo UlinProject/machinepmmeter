@@ -19,13 +19,13 @@ use anyhow::{Context, Result as anyhowResult};
 use async_channel::{Receiver, Sender};
 use clap::Parser;
 use enclose::enc;
+use glib::{ControlFlow, ExitCode};
 use gtk::gdk::{Monitor, Screen};
 use gtk::gio::prelude::ApplicationExtManual;
 use gtk::gio::traits::ApplicationExt;
-use gtk::glib::{ControlFlow, ExitCode};
 use gtk::prelude::WidgetExt;
 use gtk::traits::{BoxExt, ContainerExt, CssProviderExt, GtkMenuItemExt, GtkWindowExt};
-use gtk::{Align, Application, glib};
+use gtk::{Align, Application};
 use gtk::{Box as GtkBox, CssProvider};
 use lm_sensors::{LMSensors, SubFeatureRef};
 use log::{error, info, trace, warn};
@@ -64,7 +64,7 @@ const UPPERCASE_PKG_VERSION: &str = const_ascii_uppercase!(PKG_VERSION);
 
 const PKG_DESCRIPTION: &str = env!("CARGO_PKG_DESCRIPTION");
 
-fn main() -> anyhowResult<ExitCode> {
+fn main() -> anyhowResult<()> {
 	env_logger::try_init()?;
 	let cli = AppCli::parse();
 
@@ -168,8 +168,9 @@ fn main() -> anyhowResult<ExitCode> {
 
 		build_ui(app, name_window, &app_config, &c_display, &defcss, tx_appevents.clone(), rx_appevents.clone());
 	}));
-
-	Ok(application.run())
+	
+	application.run();
+	Ok(())
 }
 
 enum KeyboardEvents {
