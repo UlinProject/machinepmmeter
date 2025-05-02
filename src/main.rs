@@ -526,9 +526,27 @@ fn build_ui(
 		}),
 	);
 
+	glib::timeout_add_local(
+		std::time::Duration::from_millis(1000),
+		enc!((sender)move || {
+			let _e = sender.send_blocking(AppEvents::KeyboardListenerState(true));
+
+			ControlFlow::Continue
+		}),
+	);
+	glib::timeout_add_local(
+		std::time::Duration::from_millis(2000),
+		enc!((sender)move || {
+			let _e = sender.send_blocking(AppEvents::KeyboardListenerState(false));
+
+			ControlFlow::Continue
+		}),
+	);
+
 	glib::MainContext::default().spawn_local(
 		enc!((c_display, dock_window, pos_inscreen, vbox, app_config) async move {
 			let app_about_dialog = Rc::new(RefCell::new(None));
+			let mut wdock_vihotkey = None;
 			while let Ok(event) = receiver.recv().await {
 				match event {
 					AppEvents::HideOrShow | AppEvents::Keyboard(KeyboardEvents::ShiftF8) if dock_window.is_visible() => {
@@ -570,24 +588,35 @@ fn build_ui(
 						dock_window.set_pos_inscreen(&*c_display, new_pos);
 					},
 					AppEvents::KeyboardListenerState(true) => {
-						let arr = [
-							("view-conceal-symbolic", "Hide | Show (Shift and F8)"),
-							(
-								"sidebar-show-right-symbolic-rtl",
-								"Next position (Left Shift and Right Shift)",
-							),
-							("system-shutdown-symbolic", "Exit (Shift and Esc)")
-						];
-						let vihotkey = ViHotkeyItems::new(
-							&*app_config,
-							"# Hot keys",
-							arr.into_iter(),
-							c_transparent,
-						);
-						vbox.add(&vihotkey);
-						vbox.show_all();
+						if wdock_vihotkey.is_none() {
+							let arr = [
+								("view-conceal-symbolic", "Hide | Show (Shift and F8)"),
+								(
+									"sidebar-show-right-symbolic-rtl",
+									"Next position (Left Shift and Right Shift)",
+								),
+								("system-shutdown-symbolic", "Exit (Shift and Esc)")
+							];
+							let vihotkey = ViHotkeyItems::new(
+								&*app_config,
+								"# Hot keys",
+								arr.into_iter(),
+								c_transparent,
+							);
+							vbox.add(&vihotkey);
+							vihotkey.show_all();
+							
+							wdock_vihotkey = Some(vihotkey);
+						}
 					},
-					AppEvents::KeyboardListenerState(false) => {},
+					AppEvents::KeyboardListenerState(false) => {
+						if let Some(vihotkey) = wdock_vihotkey {
+							vihotkey.hide();
+							vbox.remove(&vihotkey);
+							
+							wdock_vihotkey = None;
+						}
+					},
 				}
 			}
 		}),
