@@ -231,7 +231,7 @@ fn build_ui(
 	let vbox = Rc::new(GtkBox::new(gtk::Orientation::Vertical, 0));
 	vbox.pack_start(
 		&ViDockHead::new(
-			&**app_config,
+			app_config.clone(),
 			name_window,
 			UPPERCASE_PKG_VERSION,
 			c_transparent,
@@ -241,50 +241,11 @@ fn build_ui(
 		0,
 	); // expand: true, fill: true
 
-	/*{
-		vbox.pack_start(
-			&ViLabel::new("head_info", &**AppConfig, "CPU Family: Raven", ())
-				.set_margin_top(8)
-				.set_margin_start(4)
-				.set_margin_bottom(3)
-				.set_align(Align::Start)
-				.connect_nonblack_background(0.0, 0.0, 0.0, c_transparent),
-			true,
-			true,
-			0,
-		); // expand: true, fill: true
-	}*/
-	/*{
-		vbox.pack_start(
-			&ViLabel::new("head_info", &**AppConfig, "SMU BIOS Interface Version: 5", ())
-				.set_margin_start(4)
-				.set_margin_bottom(3)
-				.set_align(Align::Start)
-				.connect_nonblack_background(0.0, 0.0, 0.0, c_transparent),
-			true,
-			true,
-			0,
-		); // expand: true, fill: true
-	}*/
-	/*{
-		vbox.pack_start(
-			&ViLabel::new("head_info", &**AppConfig, "PM Table Version: 1e0004", ())
-				.set_margin_start(4)
-				.set_margin_bottom(3)
-				.set_align(Align::Start)
-				.connect_nonblack_background(0.0, 0.0, 0.0, c_transparent),
-			true,
-			true,
-			0,
-		); // expand: true, fill: true
-	}*/
-
-	let sensors: Arc<LMSensors> = Arc::new(
+	let sensors: LMSensors = 
 		lm_sensors::Initializer::default()
 			.initialize()
 			.map_err(|e| anyhow!("{:?}", e))
-			.unwrap(),
-	); // TODO REFACTORING ME?;
+			.unwrap(); // TODO REFACTORING ME?;
 
 	{
 		vbox.pack_start(
@@ -431,7 +392,7 @@ fn build_ui(
 			c_transparent,
 		);
 		vbox.pack_start(&*vimetr, false, false, 0);
-		glib::timeout_add_local(std::time::Duration::from_millis(100), move || {
+		glib::timeout_add_local(std::time::Duration::from_millis(80), move || {
 			vimetr.push_next_and_queue_draw(0.7, 0.7, 1.0, 0.0, 0.0);
 
 			ControlFlow::Continue
@@ -527,7 +488,7 @@ fn build_ui(
 	);
 
 	glib::timeout_add_local(
-		std::time::Duration::from_millis(1000),
+		std::time::Duration::from_millis(2000),
 		enc!((sender)move || {
 			let _e = sender.send_blocking(AppEvents::KeyboardListenerState(true));
 
@@ -535,7 +496,7 @@ fn build_ui(
 		}),
 	);
 	glib::timeout_add_local(
-		std::time::Duration::from_millis(2000),
+		std::time::Duration::from_millis(500),
 		enc!((sender)move || {
 			let _e = sender.send_blocking(AppEvents::KeyboardListenerState(false));
 
