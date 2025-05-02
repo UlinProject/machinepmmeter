@@ -43,9 +43,7 @@ impl ViIconMenuItem {
 			let label = gtk::Label::new(Some(label));
 
 			maybe!((icon) {
-				if let Ok(icon) = Icon::for_string(icon) {
-					g_box.add(&gtk::Image::from_gicon(&icon, gtk::IconSize::Menu));
-				}
+				g_box.add(&gtk::Image::from_icon_name(Some(icon), gtk::IconSize::Menu));
 			});
 			g_box.add(&label);
 
