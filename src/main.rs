@@ -49,9 +49,8 @@ pub mod app {
 	pub mod tray_menu;
 }
 
-const APP_NAME: &str = "machinepmmeter";
-const UPPERCASE_APP_NAME: &str = const_ascii_uppercase!("machinepmmeter");
 const APP_ID: &str = "com.ulinkot.machinepmmeter";
+const PKG_ICON: &str = env!("CARGO_PKG_NAME");
 const PKG_NAME: &str = env!("CARGO_PKG_NAME");
 const UPPERCASE_PKG_NAME: &str = const_ascii_uppercase!(PKG_NAME);
 
@@ -126,8 +125,8 @@ fn main() -> anyhowResult<ExitCode> {
 
 		let tray_menu = AppTrayMenu::new(
 			APP_ID,
-			"help-about-symbolic",
-			APP_NAME,
+			PKG_ICON,
+			PKG_NAME,
 			PKG_DESCRIPTION,
 			[
 				AppTrayMenuItem::icon_item("view-conceal-symbolic", "Hide | Show", hide_or_show),
@@ -141,15 +140,6 @@ fn main() -> anyhowResult<ExitCode> {
 			]
 			.into_iter(),
 		);
-
-		/*match menu {
-			Ok(ref _a) => {}
-			Err(ref _e) => {
-				error!(
-					"#[global traymenu] Error initializing tray menu, tray menu will be unavailable.",
-				);
-			}
-		}*/
 
 		Rc::new(tray_menu)
 	};

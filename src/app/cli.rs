@@ -1,4 +1,3 @@
-use crate::APP_NAME;
 use crate::PKG_DESCRIPTION;
 use crate::PKG_NAME;
 use anyhow::Result as anyhowResult;
@@ -10,7 +9,7 @@ use std::path::PathBuf;
 
 #[derive(Parser, Debug)]
 #[clap(
-	name = APP_NAME,
+	name = PKG_NAME,
 	about = PKG_DESCRIPTION
 )]
 pub struct AppCli {
