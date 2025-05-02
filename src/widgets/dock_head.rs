@@ -44,7 +44,7 @@ impl ViDockHead {
 		let head = Box::new(gtk::Orientation::Horizontal, 0);
 		head.style_context().add_class("namehead");
 		head.set_valign(gtk::Align::Start);
-		
+
 		head.connect_draw(enc!((app_config)move |window, cr| {
 			let head_color = app_config.get_window_app_config().get_head_color();
 
@@ -52,10 +52,10 @@ impl ViDockHead {
 					let (r, g, b, a) = head_color.into_rgba(transparent);
 					let (width, height) = {
 						let allocation = window.allocation();
-						
+
 						(allocation.width().into(), allocation.height().into())
 					};
-					
+
 					cr.set_source_rgba(r, g, b, a);
 					cr.rectangle(
 						0.0,
@@ -80,6 +80,7 @@ impl ViDockHead {
 
 			head.pack_start(&version_label, true, true, 0); // expand: true, fill: true
 		});
+		head.set_visible(true);
 
 		Self(head)
 	}

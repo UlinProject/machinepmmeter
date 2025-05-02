@@ -168,6 +168,7 @@ impl Deref for ViGraphSender {
 impl ViGraphSender {
 	pub fn push_next_and_queue_draw(&self, v: f64) {
 		self.push_next(v);
+
 		self.queue_draw();
 	}
 

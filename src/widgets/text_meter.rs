@@ -91,6 +91,8 @@ impl ViTextMeter {
 			.set_margin_bottom(margin_bottom);
 		hbox.pack_start(&limit, true, true, 0);
 
+		hbox.set_visible(true);
+
 		ViTextMeterSender {
 			color,
 			current,

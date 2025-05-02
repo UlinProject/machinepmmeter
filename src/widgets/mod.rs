@@ -76,6 +76,8 @@ impl ViMeter {
 		let graphsender = ViGraph::new_graphsender(app_config.clone(), width, 42, len, transparent);
 		vbox.pack_start(&*graphsender, true, true, 0);
 
+		vbox.set_visible(true);
+
 		ViMeterSender {
 			app_config,
 			color_and_text: textmeter_sender,
@@ -105,14 +107,11 @@ impl ViMeterSender {
 		maybe!((graph_v) {
 			if !self.graph.is_visible() {
 				self.graph.set_visible(true);
-				self.graph.show();
 			}
 			self.graph.push_next(graph_v);
 		}else {
 			if self.graph.is_visible() {
 				self.graph.set_visible(false);
-
-				self.graph.hide();
 			}
 		});
 

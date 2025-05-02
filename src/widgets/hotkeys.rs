@@ -1,3 +1,5 @@
+use std::ops::Deref;
+
 use crate::__gen_transparent_gtk_type;
 use crate::app::config::FontAppConfig;
 use crate::core::maybe::Maybe;
@@ -66,5 +68,14 @@ impl ViHotkeyItems {
 		}
 
 		Self(all)
+	}
+}
+
+impl Deref for ViHotkeyItems {
+	type Target = Box;
+
+	#[inline]
+	fn deref(&self) -> &Self::Target {
+		&self.0
 	}
 }

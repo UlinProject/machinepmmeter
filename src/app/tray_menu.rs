@@ -68,19 +68,17 @@ impl AppTrayMenu {
 
 					init(&mut menu_item);
 					menu.append(&*menu_item);
-					menu_item.show();
 				}
 				AppTrayMenuItem::Item { value, mut init } => {
 					let mut menu_item = ViIconMenuItem::new((), value);
 
 					init(&mut menu_item);
 					menu.append(&*menu_item);
-					menu_item.show();
 				}
 				AppTrayMenuItem::Separator => {
 					let separator = gtk::SeparatorMenuItem::new();
 					menu.append(&separator);
-					separator.show();
+					separator.set_visible(true);
 				}
 			}
 		}

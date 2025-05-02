@@ -166,8 +166,7 @@ fn main() -> anyhowResult<ExitCode> {
 
 		let name_window = app_config.get_name_or_default();
 
-		let mut is_keyboard_allowed = false;
-		build_ui(app, name_window, &app_config, &c_display, &defcss, &mut is_keyboard_allowed, tx_appevents.clone(), rx_appevents.clone());
+		build_ui(app, name_window, &app_config, &c_display, &defcss, tx_appevents.clone(), rx_appevents.clone());
 	}));
 
 	Ok(application.run())
@@ -197,7 +196,6 @@ fn build_ui(
 	app_config: &Rc<AppConfig>,
 	c_display: &Rc<ViGraphDisplayInfo>,
 	defcss: &CssProvider,
-	is_keyboard_allowed: &mut bool,
 
 	sender: Sender<AppEvents>,
 	receiver: Rc<Receiver<AppEvents>>,
@@ -229,6 +227,9 @@ fn build_ui(
 		);
 
 	let vbox = Rc::new(GtkBox::new(gtk::Orientation::Vertical, 0));
+	vbox.set_valign(gtk::Align::Start);
+	vbox.set_halign(gtk::Align::Baseline);
+
 	vbox.pack_start(
 		&ViDockHead::new(
 			app_config.clone(),
@@ -241,11 +242,10 @@ fn build_ui(
 		0,
 	); // expand: true, fill: true
 
-	let sensors: LMSensors = 
-		lm_sensors::Initializer::default()
-			.initialize()
-			.map_err(|e| anyhow!("{:?}", e))
-			.unwrap(); // TODO REFACTORING ME?;
+	let sensors: LMSensors = lm_sensors::Initializer::default()
+		.initialize()
+		.map_err(|e| anyhow!("{:?}", e))
+		.unwrap(); // TODO REFACTORING ME?;
 
 	{
 		vbox.pack_start(
@@ -399,6 +399,7 @@ fn build_ui(
 		});
 	}
 	dock_window.set_child(Some(&*vbox));
+	vbox.set_visible(true);
 
 	std::thread::spawn(enc!((sender)move || {
 		let keyboard_listener = KeyboardListenerBuilder::with_len::<6>()
@@ -466,6 +467,7 @@ fn build_ui(
 
 		dock_window.set_pos_inscreen(&*c_display, pos_inscreen);
 	}));
+
 	dock_window.connect_resize_mode_notify(enc!((pos_inscreen, c_display, dock_window) move |_| {
 		let pos_inscreen: PosINScreen = *pos_inscreen.borrow();
 
@@ -496,7 +498,7 @@ fn build_ui(
 		}),
 	);
 	glib::timeout_add_local(
-		std::time::Duration::from_millis(500),
+		std::time::Duration::from_millis(1500),
 		enc!((sender)move || {
 			let _e = sender.send_blocking(AppEvents::KeyboardListenerState(false));
 
@@ -572,9 +574,9 @@ fn build_ui(
 					},
 					AppEvents::KeyboardListenerState(false) => {
 						if let Some(vihotkey) = wdock_vihotkey {
-							vihotkey.hide();
+							vihotkey.set_visible(false);
 							vbox.remove(&vihotkey);
-							
+
 							wdock_vihotkey = None;
 						}
 					},
@@ -584,6 +586,6 @@ fn build_ui(
 	);
 
 	glib::MainContext::default().spawn_local(enc!((dock_window) async move {
-		dock_window.show_all();
+		dock_window.present();
 	}));
 }

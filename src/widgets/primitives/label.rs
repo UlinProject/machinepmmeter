@@ -59,6 +59,7 @@ impl ViLabel {
 			style.add_class("vilabel");
 			maybe!((class) style.add_class(class));
 		}
+		label.set_visible(true);
 
 		Self(label)
 	}

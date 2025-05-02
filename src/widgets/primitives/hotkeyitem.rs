@@ -41,6 +41,7 @@ impl ViHotkeyItem {
 			.set_margin_top(4)
 			.set_margin_start(3);
 		hbox.pack_start(&label, false, false, 0);
+		hbox.set_visible(true);
 
 		Self(hbox)
 	}

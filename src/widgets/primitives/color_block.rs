@@ -33,6 +33,7 @@ impl ViColorBlock {
 		let drawing_area = DrawingArea::new();
 		drawing_area.style_context().add_class("vicolorblock");
 		drawing_area.set_size_request(width, height);
+		drawing_area.set_visible(true);
 
 		Self(drawing_area)
 	}

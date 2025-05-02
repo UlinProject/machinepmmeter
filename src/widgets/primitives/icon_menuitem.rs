@@ -2,7 +2,7 @@ use crate::maybe;
 use crate::{__gen_transparent_gtk_type, core::maybe::Maybe};
 use gtk::MenuItem;
 use gtk::ffi::GtkMenuItem;
-use gtk::traits::ContainerExt;
+use gtk::traits::{ContainerExt, WidgetExt};
 use std::ops::Deref;
 
 #[repr(transparent)]
@@ -49,6 +49,7 @@ impl ViIconMenuItem {
 		} else {
 			menu_item.set_child(Some(&gtk::Label::new(Some(label))));
 		});
+		menu_item.set_visible(true);
 
 		Self(menu_item)
 	}
