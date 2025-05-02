@@ -11,11 +11,11 @@ use gtk::traits::WidgetExt;
 
 #[repr(transparent)]
 #[derive(Debug)]
-pub struct ViHotkey(Box);
+pub struct ViHotkeyItem(Box);
 
 __gen_transparent_gtk_type! {
 	#[sys(GtkBox)]
-	ViHotkey(
+	ViHotkeyItem(
 		new |a: Box| {
 			Self(a)
 		},
@@ -28,7 +28,7 @@ __gen_transparent_gtk_type! {
 	)
 }
 
-impl ViHotkey {
+impl ViHotkeyItem {
 	pub fn new(f_app_config: impl AsRef<FontAppConfig>, icon: &str, text: &str) -> Self {
 		let hbox = Box::new(Orientation::Horizontal, 0);
 

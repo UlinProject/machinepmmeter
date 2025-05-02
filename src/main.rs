@@ -10,7 +10,7 @@ use crate::core::keyboard::KeyboardListenerBuilder;
 use crate::core::keyboard::key::Key;
 use crate::widgets::ViMeter;
 use crate::widgets::dock_head::ViDockHead;
-use crate::widgets::hotkeys::ViHotkeys;
+use crate::widgets::hotkeys::ViHotkeyItems;
 use crate::widgets::primitives::icon_menuitem::ViIconMenuItem;
 use crate::widgets::primitives::label::ViLabel;
 use anyhow::anyhow;
@@ -154,7 +154,7 @@ enum Events {
 	HideOrShow,
 	Exit,
 	NextPosition,
-	AppendViHotkey(Vec<(&'static str, &'static str)>),
+	AppendViHotkeyItem(Vec<(&'static str, &'static str)>),
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -488,7 +488,7 @@ fn build_ui(
 					_ => {}
 				}
 			)).on_startup(|| {
-				let _e = sender.send_blocking(Events::AppendViHotkey(vec![
+				let _e = sender.send_blocking(Events::AppendViHotkeyItem(vec![
 					("view-conceal-symbolic", "Hide | Show (Shift and F8)"),
 					(
 						"sidebar-show-right-symbolic-rtl",
@@ -559,8 +559,8 @@ fn build_ui(
 						};
 						dock_window.set_pos_inscreen(&*c_display, new_pos);
 					},
-					Events::AppendViHotkey(arr) => {
-						let vihotkey = ViHotkeys::new(
+					Events::AppendViHotkeyItem(arr) => {
+						let vihotkey = ViHotkeyItems::new(
 							&*app_config,
 							"# Hot keys",
 							arr.into_iter(),
