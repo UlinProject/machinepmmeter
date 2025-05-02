@@ -9,6 +9,7 @@ use crate::core::display::ViGraphDisplayInfo;
 use crate::core::dock_window::{PosINScreen, ViDockWindow};
 use crate::core::keyboard::KeyboardListenerBuilder;
 use crate::core::keyboard::key::Key;
+use crate::widgets::primitives::graph::ViGraphSurface;
 use crate::widgets::ViMeter;
 use crate::widgets::dock_head::ViDockHead;
 use crate::widgets::hotkeys::ViHotkeyItems;
@@ -225,7 +226,8 @@ fn build_ui(
 				true => (level, true),
 			},
 		);
-
+	
+	let vigraph_surface = ViGraphSurface::default();
 	let vbox = Rc::new(GtkBox::new(gtk::Orientation::Vertical, 0));
 	vbox.set_valign(gtk::Align::Start);
 	vbox.set_halign(gtk::Align::Baseline);
@@ -336,6 +338,7 @@ fn build_ui(
 						name,
 						dock_window.allocation().width(),
 						200,
+						Some(vigraph_surface.clone()),
 						c_transparent,
 					);
 
@@ -389,6 +392,7 @@ fn build_ui(
 			"# Demo",
 			dock_window.allocation().width(),
 			200,
+			Some(vigraph_surface.clone()),
 			c_transparent,
 		);
 		vbox.pack_start(&*vimetr, false, false, 0);

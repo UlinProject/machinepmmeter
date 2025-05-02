@@ -1,5 +1,6 @@
 use crate::__gen_transparent_gtk_type;
 use crate::app::config::AppConfig;
+use anyhow::Result as anyhowResult;
 use enclose::enc;
 use gtk::DrawingArea;
 use gtk::cairo;
@@ -34,6 +35,8 @@ __gen_transparent_gtk_type! {
 impl ViGraph {
 	pub fn new_graphsender(
 		app_config: Rc<AppConfig>,
+
+		general_background_surface: Option<ViGraphSurface>,
 		width: i32,
 		height: i32,
 		len: usize,
@@ -45,63 +48,36 @@ impl ViGraph {
 		graph_area.set_margin_bottom(6);
 		graph_area.set_size_request(width, height);
 
-		let background_surface = Rc::new(RefCell::new(None::<ImageSurface>));
+		let background_surface =
+			general_background_surface.map_or_else(|| Default::default(), |a| a);
 		graph_area.connect_realize(enc!((background_surface) move |da| {
 			let (width, height) = {
 				let allocation = da.allocation();
 
 				(allocation.width(), allocation.height())
 			};
-
-			if let Ok(surface) = ImageSurface::create(cairo::Format::ARgb32, width, height) {
-				if let Ok(cr) = Context::new(&surface) {
-					let (width, height) = (width.into(), height.into());
-
-					cr.move_to(0.0, 0.0);
-					cr.set_source_rgba(0.255, 0.255, 0.255, transparent);
-					cr.rectangle(0.0, 0.0, width, height);
-					let _e = cr.fill();
-
-					let c_horizontal_lines = 10/2;
-					let c_vertical_lines = 10;
-
-					cr.set_source_rgba(0.8, 0.8, 0.8, transparent);
-					cr.set_line_width(0.1);
-
-					for i in 1..c_horizontal_lines {
-						let y = height / c_horizontal_lines as f64 * i as f64;
-
-						cr.move_to(0.0, y);
-						cr.line_to(width, y);
-						let _e = cr.stroke();
-					}
-					for i in 1..c_vertical_lines {
-						let x = width / c_vertical_lines as f64 * i as f64;
-
-						cr.move_to(x, 0.0);
-						cr.line_to(x, height);
-						let _e = cr.stroke();
-					}
-					*background_surface.borrow_mut() = Some(surface);
-				}
-			}
+			let _e = background_surface.draw_or_get(width, height, transparent, |_|{});
 		}));
 		graph_area.connect_draw(enc!((rc_data, background_surface) move |da, cr| {
 			let data = RefCell::borrow(&rc_data);
 
-			let (width, height): (f64, f64) = {
+			let (width, height) = {
 				let allocation = da.allocation();
 
-				(allocation.width().into(), allocation.height().into())
+				(allocation.width(), allocation.height())
 			};
-			if let Some(ref surface) = *RefCell::borrow(&background_surface) {
+			if background_surface.draw_or_get(width, height, transparent, |surface| {
 				let _e = cr.set_source_surface(surface, 0.0, 0.0);
 				let _e = cr.paint();
-			} else {
+			}).is_err() {
 				cr.set_source_rgba(0.255, 0.255, 0.255, transparent);
-				cr.rectangle(0.0, 0.0, width, height);
+				cr.rectangle(0.0, 0.0, width as _, height as _);
 				let _e = cr.fill();
 			}
+
+			let (width, height): (f64, f64) = (width.into(), height.into());
+
+			let _e = cr.paint();
 			let a_max = {
 				let mut max = 0.0;
 
@@ -181,5 +157,63 @@ impl ViGraphSender {
 	#[inline]
 	pub fn queue_draw(&self) {
 		self.1.queue_draw();
+	}
+}
+
+#[repr(transparent)]
+#[derive(Debug, Clone, Default)]
+pub struct ViGraphSurface(Rc<RefCell<Option<ImageSurface>>>);
+
+impl ViGraphSurface {
+	pub fn draw_or_get<R>(
+		&self,
+		width: i32,
+		height: i32,
+		transparent: f64,
+		next: impl FnOnce(&ImageSurface) -> R,
+	) -> anyhowResult<R> {
+		let mut w = self.0.borrow_mut();
+		{
+			if let Some(ref surface) = *w {
+				if surface.width() == width && surface.height() == height {
+					return Ok(next(surface));
+				}
+			}
+
+			let surface = ImageSurface::create(cairo::Format::ARgb32, width, height)?;
+			let cr = Context::new(&surface)?;
+			let (width, height) = (width.into(), height.into());
+
+			cr.move_to(0.0, 0.0);
+			cr.set_source_rgba(0.255, 0.255, 0.255, transparent);
+			cr.rectangle(0.0, 0.0, width, height);
+			let _e = cr.fill();
+
+			let c_horizontal_lines = 10 / 2;
+			let c_vertical_lines = 10;
+
+			cr.set_source_rgba(0.8, 0.8, 0.8, transparent);
+			cr.set_line_width(0.1);
+
+			for i in 1..c_horizontal_lines {
+				let y = height / c_horizontal_lines as f64 * i as f64;
+
+				cr.move_to(0.0, y);
+				cr.line_to(width, y);
+				let _e = cr.stroke();
+			}
+			for i in 1..c_vertical_lines {
+				let x = width / c_vertical_lines as f64 * i as f64;
+
+				cr.move_to(x, 0.0);
+				cr.line_to(x, height);
+				let _e = cr.stroke();
+			}
+
+			let result = Ok(next(&surface));
+			*w = Some(surface);
+
+			result
+		}
 	}
 }
