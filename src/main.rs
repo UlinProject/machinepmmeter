@@ -21,7 +21,7 @@ use enclose::enc;
 use gtk::gdk::{Monitor, Screen};
 use gtk::gio::prelude::ApplicationExtManual;
 use gtk::gio::traits::ApplicationExt;
-use gtk::glib::ExitCode;
+use gtk::glib::{ControlFlow, ExitCode};
 use gtk::prelude::WidgetExt;
 use gtk::traits::{BoxExt, ContainerExt, CssProviderExt, GtkMenuItemExt, GtkWindowExt};
 use gtk::{Align, Application, glib};
@@ -129,13 +129,12 @@ fn main() -> anyhowResult<ExitCode> {
 				}));
 			});
 
-			let menu = AppMenu::new(APP_ID, "help-about-symbolic", PKG_DESCRIPTION, [
+			AppMenu::new(APP_ID, "help-about-symbolic", APP_NAME, PKG_DESCRIPTION, [
 				AppMenuItem::icon_item("view-conceal-symbolic", "Hide | Show", hide_or_show),
 				AppMenuItem::icon_item("sidebar-show-right-symbolic-rtl", "Next position", next_position),
 				AppMenuItem::Separator,
 				AppMenuItem::icon_item("system-shutdown-symbolic", "Exit", exit)
 			].into_iter());
-			menu.main();
 		}
 	}));
 
@@ -389,22 +388,30 @@ fn build_ui(
 			}
 		}
 	}
-
-	/*{
+	
+	{
 		let vimetr = ViMeter::new_visender(
-			AppConfig.clone(),
-			"# TDP",
+			app_config.clone(),
+			"# Demo",
 			dock_window.allocation().width(),
 			200,
 			c_transparent,
 		);
 		vbox.pack_start(&*vimetr, false, false, 0);
 		glib::timeout_add_local(std::time::Duration::from_millis(100), move || {
-			vimetr.push_next_and_queue_draw(random_range(1..9) as f64 * 0.10);
+			vimetr.push_next_and_queue_draw(
+				0.7,
+				0.7,
+				1.0,
+				0.0,
+				0.0,
+			);
 
 			ControlFlow::Continue
 		});
 	}
+	
+	/*
 
 	{
 		let vimetr = ViMeter::new_visender(
