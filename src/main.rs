@@ -6,7 +6,7 @@ use crate::app::config::AppConfig;
 use crate::app::menu::{AppMenu, AppMenuItem};
 use crate::core::display::ViGraphDisplayInfo;
 use crate::core::dock_window::{PosINScreen, ViDockWindow};
-use crate::core::keyboard::KeyboardListener;
+use crate::core::keyboard::KeyboardListenerBuilder;
 use crate::core::keyboard::key::Key;
 use crate::widgets::ViMeter;
 use crate::widgets::dock_head::ViDockHead;
@@ -440,17 +440,16 @@ fn build_ui(
 	dock_window.set_child(Some(&*vbox));
 
 	std::thread::spawn(enc!((sender)move || {
-		let keyboard_listener = KeyboardListener::listen::<6>(
-			|key_table| {
-				key_table[0].set_key(Key::ShiftRight);
-				key_table[1].set_key(Key::ShiftLeft);
-				key_table[2].set_key(Key::F8);
-				key_table[3].set_key(Key::KpPlus);
-				key_table[4].set_key(Key::KpMinus);
-				key_table[5].set_key(Key::Escape);
-			},
-			enc!((sender) move |state_array, _key, _state| {
-				match (
+		let keyboard_listener = KeyboardListenerBuilder::with_len::<6>()
+			.key_mapping(|key_mapping| {
+				key_mapping[0].set_key(Key::ShiftRight);
+				key_mapping[1].set_key(Key::ShiftLeft);
+				key_mapping[2].set_key(Key::F8);
+				key_mapping[3].set_key(Key::KpPlus);
+				key_mapping[4].set_key(Key::KpMinus);
+				key_mapping[5].set_key(Key::Escape);
+			})
+			.handler(enc!((sender) move |state_array, _key, _state| match (
 					(
 						state_array[0].is_pressed(), // ShiftRight
 						state_array[1].is_pressed(), // ShiftLeft
@@ -487,8 +486,7 @@ fn build_ui(
 					}
 					_ => {}
 				}
-			}),
-			|| {
+			)).on_startup(|| {
 				let _e = sender.send_blocking(Events::AppendViHotkey(vec![
 					("view-conceal-symbolic", "Hide | Show (Shift and F8)"),
 					(
@@ -497,18 +495,14 @@ fn build_ui(
 					),
 					("system-shutdown-symbolic", "Exit (Shift and Esc)"),
 				]));
-			},
-		);
+			}).listen();
 
-		match keyboard_listener {
-			Ok(()) => {}
-			Err(e) => {
-				error!(
-					"#[global keyboard] Error initializing global keyboard listener, keyboard shortcuts not available. {}",
-					e
-				);
-			}
-		};
+		if let Err(e) = keyboard_listener {
+			error!(
+				"#[global keyboard] Error initializing global keyboard listener, keyboard shortcuts not available. {}",
+				e
+			);
+		}
 	}));
 
 	let pos_inscreen = Rc::new(RefCell::new(app_config.get_window_app_config().get_pos()));

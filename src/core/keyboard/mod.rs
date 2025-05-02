@@ -11,7 +11,16 @@ pub mod key;
 #[cfg_attr(docsrs, doc(cfg(feature = "x11_keyboard")))]
 pub mod x11;
 
-pub struct KeyboardListener;
+pub struct KeyboardListenerBuilder<const N: usize, KM, EH, SE>
+where
+	KM: FnOnce(&'_ mut [KeyStateEntry; N]) + Send + Sync + 'static,
+	EH: FnMut(&'_ [KeyStateEntry; N], Key, ButtonState) + Send + Sync + 'static,
+	SE: FnOnce(),
+{
+	key_mapping: KM,
+	handler: EH,
+	on_startup: SE,
+}
 
 #[repr(transparent)]
 #[derive(Default)]
@@ -121,14 +130,75 @@ where
 	}
 }
 
-impl KeyboardListener {
+impl
+	KeyboardListenerBuilder<
+		0,
+		&mut (dyn FnMut(&'_ mut [KeyStateEntry; 0]) + Send + Sync + 'static),
+		&mut (dyn FnMut(&'_ [KeyStateEntry; 0], Key, ButtonState) + Send + Sync + 'static),
+		&mut (dyn FnMut()),
+	>
+{
+	#[allow(clippy::type_complexity)]
+	#[inline]
+	pub fn with_len<const N: usize>() -> KeyboardListenerBuilder<
+		N,
+		impl FnOnce(&'_ mut [KeyStateEntry; N]) + Send + Sync + 'static,
+		impl FnMut(&'_ [KeyStateEntry; N], Key, ButtonState) + Send + Sync + 'static,
+		impl FnOnce(),
+	> {
+		KeyboardListenerBuilder {
+			key_mapping: |_w| {},
+			handler: |_, _, _| {},
+			on_startup: || {},
+		}
+	}
+}
+
+impl<const N: usize, KM, EH, SE> KeyboardListenerBuilder<N, KM, EH, SE>
+where
+	KM: FnOnce(&'_ mut [KeyStateEntry; N]) + Send + Sync + 'static,
+	EH: FnMut(&'_ [KeyStateEntry; N], Key, ButtonState) + Send + Sync + 'static,
+	SE: FnOnce(),
+{
+	#[inline]
+	pub fn key_mapping<NewKm>(self, key_mapping: NewKm) -> KeyboardListenerBuilder<N, NewKm, EH, SE>
+	where
+		NewKm: FnOnce(&'_ mut [KeyStateEntry; N]) + Send + Sync + 'static,
+	{
+		KeyboardListenerBuilder {
+			key_mapping,
+			handler: self.handler,
+			on_startup: self.on_startup,
+		}
+	}
+
+	#[inline]
+	pub fn handler<NewEH>(self, handler: NewEH) -> KeyboardListenerBuilder<N, KM, NewEH, SE>
+	where
+		NewEH: FnMut(&'_ [KeyStateEntry; N], Key, ButtonState) + Send + Sync + 'static,
+	{
+		KeyboardListenerBuilder {
+			key_mapping: self.key_mapping,
+			handler,
+			on_startup: self.on_startup,
+		}
+	}
+
+	#[inline]
+	pub fn on_startup<NewOS>(self, on_startup: NewOS) -> KeyboardListenerBuilder<N, KM, EH, NewOS>
+	where
+		NewOS: FnOnce(),
+	{
+		KeyboardListenerBuilder {
+			key_mapping: self.key_mapping,
+			handler: self.handler,
+			on_startup,
+		}
+	}
+
 	#[allow(unused_mut)]
 	#[allow(unused_variables)]
-	pub fn listen<const N: usize>(
-		init_key_table: impl FnOnce(&'_ mut [KeyStateEntry; N]) + Send + Sync + 'static,
-		mut event_handler: impl FnMut(&'_ [KeyStateEntry; N], Key, ButtonState) + Send + Sync + 'static,
-		success_event: impl FnOnce(),
-	) -> anyhow::Result<()>
+	pub fn listen(mut self) -> anyhow::Result<()>
 	where
 		[KeyStateEntry; N]: Default,
 	{
@@ -136,7 +206,7 @@ impl KeyboardListener {
 		#[cfg_attr(docsrs, doc(cfg(feature = "x11_keyboard")))]
 		{
 			let mut key_state_table = KeyStateTable::default();
-			init_key_table(&mut key_state_table.0);
+			(self.key_mapping)(&mut key_state_table.0);
 
 			xlib(
 				move |key, state| {
@@ -146,10 +216,10 @@ impl KeyboardListener {
 						key_entry.state = state;
 
 						let (key, state) = (key_entry.key, key_entry.state);
-						event_handler(&key_state_table.0, key, state);
+						(self.handler)(&key_state_table.0, key, state);
 					}
 				},
-				success_event,
+				self.on_startup,
 			)?;
 
 			return Ok(());
