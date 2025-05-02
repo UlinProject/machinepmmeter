@@ -45,11 +45,9 @@ impl ViGraph {
 		let rc_data = Rc::new(RefCell::new(VecDeque::from(vec![0.0; len])));
 
 		let graph_area = DrawingArea::new();
-		graph_area.set_margin_bottom(6);
 		graph_area.set_size_request(width, height);
 
-		let background_surface =
-			general_background_surface.map_or_else(|| Default::default(), |a| a);
+		let background_surface = general_background_surface.map_or_else(Default::default, |a| a);
 		graph_area.connect_realize(enc!((background_surface) move |da| {
 			let (width, height) = {
 				let allocation = da.allocation();

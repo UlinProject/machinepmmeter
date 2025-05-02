@@ -73,11 +73,19 @@ impl ViMeter {
 		);
 
 		let textmeter_sender = ViTextMeter::new_sender(&*app_config, transparent);
+		textmeter_sender.set_margin_bottom2(6);
 		vbox.pack_start(&*textmeter_sender, false, false, 0);
 
-		let graphsender = ViGraph::new_graphsender(app_config.clone(), general_background_surface, width, 42, len, transparent);
+		let graphsender = ViGraph::new_graphsender(
+			app_config.clone(),
+			general_background_surface,
+			width,
+			42,
+			len,
+			transparent,
+		);
+		graphsender.set_margin_bottom(6);
 		vbox.pack_start(&*graphsender, true, true, 0);
-
 		vbox.set_visible(true);
 
 		ViMeterSender {
@@ -109,11 +117,13 @@ impl ViMeterSender {
 		maybe!((graph_v) {
 			if !self.graph.is_visible() {
 				self.graph.set_visible(true);
+				self.color_and_text.set_margin_bottom2(0);
 			}
 			self.graph.push_next(graph_v);
 		}else {
 			if self.graph.is_visible() {
 				self.graph.set_visible(false);
+				self.color_and_text.set_margin_bottom2(6);
 			}
 		});
 

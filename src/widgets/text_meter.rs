@@ -76,14 +76,14 @@ impl ViTextMeter {
 			.set_margin_bottom(margin_bottom);
 		hbox.pack_start(&current, false, true, 0);
 
-		let avg = ViLabel::new("arg_vitextmeter", app_config, "", Weight::Normal)
+		let avg = ViLabel::new("arg_vitextmeter", app_config, "AVG: 0", Weight::Normal)
 			.set_visible(false)
 			.set_align(Align::Center)
 			.set_margin_top(margin_top)
 			.set_margin_bottom(margin_bottom);
 		hbox.pack_start(&avg, true, true, 0);
 
-		let limit = ViLabel::new("arg_vitextmeter", app_config, "", Weight::Normal)
+		let limit = ViLabel::new("arg_vitextmeter", app_config, "LIMIT: 0", Weight::Normal)
 			.set_visible(false)
 			.set_margin_end(10)
 			.set_align(Align::End)
@@ -136,6 +136,11 @@ impl ViTextMeter {
 
 		self
 	}
+	
+	#[inline]
+	pub fn set_margin_bottom2(&self, margin: i32) {
+		self.0.set_margin_bottom(margin);
+	}
 }
 
 pub struct ViTextMeterSender {
@@ -169,31 +174,19 @@ impl ViTextMeterSender {
 	}
 
 	pub fn set_current_and_queue_draw(&self, v: &str) {
-		let len = v.len();
-		let v = match len >= 6 {
-			true => &v[..6],
-			false => v,
-		};
+		let v = v.get(..6).map_or(v, |v| v);
 
 		self.current.set_text(v);
 	}
 
 	pub fn set_avg_and_queue_draw(&self, v: &str) {
-		let len = v.len();
-		let v = match len >= 6 {
-			true => &v[..6],
-			false => v,
-		};
+		let v = v.get(..6).map_or(v, |v| v);
 
 		self.avg.set_text(&format!("AVG: {v}")); // TODO REFACTORING ME
 	}
 
 	pub fn set_limit_and_queue_draw(&self, v: &str) {
-		let len = v.len();
-		let v = match len >= 6 {
-			true => &v[..6],
-			false => v,
-		};
+		let v = v.get(..6).map_or(v, |v| v);
 
 		self.limit.set_text(&format!("LIMIT: {v}")); // TODO REFACTORING ME
 	}

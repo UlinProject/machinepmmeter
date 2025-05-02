@@ -9,10 +9,10 @@ use crate::core::display::ViGraphDisplayInfo;
 use crate::core::dock_window::{PosINScreen, ViDockWindow};
 use crate::core::keyboard::KeyboardListenerBuilder;
 use crate::core::keyboard::key::Key;
-use crate::widgets::primitives::graph::ViGraphSurface;
 use crate::widgets::ViMeter;
 use crate::widgets::dock_head::ViDockHead;
 use crate::widgets::hotkeys::ViHotkeyItems;
+use crate::widgets::primitives::graph::ViGraphSurface;
 use crate::widgets::primitives::icon_menuitem::ViIconMenuItem;
 use crate::widgets::primitives::label::ViLabel;
 use anyhow::anyhow;
@@ -165,7 +165,6 @@ fn main() -> anyhowResult<()> {
 		}
 
 		let name_window = app_config.get_name_or_default();
-
 		build_ui(app, name_window, &app_config, &c_display, &defcss, tx_appevents.clone(), rx_appevents.clone());
 	}));
 
@@ -226,7 +225,7 @@ fn build_ui(
 				true => (level, true),
 			},
 		);
-	
+
 	let vigraph_surface = ViGraphSurface::default();
 	let vbox = Rc::new(GtkBox::new(gtk::Orientation::Vertical, 0));
 	vbox.set_valign(gtk::Align::Start);
