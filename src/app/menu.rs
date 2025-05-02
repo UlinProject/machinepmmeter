@@ -15,11 +15,11 @@ use gtk::traits::MenuShellExt;
 
 #[repr(transparent)]
 #[derive(Debug)]
-pub struct AppMenu(Menu);
+pub struct AppTrayMenu(Menu);
 
 __gen_transparent_gtk_type! {
 	#[sys(GtkMenu)]
-	AppMenu(
+	AppTrayMenu(
 		new |a: Menu| {
 			Self(a)
 		},
@@ -32,7 +32,7 @@ __gen_transparent_gtk_type! {
 	)
 }
 
-impl Deref for AppMenu {
+impl Deref for AppTrayMenu {
 	type Target = Menu;
 
 	#[inline]
@@ -41,7 +41,7 @@ impl Deref for AppMenu {
 	}
 }
 
-pub enum AppMenuItem<'i, 'v, F>
+pub enum AppTrayMenuItem<'i, 'v, F>
 where
 	F: FnMut(&'_ mut ViIconMenuItem),
 {
@@ -57,7 +57,7 @@ where
 	Separator,
 }
 
-impl<'i, 'v, F> AppMenuItem<'i, 'v, F>
+impl<'i, 'v, F> AppTrayMenuItem<'i, 'v, F>
 where
 	F: FnMut(&'_ mut ViIconMenuItem),
 {
@@ -77,18 +77,18 @@ where
 	}
 }
 
-impl AppMenu {
+impl AppTrayMenu {
 	pub fn new<'i, 'v, 'desc, 'title, F: FnMut(&'_ mut ViIconMenuItem)>(
 		id: &'_ str,
 		icon: &'_ str,
 		title: impl Maybe<&'title str>,
 		desc: impl Maybe<&'desc str>,
-		items: impl Iterator<Item = AppMenuItem<'i, 'v, F>>,
+		items: impl Iterator<Item = AppTrayMenuItem<'i, 'v, F>>,
 	) -> Self {
 		let menu = gtk::Menu::new();
 		for item in items {
 			match item {
-				AppMenuItem::IconItem {
+				AppTrayMenuItem::IconItem {
 					icon,
 					value,
 					mut init,
@@ -99,14 +99,14 @@ impl AppMenu {
 					menu.append(&*menu_item);
 					menu_item.show();
 				}
-				AppMenuItem::Item { value, mut init } => {
+				AppTrayMenuItem::Item { value, mut init } => {
 					let mut menu_item = ViIconMenuItem::new((), value);
 
 					init(&mut menu_item);
 					menu.append(&*menu_item);
 					menu_item.show();
 				}
-				AppMenuItem::Separator => {
+				AppTrayMenuItem::Separator => {
 					let separator = gtk::SeparatorMenuItem::new();
 					menu.append(&separator);
 					separator.show();

@@ -3,7 +3,7 @@
 
 use crate::app::cli::AppCli;
 use crate::app::config::AppConfig;
-use crate::app::menu::{AppMenu, AppMenuItem};
+use crate::app::menu::{AppTrayMenu, AppTrayMenuItem};
 use crate::core::display::ViGraphDisplayInfo;
 use crate::core::dock_window::{PosINScreen, ViDockWindow};
 use crate::core::keyboard::KeyboardListenerBuilder;
@@ -129,11 +129,11 @@ fn main() -> anyhowResult<ExitCode> {
 				}));
 			});
 
-			AppMenu::new(APP_ID, "help-about-symbolic", APP_NAME, PKG_DESCRIPTION, [
-				AppMenuItem::icon_item("view-conceal-symbolic", "Hide | Show", hide_or_show),
-				AppMenuItem::icon_item("sidebar-show-right-symbolic-rtl", "Next position", next_position),
-				AppMenuItem::Separator,
-				AppMenuItem::icon_item("system-shutdown-symbolic", "Exit", exit)
+			AppTrayMenu::new(APP_ID, "help-about-symbolic", APP_NAME, PKG_DESCRIPTION, [
+				AppTrayMenuItem::icon_item("view-conceal-symbolic", "Hide | Show", hide_or_show),
+				AppTrayMenuItem::icon_item("sidebar-show-right-symbolic-rtl", "Next position", next_position),
+				AppTrayMenuItem::Separator,
+				AppTrayMenuItem::icon_item("system-shutdown-symbolic", "Exit", exit)
 			].into_iter());
 		}
 	}));
