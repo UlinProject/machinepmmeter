@@ -1,6 +1,9 @@
 use crate::{__gen_transparent_gtk_type, app::config::WindowAppConfig};
 use gtk::{
-	cairo, ffi::GtkApplicationWindow, gdk::{traits::MonitorExt, Monitor, Screen, WindowTypeHint}, traits::{GtkWindowExt, StyleContextExt, WidgetExt}, Application, ApplicationWindow
+	Application, ApplicationWindow, cairo,
+	ffi::GtkApplicationWindow,
+	gdk::{Monitor, Screen, WindowTypeHint, traits::MonitorExt},
+	traits::{GtkWindowExt, StyleContextExt, WidgetExt},
 };
 use log::trace;
 use serde::Deserialize;

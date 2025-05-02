@@ -554,7 +554,7 @@ fn build_ui(
 								let aad = AppAboutDialog::new(enc!((app_about_dialog) move || {
 									*RefCell::borrow_mut(&app_about_dialog) = None;
 								}));
-								
+
 								aad.show_all();
 								aad.present();
 

@@ -2,7 +2,6 @@ use crate::maybe;
 use crate::{__gen_transparent_gtk_type, core::maybe::Maybe};
 use gtk::MenuItem;
 use gtk::ffi::GtkMenuItem;
-use gtk::gio::Icon;
 use gtk::traits::ContainerExt;
 use std::ops::Deref;
 
@@ -37,18 +36,19 @@ impl Deref for ViIconMenuItem {
 impl ViIconMenuItem {
 	pub fn new<'c>(icon: impl Maybe<&'c str>, label: &'_ str) -> Self {
 		let menu_item = gtk::MenuItem::new();
-		menu_item.set_child(Some(&{
-			let g_box = gtk::Box::new(gtk::Orientation::Horizontal, 6);
+		maybe!((icon) {
+			menu_item.set_child(Some(&{
+				let g_box = gtk::Box::new(gtk::Orientation::Horizontal, 6);
 
-			let label = gtk::Label::new(Some(label));
-
-			maybe!((icon) {
+				let label = gtk::Label::new(Some(label));
+				g_box.add(&label);
 				g_box.add(&gtk::Image::from_icon_name(Some(icon), gtk::IconSize::Menu));
-			});
-			g_box.add(&label);
 
-			g_box
-		}));
+				g_box
+			}));
+		} else {
+			menu_item.set_child(Some(&gtk::Label::new(Some(label))));
+		});
 
 		Self(menu_item)
 	}
