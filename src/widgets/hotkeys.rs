@@ -55,7 +55,12 @@ impl ViHotkeyItems {
 		{
 			let shortcasthbox = Box::new(Orientation::Vertical, 1);
 			for (icon, text) in array {
-				shortcasthbox.pack_start(&ViHotkeyItem::new(f_app_config, icon, text), false, false, 0);
+				shortcasthbox.pack_start(
+					&ViHotkeyItem::new(f_app_config, icon, text),
+					false,
+					false,
+					0,
+				);
 			}
 			all.pack_start(&shortcasthbox, false, false, 0);
 		}

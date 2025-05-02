@@ -102,40 +102,70 @@ fn main() -> anyhowResult<ExitCode> {
 		a_css
 	};
 
+	let (tx_keyboardevents, rx_keyboardevents) = async_channel::bounded(18);
+	let rx_keyboardevents = Rc::new(rx_keyboardevents);
+	let tray_menu = {
+		// Tray menu
+		let hide_or_show = enc!((tx_keyboardevents) &mut move |vi: &mut ViIconMenuItem| {
+			vi.connect_activate(enc!((tx_keyboardevents) move |_| {
+				let _e = tx_keyboardevents.send_blocking(Events::HideOrShow);
+			}));
+		}) as &'_ mut dyn FnMut(&'_ mut ViIconMenuItem);
+
+		let next_position = enc!((tx_keyboardevents) &mut move |vi: &mut ViIconMenuItem| {
+			vi.connect_activate(enc!((tx_keyboardevents) move |_| {
+				let _e = tx_keyboardevents.send_blocking(Events::NextPosition);
+			}));
+		});
+
+		let exit = enc!((tx_keyboardevents) &mut move |vi: &mut ViIconMenuItem| {
+			vi.connect_activate(enc!((tx_keyboardevents) move |_| {
+				let _e = tx_keyboardevents.send_blocking(Events::Exit);
+			}));
+		});
+
+		let tray_menu = AppTrayMenu::new(
+			APP_ID,
+			"help-about-symbolic",
+			APP_NAME,
+			PKG_DESCRIPTION,
+			[
+				AppTrayMenuItem::icon_item("view-conceal-symbolic", "Hide | Show", hide_or_show),
+				AppTrayMenuItem::icon_item(
+					"sidebar-show-right-symbolic-rtl",
+					"Next position",
+					next_position,
+				),
+				AppTrayMenuItem::Separator,
+				AppTrayMenuItem::icon_item("system-shutdown-symbolic", "Exit", exit),
+			]
+			.into_iter(),
+		);
+
+		/*match menu {
+			Ok(ref _a) => {}
+			Err(ref _e) => {
+				error!(
+					"#[global traymenu] Error initializing tray menu, tray menu will be unavailable.",
+				);
+			}
+		}*/
+
+		Rc::new(tray_menu)
+	};
+
 	let application = Application::new(Some(APP_ID), Default::default());
-	application.connect_activate(enc!((app_config) move |app| {
+	application.connect_activate(enc!((app_config, rx_keyboardevents, tray_menu) move |app| {
+		if !tray_menu.is_connected() {
+			error!(
+				"#[global traymenu] Error initializing tray menu, tray menu will be unavailable.",
+			);
+		}
+
 		let name_window = app_config.get_name_or_default();
 
-		let (tx_keyboardevents, rx_keyboardevents) = async_channel::bounded(18);
-
 		let mut is_keyboard_allowed = false;
-		build_ui(app, name_window, &app_config, &c_display, &defcss, &mut is_keyboard_allowed, tx_keyboardevents.clone(), rx_keyboardevents);
-		{
-			let hide_or_show = enc!((tx_keyboardevents) &mut move |vi: &mut ViIconMenuItem| {
-				vi.connect_activate(enc!((tx_keyboardevents) move |_| {
-					let _e = tx_keyboardevents.send_blocking(Events::HideOrShow);
-				}));
-			}) as &'_ mut dyn FnMut(&'_ mut ViIconMenuItem);
-
-			let next_position = enc!((tx_keyboardevents) &mut move |vi: &mut ViIconMenuItem| {
-				vi.connect_activate(enc!((tx_keyboardevents) move |_| {
-					let _e = tx_keyboardevents.send_blocking(Events::HideOrShow);
-				}));
-			});
-
-			let exit = enc!((tx_keyboardevents) &mut move |vi: &mut ViIconMenuItem| {
-				vi.connect_activate(enc!((tx_keyboardevents) move |_| {
-					let _e = tx_keyboardevents.send_blocking(Events::Exit);
-				}));
-			});
-
-			AppTrayMenu::new(APP_ID, "help-about-symbolic", APP_NAME, PKG_DESCRIPTION, [
-				AppTrayMenuItem::icon_item("view-conceal-symbolic", "Hide | Show", hide_or_show),
-				AppTrayMenuItem::icon_item("sidebar-show-right-symbolic-rtl", "Next position", next_position),
-				AppTrayMenuItem::Separator,
-				AppTrayMenuItem::icon_item("system-shutdown-symbolic", "Exit", exit)
-			].into_iter());
-		}
+		build_ui(app, name_window, &app_config, &c_display, &defcss, &mut is_keyboard_allowed, tx_keyboardevents.clone(), rx_keyboardevents.clone());
 	}));
 
 	Ok(application.run())
@@ -167,7 +197,7 @@ fn build_ui(
 	is_keyboard_allowed: &mut bool,
 
 	sender: Sender<Events>,
-	receiver: Receiver<Events>,
+	receiver: Rc<Receiver<Events>>,
 ) {
 	trace!("#[gui] Start initialization, name: {:?}", name_window);
 	gtk::StyleContext::add_provider_for_screen(
@@ -404,40 +434,6 @@ fn build_ui(
 			ControlFlow::Continue
 		});
 	}
-
-	/*
-
-	{
-		let vimetr = ViMeter::new_visender(
-			AppConfig.clone(),
-			"# VRM",
-			dock_window.allocation().width(),
-			200,
-			c_transparent,
-		);
-		vbox.pack_start(&*vimetr, false, false, 0);
-		glib::timeout_add_local(std::time::Duration::from_millis(600), move || {
-			vimetr.push_next_and_queue_draw(random_range(0.8..0.9));
-
-			ControlFlow::Continue
-		});
-	}
-
-	{
-		let vimetr = ViMeter::new_visender(
-			AppConfig.clone(),
-			"# VOLTAGE",
-			dock_window.allocation().width(),
-			200,
-			c_transparent,
-		);
-		vbox.pack_start(&*vimetr, false, false, 0);
-		glib::timeout_add_local(std::time::Duration::from_millis(600), move || {
-			vimetr.push_next_and_queue_draw(random_range(0.8..0.9));
-
-			ControlFlow::Continue
-		});
-	}*/
 	dock_window.set_child(Some(&*vbox));
 
 	std::thread::spawn(enc!((sender)move || {

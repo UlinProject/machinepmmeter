@@ -1,6 +1,3 @@
-use std::ops::Deref;
-
-use crate::__gen_transparent_gtk_type;
 use crate::core::maybe::Maybe;
 use crate::maybe;
 use crate::widgets::primitives::icon_menuitem::ViIconMenuItem;
@@ -8,38 +5,12 @@ use appindicator3::Indicator;
 pub use appindicator3::IndicatorCategory;
 use appindicator3::IndicatorStatus;
 use appindicator3::traits::AppIndicatorExt;
-use gtk::Menu;
-use gtk::ffi::GtkMenu;
 use gtk::traits::MenuShellExt;
 use gtk::traits::WidgetExt;
 
 #[repr(transparent)]
 #[derive(Debug)]
-pub struct AppTrayMenu(Menu);
-
-__gen_transparent_gtk_type! {
-	#[sys(GtkMenu)]
-	AppTrayMenu(
-		new |a: Menu| {
-			Self(a)
-		},
-		ref |sself| {
-			&sself.0
-		},
-		into |sself| {
-			sself.0
-		},
-	)
-}
-
-impl Deref for AppTrayMenu {
-	type Target = Menu;
-
-	#[inline]
-	fn deref(&self) -> &Self::Target {
-		&self.0
-	}
-}
+pub struct AppTrayMenu(Indicator);
 
 pub enum AppTrayMenuItem<'i, 'v, F>
 where
@@ -124,11 +95,13 @@ impl AppTrayMenu {
 		});
 		indicator.set_menu(Some(&menu));
 
-		Self(menu)
+		Self(indicator)
 	}
 
 	#[inline]
-	pub fn main(&self) {
-		gtk::main();
+	pub fn is_connected(&self) -> bool {
+		self.0.is_connected()
 	}
 }
+
+pub struct AppTrayMenuNotInitialized;
