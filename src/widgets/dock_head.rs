@@ -1,10 +1,5 @@
-use std::rc::Rc;
-
 use crate::{
-	__gen_transparent_gtk_type,
-	app::config::{AppConfig, FontAppConfig, WindowAppConfig},
-	core::maybe::Maybe,
-	maybe,
+	__gen_transparent_gtk_type, app::config::AppConfig, core::maybe::Maybe, maybe,
 	widgets::primitives::label::ViLabel,
 };
 use enclose::enc;
@@ -13,6 +8,7 @@ use gtk::{
 	ffi::GtkBox,
 	traits::{BoxExt, StyleContextExt, WidgetExt},
 };
+use std::rc::Rc;
 
 #[repr(transparent)]
 #[derive(Debug)]

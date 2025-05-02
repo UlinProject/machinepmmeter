@@ -19,7 +19,7 @@ use anyhow::{Context, Result as anyhowResult};
 use async_channel::{Receiver, Sender};
 use clap::Parser;
 use enclose::enc;
-use glib::{ControlFlow, ExitCode};
+use glib::ControlFlow;
 use gtk::gdk::{Monitor, Screen};
 use gtk::gio::prelude::ApplicationExtManual;
 use gtk::gio::traits::ApplicationExt;
@@ -32,7 +32,6 @@ use log::{error, info, trace, warn};
 use std::cell::RefCell;
 use std::fs;
 use std::rc::Rc;
-use std::sync::Arc;
 
 mod widgets;
 mod core {
@@ -168,7 +167,7 @@ fn main() -> anyhowResult<()> {
 
 		build_ui(app, name_window, &app_config, &c_display, &defcss, tx_appevents.clone(), rx_appevents.clone());
 	}));
-	
+
 	application.run();
 	Ok(())
 }
@@ -569,7 +568,7 @@ fn build_ui(
 							);
 							vbox.add(&vihotkey);
 							vihotkey.set_visible(true);
-							
+
 							wdock_vihotkey = Some(vihotkey);
 						}
 					},

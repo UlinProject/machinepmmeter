@@ -1,19 +1,17 @@
-use std::ops::Deref;
-
 use crate::__gen_transparent_gtk_type;
 use crate::app::config::FontAppConfig;
 use crate::core::maybe::Maybe;
 use crate::maybe;
 use crate::widgets::primitives::hotkeyitem::ViHotkeyItem;
 use crate::widgets::primitives::label::ViLabel;
-use gtk::traits::ContainerExt;
-use gtk::traits::WidgetExt;
 use gtk::Align;
 use gtk::Box;
 use gtk::Orientation;
 use gtk::ffi::GtkBox;
 use gtk::pango::Weight;
 use gtk::traits::BoxExt;
+use gtk::traits::WidgetExt;
+use std::ops::Deref;
 
 #[repr(transparent)]
 #[derive(Debug)]
@@ -67,7 +65,7 @@ impl ViHotkeyItems {
 				);
 			}
 			all.pack_start(&shortcasthbox, false, false, 0);
-			
+
 			shortcasthbox.set_visible(true);
 		}
 		all.set_visible(true);
