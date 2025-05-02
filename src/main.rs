@@ -3,7 +3,7 @@
 
 use crate::app::cli::AppCli;
 use crate::app::config::AppConfig;
-use crate::app::menu::{AppTrayMenu, AppTrayMenuItem};
+use crate::app::tray_menu::{AppTrayMenu, AppTrayMenuItem};
 use crate::core::display::ViGraphDisplayInfo;
 use crate::core::dock_window::{PosINScreen, ViDockWindow};
 use crate::core::keyboard::KeyboardListenerBuilder;
@@ -46,7 +46,7 @@ mod core {
 pub mod app {
 	pub mod cli;
 	pub mod config;
-	pub mod menu;
+	pub mod tray_menu;
 }
 
 const APP_NAME: &str = "machinepmmeter";
