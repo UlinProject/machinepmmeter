@@ -32,9 +32,13 @@ impl ViHotkeyItem {
 	pub fn new(f_app_config: impl AsRef<FontAppConfig>, icon: &str, text: &str) -> Self {
 		let hbox = Box::new(Orientation::Horizontal, 0);
 
-		let image = Image::from_icon_name(Some(icon), gtk::IconSize::Button);
-		image.set_margin_start(4);
-		hbox.pack_start(&image, false, false, 0);
+		{
+			let image = Image::from_icon_name(Some(icon), gtk::IconSize::Button);
+			image.set_margin_start(4);
+			hbox.pack_start(&image, false, false, 0);
+			
+			image.set_visible(true);
+		}
 
 		let label = ViLabel::new((), f_app_config, text, ())
 			.set_align(Align::Start)

@@ -207,16 +207,10 @@ impl ViTextMeterSender {
 	}
 
 	pub fn set_visible_limit(&self, v: bool) {
-		if !v {
-			self.limit.set_text("");
-		}
 		self.limit.set_visible2(v);
 	}
 
 	pub fn set_visible_avg(&self, v: bool) {
-		if !v {
-			self.avg.set_text("");
-		}
 		self.avg.set_visible2(v);
 	}
 }

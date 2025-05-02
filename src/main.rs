@@ -568,7 +568,7 @@ fn build_ui(
 								c_transparent,
 							);
 							vbox.add(&vihotkey);
-							vihotkey.show_all();
+							vihotkey.set_visible(true);
 							
 							wdock_vihotkey = Some(vihotkey);
 						}
