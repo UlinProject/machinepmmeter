@@ -9,6 +9,7 @@ use gtk::{
 	traits::{LabelExt, StyleContextExt, WidgetExt},
 };
 pub use pango::Weight;
+pub use pango::WrapMode;
 
 #[repr(transparent)]
 #[derive(Debug)]
@@ -64,8 +65,16 @@ impl ViLabel {
 		Self(label)
 	}
 
+	#[inline]
 	pub fn set_text(&self, text: &str) {
 		self.0.set_text(text);
+	}
+
+	#[inline]
+	pub fn read_text<R>(&self, next: impl FnOnce(&str) -> R) -> R {
+		let text = self.0.text();
+
+		next(text.as_str())
 	}
 
 	pub fn set_align(self, align: Align) -> Self {
@@ -78,6 +87,27 @@ impl ViLabel {
 	#[inline]
 	pub fn set_margin(self, margin: i32) -> Self {
 		self.0.set_margin(margin);
+
+		self
+	}
+
+	#[inline]
+	pub fn set_wrap(self, wrap: bool) -> Self {
+		self.0.set_wrap(wrap);
+
+		self
+	}
+
+	#[inline]
+	pub fn set_wrap_mode(self, wrap_mode: WrapMode) -> Self {
+		self.0.set_wrap_mode(wrap_mode);
+
+		self
+	}
+
+	#[inline]
+	pub fn set_max_width_chars(self, width: i32) -> Self {
+		self.0.set_max_width_chars(width);
 
 		self
 	}

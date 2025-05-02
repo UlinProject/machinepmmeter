@@ -70,10 +70,51 @@
 	font-weight: normal;
 }
 
+.vinotebook {
+	border-bottom-color: rgba(255, 255, 0,8);
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+	margin-bottom: 4px;
+}
+
+.vinotebook .head_vinotebook {
+	background-color: gray;
+	color: rgb(255, 255, 255);
+	border-bottom-color: rgba(220, 220, 220, 0.2);
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+	
+	margin-left: 3px;
+	padding-left: 3px;
+	padding-right: 3px;
+}
+
+.vinotebook .head_vinotebook {
+	padding-top: 4px;
+}
+
+.vinotebook .first_head_vinotebook {
+	margin-left: 8px;
+}
+
+.vinotebook .active_head_vinotebook {
+	background-color: rgb(255, 255, 0);
+	color: rgb(0, 0, 0);
+}
+
+.vinotebook .vinotebookpage {
+	border-top-color: rgba(255, 255, 0,8);
+	border-top-width: 1px;
+	border-top-style: solid;
+	padding-top: 2px;
+}
+
 .namehead {
 	border-bottom-color: rgba(220, 220, 220, 0.8);
 	border-bottom-width: 2px;
 	border-bottom-style: solid;
+	
+	margin-bottom: 4px;
 }
 
 .namehead_vilabel {
