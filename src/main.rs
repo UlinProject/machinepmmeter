@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2025 Denis Kotlyarov (Денис Котляров) <denis2005991@gmail.com>
 
+use crate::app::about_dialog::AppAboutDialog;
 use crate::app::cli::AppCli;
 use crate::app::config::AppConfig;
 use crate::app::tray_menu::{AppTrayMenu, AppTrayMenuItem};
@@ -44,6 +45,7 @@ mod core {
 	pub mod maybe;
 }
 pub mod app {
+	pub mod about_dialog;
 	pub mod cli;
 	pub mod config;
 	pub mod tray_menu;
@@ -51,6 +53,9 @@ pub mod app {
 
 const APP_ID: &str = "com.ulinkot.machinepmmeter";
 const PKG_ICON: &str = env!("CARGO_PKG_NAME");
+const PKG_WEBSITE: &str = env!("CARGO_PKG_REPOSITORY");
+const PKG_AUTHORS: &str = env!("CARGO_PKG_AUTHORS");
+const PKG_COPYRIGHT: &str = "© 2025 Denis Kotlyarov";
 const PKG_NAME: &str = env!("CARGO_PKG_NAME");
 const UPPERCASE_PKG_NAME: &str = const_ascii_uppercase!(PKG_NAME);
 
@@ -117,6 +122,12 @@ fn main() -> anyhowResult<ExitCode> {
 			}));
 		});
 
+		let abouttheprogram = enc!((tx_keyboardevents) &mut move |vi: &mut ViIconMenuItem| {
+			vi.connect_activate(enc!((tx_keyboardevents) move |_| {
+				let _e = tx_keyboardevents.send_blocking(Events::AboutTheProgram);
+			}));
+		});
+
 		let exit = enc!((tx_keyboardevents) &mut move |vi: &mut ViIconMenuItem| {
 			vi.connect_activate(enc!((tx_keyboardevents) move |_| {
 				let _e = tx_keyboardevents.send_blocking(Events::Exit);
@@ -136,6 +147,7 @@ fn main() -> anyhowResult<ExitCode> {
 					next_position,
 				),
 				AppTrayMenuItem::Separator,
+				AppTrayMenuItem::item("About the program", abouttheprogram),
 				AppTrayMenuItem::icon_item("system-shutdown-symbolic", "Exit", exit),
 			]
 			.into_iter(),
@@ -172,6 +184,7 @@ enum KeyboardEvents {
 enum Events {
 	Keyboard(KeyboardEvents),
 	HideOrShow,
+	AboutTheProgram,
 	Exit,
 	NextPosition,
 	AppendViHotkeyItem(Vec<(&'static str, &'static str)>),
@@ -521,6 +534,7 @@ fn build_ui(
 
 	glib::MainContext::default().spawn_local(
 		enc!((c_display, dock_window, pos_inscreen, vbox, app_config) async move {
+			let app_about_dialog = Rc::new(RefCell::new(None));
 			while let Ok(event) = receiver.recv().await {
 				match event {
 					Events::HideOrShow | Events::Keyboard(KeyboardEvents::ShiftF8) if dock_window.is_visible() => {
@@ -532,6 +546,22 @@ fn build_ui(
 					Events::Exit | Events::Keyboard(KeyboardEvents::Escape) => {
 						dock_window.close();
 						gtk::main_quit();
+					},
+					Events::AboutTheProgram => {
+						let mut write_aad = RefCell::borrow_mut(&app_about_dialog);
+						match *write_aad {
+							None => {
+								let aad = AppAboutDialog::new(enc!((app_about_dialog) move || {
+									*RefCell::borrow_mut(&app_about_dialog) = None;
+								}));
+								
+								aad.show_all();
+								aad.present();
+
+								*write_aad = Some(aad);
+							},
+							Some(ref a) => a.present(),
+						}
 					},
 					Events::Keyboard(KeyboardEvents::KpPlus) => {},
 					Events::Keyboard(KeyboardEvents::KpMinus) => {},
