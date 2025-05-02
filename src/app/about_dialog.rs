@@ -12,7 +12,6 @@ use gtk::ffi::GtkAboutDialog;
 use gtk::traits::AboutDialogExt;
 use gtk::traits::DialogExt;
 use gtk::traits::GtkWindowExt;
-use gtk::traits::WidgetExt;
 
 #[repr(transparent)]
 #[derive(Debug)]

@@ -1,9 +1,6 @@
 use crate::{__gen_transparent_gtk_type, app::config::WindowAppConfig};
 use gtk::{
-	Application, ApplicationWindow, cairo,
-	ffi::GtkApplicationWindow,
-	gdk::{Monitor, Screen, WindowTypeHint, traits::MonitorExt},
-	traits::{GtkWindowExt, WidgetExt},
+	cairo, ffi::GtkApplicationWindow, gdk::{traits::MonitorExt, Monitor, Screen, WindowTypeHint}, traits::{GtkWindowExt, StyleContextExt, WidgetExt}, Application, ApplicationWindow
 };
 use log::trace;
 use serde::Deserialize;
@@ -45,6 +42,7 @@ impl ViDockWindow {
 	) -> Self {
 		let w_app_config = w_app_config.as_ref();
 		let window = ApplicationWindow::new(app);
+		window.style_context().add_class("vidockwindow");
 		window.set_visible(false);
 		window.set_title(title);
 		window.set_decorated(false);
