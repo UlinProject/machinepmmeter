@@ -6,6 +6,7 @@ use crate::core::maybe::Maybe;
 use crate::maybe;
 use crate::widgets::primitives::hotkeyitem::ViHotkeyItem;
 use crate::widgets::primitives::label::ViLabel;
+use gtk::traits::WidgetExt;
 use gtk::Align;
 use gtk::Box;
 use gtk::Orientation;
@@ -66,6 +67,7 @@ impl ViHotkeyItems {
 			}
 			all.pack_start(&shortcasthbox, false, false, 0);
 		}
+		all.set_visible(true);
 
 		Self(all)
 	}
