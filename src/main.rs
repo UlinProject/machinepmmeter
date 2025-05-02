@@ -388,7 +388,7 @@ fn build_ui(
 	{
 		let vimetr = ViMeter::new_visender(
 			app_config.clone(),
-			"# Demo",
+			"# Demo 1",
 			dock_window.allocation().width(),
 			200,
 			Some(vigraph_surface.clone()),
@@ -397,6 +397,29 @@ fn build_ui(
 		vbox.pack_start(&*vimetr, false, false, 0);
 		glib::timeout_add_local(std::time::Duration::from_millis(80), move || {
 			vimetr.push_next_and_queue_draw(0.7, 0.7, 1.0, 0.0, 0.0);
+
+			ControlFlow::Continue
+		});
+	}
+	{
+		let vimetr = ViMeter::new_visender(
+			app_config.clone(),
+			"# Demo 2",
+			dock_window.allocation().width(),
+			200,
+			Some(vigraph_surface.clone()),
+			c_transparent,
+		);
+		let data = Rc::new(RefCell::new(0.0));
+		vbox.pack_start(&*vimetr, false, false, 0);
+		glib::timeout_add_local(std::time::Duration::from_millis(1), move || {
+			let mut w = RefCell::borrow_mut(&data);
+			vimetr.push_next_and_queue_draw(*w, *w, 1.0, 0.0, 0.0);
+
+			*w += 0.01;
+			if *w >= 1.0 {
+				*w = 0.0;
+			}
 
 			ControlFlow::Continue
 		});
@@ -492,7 +515,7 @@ fn build_ui(
 		}),
 	);
 
-	glib::timeout_add_local(
+	/*glib::timeout_add_local(
 		std::time::Duration::from_millis(2000),
 		enc!((sender)move || {
 			let _e = sender.send_blocking(AppEvents::KeyboardListenerState(true));
@@ -507,7 +530,7 @@ fn build_ui(
 
 			ControlFlow::Continue
 		}),
-	);
+	);*/
 
 	glib::MainContext::default().spawn_local(
 		enc!((c_display, dock_window, pos_inscreen, vbox, app_config) async move {

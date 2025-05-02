@@ -56,74 +56,76 @@ impl ViGraph {
 			};
 			let _e = background_surface.draw_or_get(width, height, transparent, |_|{});
 		}));
-		graph_area.connect_draw(enc!((rc_data, background_surface) move |da, cr| {
-			let data = RefCell::borrow(&rc_data);
 
-			let (width, height) = {
-				let allocation = da.allocation();
+		graph_area.connect_draw(
+			enc!((rc_data, background_surface, app_config) move |da, cr| {
+				let data = RefCell::borrow(&rc_data);
 
-				(allocation.width(), allocation.height())
-			};
-			if background_surface.draw_or_get(width, height, transparent, |surface| {
-				let _e = cr.set_source_surface(surface, 0.0, 0.0);
-				let _e = cr.paint();
-			}).is_err() {
-				cr.set_source_rgba(0.255, 0.255, 0.255, transparent);
-				cr.rectangle(0.0, 0.0, width as _, height as _);
-				let _e = cr.fill();
-			}
+				let (width, height) = {
+					let allocation = da.allocation();
 
-			let (width, height): (f64, f64) = (width.into(), height.into());
-
-			let _e = cr.paint();
-			let a_max = {
-				let mut max = 0.0;
-
-				for a in data.iter() {
-					let a = *a;
-					if a > max {
-						max = a;
-					}
+					(allocation.width(), allocation.height())
+				};
+				if background_surface.draw_or_get(width, height, transparent, |surface| {
+					let _e = cr.set_source_surface(surface, 0.0, 0.0);
+					let _e = cr.paint();
+				}).is_err() {
+					cr.set_source_rgba(0.255, 0.255, 0.255, transparent);
+					cr.rectangle(0.0, 0.0, width as _, height as _);
+					let _e = cr.fill();
 				}
 
-				max
-			};
+				let (width, height): (f64, f64) = (width.into(), height.into());
+				let (r, g, b, transparent) = {
+					let color_config = app_config.get_color_app_config();
+					let a_forcolor = data.back().copied().unwrap_or_default();
 
-			{
-				let color = app_config.get_color_app_config();
-				let (r, g, b, a) = (if a_max >= 0.85 {
-						color.red()
-					} else if a_max >= 0.75 {
-						color.orange()
+					if a_forcolor >= 0.85 {
+						color_config.red().into_rgba(transparent)
+					} else if a_forcolor >= 0.75 {
+						color_config.orange().into_rgba(transparent)
 					} else {
-						color.green()
+						color_config.green().into_rgba(transparent)
 					}
-				).into_rgba(transparent);
+				};
 
-				cr.set_source_rgba(r, g, b, a);
-			}
-			cr.set_line_width(1.5);
+				let x_step = width / (len - 1) as f64;
+				{// shadow
+					let (sr, sg, sb, st): (f64, f64, f64, f64) = (0.8, 0.8, 0.8, 0.2);
+					let yoffset = 1.0;
+					let width = 3.8;
+					if let Some(first_a) = data.front() {
+						cr.move_to(0.0, height * (1.0 - first_a) + yoffset);
+						cr.set_source_rgba(sr, sg, sb, st);
+						cr.set_line_width(width);
 
-			let x_step = width / (len - 1) as f64;
-			let mut iter = data.iter();
-			if let Some(a) = iter.next() {
-				cr.move_to(0.0, height * (1.0 - a));
-			}
+						for (i, a) in data.iter().enumerate() {
+							let x = (i + 1) as f64 * x_step;
+							let y = height * (1.0 - a) + yoffset;
 
-			let mut i = 1;
-			for a in iter {
-				let x = i as f64 * x_step;
-				let y = height * (1.0 - a);
+							cr.line_to(x, y);
+						}
+					}
+					let _e = cr.stroke();
+				}
 
-				cr.line_to(x, y);
+				if let Some(first_a) = data.front() {
+					cr.move_to(0.0, height * (1.0 - first_a));
+					cr.set_source_rgba(r, g, b, transparent);
+					cr.set_line_width(1.5);
 
-				i += 1;
-			}
+					for (i, a) in data.iter().enumerate() {
+						let x = (i + 1) as f64 * x_step;
+						let y = height * (1.0 - a);
 
-			let _e = cr.stroke();
+						cr.line_to(x, y);
+					}
+				}
+				let _e = cr.stroke();
 
-			false.into()
-		}));
+				false.into()
+			}),
+		);
 
 		ViGraphSender(rc_data, Self(graph_area))
 	}
@@ -182,6 +184,7 @@ impl ViGraphSurface {
 			let cr = Context::new(&surface)?;
 			let (width, height) = (width.into(), height.into());
 
+			let _e = cr.save();
 			cr.move_to(0.0, 0.0);
 			cr.set_source_rgba(0.255, 0.255, 0.255, transparent);
 			cr.rectangle(0.0, 0.0, width, height);
@@ -207,6 +210,7 @@ impl ViGraphSurface {
 				cr.line_to(x, height);
 				let _e = cr.stroke();
 			}
+			let _e = cr.restore();
 
 			let result = Ok(next(&surface));
 			*w = Some(surface);

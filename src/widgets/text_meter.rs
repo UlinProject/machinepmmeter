@@ -136,7 +136,7 @@ impl ViTextMeter {
 
 		self
 	}
-	
+
 	#[inline]
 	pub fn set_margin_bottom2(&self, margin: i32) {
 		self.0.set_margin_bottom(margin);
