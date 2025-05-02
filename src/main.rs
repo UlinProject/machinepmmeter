@@ -106,31 +106,31 @@ fn main() -> anyhowResult<ExitCode> {
 		a_css
 	};
 
-	let (tx_keyboardevents, rx_keyboardevents) = async_channel::bounded(18);
-	let rx_keyboardevents = Rc::new(rx_keyboardevents);
+	let (tx_appevents, rx_appevents) = async_channel::bounded(18);
+	let rx_appevents = Rc::new(rx_appevents);
 	let tray_menu = {
 		// Tray menu
-		let hide_or_show = enc!((tx_keyboardevents) &mut move |vi: &mut ViIconMenuItem| {
-			vi.connect_activate(enc!((tx_keyboardevents) move |_| {
-				let _e = tx_keyboardevents.send_blocking(Events::HideOrShow);
+		let hide_or_show = enc!((tx_appevents) &mut move |vi: &mut ViIconMenuItem| {
+			vi.connect_activate(enc!((tx_appevents) move |_| {
+				let _e = tx_appevents.send_blocking(AppEvents::HideOrShow);
 			}));
 		}) as &'_ mut dyn FnMut(&'_ mut ViIconMenuItem);
 
-		let next_position = enc!((tx_keyboardevents) &mut move |vi: &mut ViIconMenuItem| {
-			vi.connect_activate(enc!((tx_keyboardevents) move |_| {
-				let _e = tx_keyboardevents.send_blocking(Events::NextPosition);
+		let next_position = enc!((tx_appevents) &mut move |vi: &mut ViIconMenuItem| {
+			vi.connect_activate(enc!((tx_appevents) move |_| {
+				let _e = tx_appevents.send_blocking(AppEvents::NextPosition);
 			}));
 		});
 
-		let abouttheprogram = enc!((tx_keyboardevents) &mut move |vi: &mut ViIconMenuItem| {
-			vi.connect_activate(enc!((tx_keyboardevents) move |_| {
-				let _e = tx_keyboardevents.send_blocking(Events::AboutTheProgram);
+		let abouttheprogram = enc!((tx_appevents) &mut move |vi: &mut ViIconMenuItem| {
+			vi.connect_activate(enc!((tx_appevents) move |_| {
+				let _e = tx_appevents.send_blocking(AppEvents::AboutTheProgram);
 			}));
 		});
 
-		let exit = enc!((tx_keyboardevents) &mut move |vi: &mut ViIconMenuItem| {
-			vi.connect_activate(enc!((tx_keyboardevents) move |_| {
-				let _e = tx_keyboardevents.send_blocking(Events::Exit);
+		let exit = enc!((tx_appevents) &mut move |vi: &mut ViIconMenuItem| {
+			vi.connect_activate(enc!((tx_appevents) move |_| {
+				let _e = tx_appevents.send_blocking(AppEvents::Exit);
 			}));
 		});
 
@@ -157,7 +157,7 @@ fn main() -> anyhowResult<ExitCode> {
 	};
 
 	let application = Application::new(Some(APP_ID), Default::default());
-	application.connect_activate(enc!((app_config, rx_keyboardevents, tray_menu) move |app| {
+	application.connect_activate(enc!((app_config, rx_appevents, tray_menu) move |app| {
 		if !tray_menu.is_connected() {
 			error!(
 				"#[global traymenu] Error initializing tray menu, tray menu will be unavailable.",
@@ -167,7 +167,7 @@ fn main() -> anyhowResult<ExitCode> {
 		let name_window = app_config.get_name_or_default();
 
 		let mut is_keyboard_allowed = false;
-		build_ui(app, name_window, &app_config, &c_display, &defcss, &mut is_keyboard_allowed, tx_keyboardevents.clone(), rx_keyboardevents.clone());
+		build_ui(app, name_window, &app_config, &c_display, &defcss, &mut is_keyboard_allowed, tx_appevents.clone(), rx_appevents.clone());
 	}));
 
 	Ok(application.run())
@@ -181,13 +181,13 @@ enum KeyboardEvents {
 	Escape,
 }
 
-enum Events {
+enum AppEvents {
 	Keyboard(KeyboardEvents),
 	HideOrShow,
 	AboutTheProgram,
 	Exit,
 	NextPosition,
-	AppendViHotkeyItem(Vec<(&'static str, &'static str)>),
+	KeyboardListenerState(bool),
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -199,8 +199,8 @@ fn build_ui(
 	defcss: &CssProvider,
 	is_keyboard_allowed: &mut bool,
 
-	sender: Sender<Events>,
-	receiver: Rc<Receiver<Events>>,
+	sender: Sender<AppEvents>,
+	receiver: Rc<Receiver<AppEvents>>,
 ) {
 	trace!("#[gui] Start initialization, name: {:?}", name_window);
 	gtk::StyleContext::add_provider_for_screen(
@@ -462,39 +462,32 @@ fn build_ui(
 					((true, false) | (false, true), true, false, false, false) => {
 						// L/R SHIFT + F8
 						let _e = sender
-							.send_blocking(Events::Keyboard(KeyboardEvents::ShiftF8));
+							.send_blocking(AppEvents::Keyboard(KeyboardEvents::ShiftF8));
 					}
 					((true, false) | (false, true), false, true, false, false) => {
 						// L/R SHIFT + KpPlus
 						let _e = sender
-							.send_blocking(Events::Keyboard(KeyboardEvents::KpPlus));
+							.send_blocking(AppEvents::Keyboard(KeyboardEvents::KpPlus));
 					}
 					((true, false) | (false, true), false, false, true, false) => {
 						// L/R SHIFT + KpMinus
 						let _e = sender
-							.send_blocking(Events::Keyboard(KeyboardEvents::KpMinus));
+							.send_blocking(AppEvents::Keyboard(KeyboardEvents::KpMinus));
 					}
 					((true, false) | (false, true), false, false, false, true) => {
 						// L/R SHIFT + Escape
 						let _e = sender
-							.send_blocking(Events::Keyboard(KeyboardEvents::Escape));
+							.send_blocking(AppEvents::Keyboard(KeyboardEvents::Escape));
 					}
 					((true, true), ..) => {
 						// L+R SHIFT
 						let _e = sender
-							.send_blocking(Events::Keyboard(KeyboardEvents::DoubleShift));
+							.send_blocking(AppEvents::Keyboard(KeyboardEvents::DoubleShift));
 					}
 					_ => {}
 				}
 			)).on_startup(|| {
-				let _e = sender.send_blocking(Events::AppendViHotkeyItem(vec![
-					("view-conceal-symbolic", "Hide | Show (Shift and F8)"),
-					(
-						"sidebar-show-right-symbolic-rtl",
-						"Next position (Left Shift and Right Shift)",
-					),
-					("system-shutdown-symbolic", "Exit (Shift and Esc)"),
-				]));
+				let _e = sender.send_blocking(AppEvents::KeyboardListenerState(true));
 			}).listen();
 
 		if let Err(e) = keyboard_listener {
@@ -502,6 +495,7 @@ fn build_ui(
 				"#[global keyboard] Error initializing global keyboard listener, keyboard shortcuts not available. {}",
 				e
 			);
+			let _e = sender.send_blocking(AppEvents::KeyboardListenerState(false));
 		}
 	}));
 
@@ -537,17 +531,17 @@ fn build_ui(
 			let app_about_dialog = Rc::new(RefCell::new(None));
 			while let Ok(event) = receiver.recv().await {
 				match event {
-					Events::HideOrShow | Events::Keyboard(KeyboardEvents::ShiftF8) if dock_window.is_visible() => {
+					AppEvents::HideOrShow | AppEvents::Keyboard(KeyboardEvents::ShiftF8) if dock_window.is_visible() => {
 						dock_window.hide();
 					},
-					Events::HideOrShow | Events::Keyboard(KeyboardEvents::ShiftF8) => {
+					AppEvents::HideOrShow | AppEvents::Keyboard(KeyboardEvents::ShiftF8) => {
 						dock_window.show();
 					},
-					Events::Exit | Events::Keyboard(KeyboardEvents::Escape) => {
+					AppEvents::Exit | AppEvents::Keyboard(KeyboardEvents::Escape) => {
 						dock_window.close();
 						gtk::main_quit();
 					},
-					Events::AboutTheProgram => {
+					AppEvents::AboutTheProgram => {
 						let mut write_aad = RefCell::borrow_mut(&app_about_dialog);
 						match *write_aad {
 							None => {
@@ -563,9 +557,9 @@ fn build_ui(
 							Some(ref a) => a.present(),
 						}
 					},
-					Events::Keyboard(KeyboardEvents::KpPlus) => {},
-					Events::Keyboard(KeyboardEvents::KpMinus) => {},
-					Events::NextPosition | Events::Keyboard(KeyboardEvents::DoubleShift) => {
+					AppEvents::Keyboard(KeyboardEvents::KpPlus) => {},
+					AppEvents::Keyboard(KeyboardEvents::KpMinus) => {},
+					AppEvents::NextPosition | AppEvents::Keyboard(KeyboardEvents::DoubleShift) => {
 						let new_pos = { // NEXT POS IN SCREEN
 							let mut write = pos_inscreen.borrow_mut();
 							let new_pos = write.next();
@@ -575,7 +569,15 @@ fn build_ui(
 						};
 						dock_window.set_pos_inscreen(&*c_display, new_pos);
 					},
-					Events::AppendViHotkeyItem(arr) => {
+					AppEvents::KeyboardListenerState(true) => {
+						let arr = [
+							("view-conceal-symbolic", "Hide | Show (Shift and F8)"),
+							(
+								"sidebar-show-right-symbolic-rtl",
+								"Next position (Left Shift and Right Shift)",
+							),
+							("system-shutdown-symbolic", "Exit (Shift and Esc)")
+						];
 						let vihotkey = ViHotkeyItems::new(
 							&*app_config,
 							"# Hot keys",
@@ -584,7 +586,8 @@ fn build_ui(
 						);
 						vbox.add(&vihotkey);
 						vbox.show_all();
-					}
+					},
+					AppEvents::KeyboardListenerState(false) => {},
 				}
 			}
 		}),
