@@ -8,10 +8,10 @@ use appindicator3::Indicator;
 pub use appindicator3::IndicatorCategory;
 use appindicator3::IndicatorStatus;
 use appindicator3::traits::AppIndicatorExt;
-use gtk::traits::WidgetExt;
 use gtk::Menu;
 use gtk::ffi::GtkMenu;
 use gtk::traits::MenuShellExt;
+use gtk::traits::WidgetExt;
 
 #[repr(transparent)]
 #[derive(Debug)]

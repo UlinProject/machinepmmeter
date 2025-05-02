@@ -388,7 +388,7 @@ fn build_ui(
 			}
 		}
 	}
-	
+
 	{
 		let vimetr = ViMeter::new_visender(
 			app_config.clone(),
@@ -399,18 +399,12 @@ fn build_ui(
 		);
 		vbox.pack_start(&*vimetr, false, false, 0);
 		glib::timeout_add_local(std::time::Duration::from_millis(100), move || {
-			vimetr.push_next_and_queue_draw(
-				0.7,
-				0.7,
-				1.0,
-				0.0,
-				0.0,
-			);
+			vimetr.push_next_and_queue_draw(0.7, 0.7, 1.0, 0.0, 0.0);
 
 			ControlFlow::Continue
 		});
 	}
-	
+
 	/*
 
 	{

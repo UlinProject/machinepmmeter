@@ -1,9 +1,10 @@
 use crate::__gen_transparent_gtk_type;
 use crate::app::config::AppConfig;
-use crate::app::config::ColorAppConfig;
 use enclose::enc;
 use gtk::DrawingArea;
 use gtk::cairo;
+use gtk::cairo::Context;
+use gtk::cairo::ImageSurface;
 use gtk::ffi::GtkDrawingArea;
 use gtk::traits::WidgetExt;
 use std::cell::RefCell;
@@ -38,25 +39,114 @@ impl ViGraph {
 		len: usize,
 		transparent: f64,
 	) -> ViGraphSender {
-		let rc_data = Rc::new(RefCell::new({
-			let mut v = VecDeque::<f64>::new();
-			for _ in 0..len {
-				v.push_back(0.0);
-			}
-
-			v
-		}));
+		let rc_data = Rc::new(RefCell::new(VecDeque::from(vec![0.0; len])));
 
 		let graph_area = DrawingArea::new();
 		graph_area.set_margin_bottom(6);
 		graph_area.set_size_request(width, height);
-		graph_area.set_visible(true);
 
-		graph_area.connect_draw(enc!((rc_data) move |da, cr| {
-			{
-				let data = RefCell::borrow(&rc_data);
-				draw_peak_graph(&*app_config, da, cr, data.iter(), data.len(), transparent);
+		let background_surface = Rc::new(RefCell::new(None::<ImageSurface>));
+		graph_area.connect_realize(enc!((background_surface) move |da| {
+			let (width, height) = {
+				let allocation = da.allocation();
+
+				(allocation.width(), allocation.height())
+			};
+
+			if let Ok(surface) = ImageSurface::create(cairo::Format::ARgb32, width, height) {
+				if let Ok(cr) = Context::new(&surface) {
+					let (width, height) = (width.into(), height.into());
+
+					cr.move_to(0.0, 0.0);
+					cr.set_source_rgba(0.255, 0.255, 0.255, transparent);
+					cr.rectangle(0.0, 0.0, width, height);
+					let _e = cr.fill();
+
+					let c_horizontal_lines = 10/2;
+					let c_vertical_lines = 10;
+
+					cr.set_source_rgba(0.8, 0.8, 0.8, transparent);
+					cr.set_line_width(0.1);
+
+					for i in 1..c_horizontal_lines {
+						let y = height / c_horizontal_lines as f64 * i as f64;
+
+						cr.move_to(0.0, y);
+						cr.line_to(width, y);
+						let _e = cr.stroke();
+					}
+					for i in 1..c_vertical_lines {
+						let x = width / c_vertical_lines as f64 * i as f64;
+
+						cr.move_to(x, 0.0);
+						cr.line_to(x, height);
+						let _e = cr.stroke();
+					}
+					*background_surface.borrow_mut() = Some(surface);
+				}
 			}
+		}));
+		graph_area.connect_draw(enc!((rc_data, background_surface) move |da, cr| {
+			let data = RefCell::borrow(&rc_data);
+
+			let (width, height): (f64, f64) = {
+				let allocation = da.allocation();
+
+				(allocation.width().into(), allocation.height().into())
+			};
+			if let Some(ref surface) = *RefCell::borrow(&background_surface) {
+				let _e = cr.set_source_surface(surface, 0.0, 0.0);
+				let _e = cr.paint();
+			} else {
+				cr.set_source_rgba(0.255, 0.255, 0.255, transparent);
+				cr.rectangle(0.0, 0.0, width, height);
+				let _e = cr.fill();
+			}
+			let a_max = {
+				let mut max = 0.0;
+
+				for a in data.iter() {
+					let a = *a;
+					if a > max {
+						max = a;
+					}
+				}
+
+				max
+			};
+
+			{
+				let color = app_config.get_color_app_config();
+				let (r, g, b, a) = (if a_max >= 0.85 {
+						color.red()
+					} else if a_max >= 0.75 {
+						color.orange()
+					} else {
+						color.green()
+					}
+				).into_rgba(transparent);
+
+				cr.set_source_rgba(r, g, b, a);
+			}
+			cr.set_line_width(1.5);
+
+			let x_step = width / (len - 1) as f64;
+			let mut iter = data.iter();
+			if let Some(a) = iter.next() {
+				cr.move_to(0.0, height * (1.0 - a));
+			}
+
+			let mut i = 1;
+			for a in iter {
+				let x = i as f64 * x_step;
+				let y = height * (1.0 - a);
+
+				cr.line_to(x, y);
+
+				i += 1;
+			}
+
+			let _e = cr.stroke();
 
 			false.into()
 		}));
@@ -92,94 +182,4 @@ impl ViGraphSender {
 	pub fn queue_draw(&self) {
 		self.1.queue_draw();
 	}
-}
-
-fn draw_peak_graph<'a>(
-	color: impl AsRef<ColorAppConfig>,
-	da: &DrawingArea,
-	cr: &cairo::Context,
-	iter: impl Iterator<Item = &'a f64> + Clone,
-	len: usize,
-	transparent: f64,
-) {
-	let color = color.as_ref();
-	let allocation = da.allocation();
-	let width = allocation.width().into();
-	let height = allocation.height().into();
-
-	{
-		// background
-		cr.move_to(0.0, 0.0);
-		cr.set_source_rgba(0.255, 0.255, 0.255, transparent);
-
-		cr.rectangle(0.0, 0.0, width, height);
-		let _e = cr.fill();
-	}
-
-	let num_horizontal_lines = 10/2;
-	let num_vertical_lines = 10;
-
-	cr.set_source_rgba(0.8, 0.8, 0.8, transparent);
-	cr.set_line_width(0.1);
-
-	for i in 1..num_horizontal_lines {
-		let y = height / num_horizontal_lines as f64 * i as f64;
-
-		cr.move_to(0.0, y);
-		cr.line_to(width, y);
-		let _e = cr.stroke();
-	}
-	for i in 1..num_vertical_lines {
-		let x = width / num_vertical_lines as f64 * i as f64;
-
-		cr.move_to(x, 0.0);
-		cr.line_to(x, height);
-		let _e = cr.stroke();
-	}
-	cr.set_line_width(1.5);
-
-	let a_max = {
-		let mut max = 0.0;
-
-		let iter = iter.clone();
-		for a in iter {
-			let a = *a;
-			if a > max {
-				max = a;
-			}
-		}
-
-		max
-	};
-
-	{
-		let (r, g, b, a) = if a_max >= 0.85 {
-			color.red()
-		} else if a_max >= 0.75 {
-			color.orange()
-		} else {
-			color.green()
-		}
-		.into_rgba(transparent);
-
-		cr.set_source_rgba(r, g, b, a);
-	}
-
-	let x_step = width / (len - 1) as f64;
-	let mut iter = iter;
-	if let Some(a) = iter.next() {
-		cr.move_to(0.0, height * (1.0 - a));
-	}
-
-	let mut i = 1;
-	for a in iter {
-		let x = i as f64 * x_step;
-		let y = height * (1.0 - a);
-
-		cr.line_to(x, y);
-
-		i += 1;
-	}
-
-	let _e = cr.stroke();
 }
