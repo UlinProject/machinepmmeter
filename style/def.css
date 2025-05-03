@@ -78,30 +78,30 @@
 }
 
 .vinotebook .head_vinotebook {
-	background-color: gray;
+	padding: 0px;
+	margin: 0px;
+	background-color: rgba(220, 220, 220, 0);
 	color: rgb(255, 255, 255);
-	border-bottom-color: rgba(220, 220, 220, 0.2);
-	border-bottom-width: 1px;
-	border-bottom-style: solid;
+	border-color: rgba(220, 220, 220, 0.2);
+	border-width: 2px;
+	border-style: solid;
 	
-	padding-left: 3px;
-	padding-right: 3px;
+	padding-left: 4px;
+	padding-right: 4px;
+	padding-top: 4px;
 }
 
 .vinotebook .notfirst_head_vinotebook {
 	margin-left: 3px;
 }
 
-.vinotebook .head_vinotebook {
-	padding-top: 4px;
-}
-
 .vinotebook .first_head_vinotebook {
-	margin-left: 0px;
+	margin-left: 6px;
 }
 
 .vinotebook .active_head_vinotebook {
 	background-color: rgb(255, 255, 0);
+	border-color: rgba(220, 220, 220, 0);
 	color: rgb(0, 0, 0);
 }
 

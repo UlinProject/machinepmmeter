@@ -604,7 +604,7 @@ fn build_ui(
 		if let Some(child) = notebook.nth_page(Some(0)) {
 			if let Some(tab_label) = notebook.tab_label(&child) {
 				if let Some(label) = tab_label.downcast_ref::<ViLabel>() {
-					label.style_context().add_class("first_head_notebook");
+					label.style_context().add_class("first_head_vinotebook");
 				}
 			}
 		}
