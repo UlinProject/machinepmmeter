@@ -38,7 +38,6 @@ use lm_sensors::{LMSensors, SubFeatureRef};
 use log::{error, info, trace, warn};
 use std::cell::RefCell;
 use std::io::{stderr, Write};
-use std::io::stdout;
 use std::rc::Rc;
 use std::{fs, panic};
 
@@ -89,6 +88,10 @@ fn main() -> anyhowResult<()> {
 		
 		std::process::exit(-1);
 	}));
+	
+	if unsafe { libc::getuid() == 0 } {
+		panic!("Do not run graphical applications with root user rights.");
+	}
 	
 	env_logger::try_init()?;
 	let cli = AppCli::parse();
