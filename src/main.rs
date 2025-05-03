@@ -4,6 +4,7 @@
 use crate::app::about_dialog::AppAboutDialog;
 use crate::app::cli::AppCli;
 use crate::app::config::AppConfig;
+use crate::app::events::{AppEventSender, AppEvents, KeyboardEvents};
 use crate::app::tray_menu::{AppTrayMenu, AppTrayMenuItem};
 use crate::core::display::ViGraphDisplayInfo;
 use crate::core::dock_window::{PosINScreen, ViDockWindow};
@@ -17,7 +18,7 @@ use crate::widgets::primitives::icon_menuitem::ViIconMenuItem;
 use crate::widgets::primitives::label::ViLabel;
 use anyhow::anyhow;
 use anyhow::{Context, Result as anyhowResult};
-use async_channel::{Receiver, Sender};
+use async_channel::Receiver;
 use clap::Parser;
 use enclose::enc;
 use glib::ControlFlow;
@@ -53,6 +54,7 @@ pub mod app {
 	pub mod about_dialog;
 	pub mod cli;
 	pub mod config;
+	pub mod events;
 	pub mod tray_menu;
 }
 
@@ -111,31 +113,31 @@ fn main() -> anyhowResult<()> {
 		a_css
 	};
 
-	let (tx_appevents, rx_appevents) = async_channel::bounded(18);
+	let (tx_appevents, rx_appevents) = crate::app::events::app_event_channel();
 	let rx_appevents = Rc::new(rx_appevents);
 	let tray_menu = {
 		// Tray menu
 		let hide_or_show = enc!((tx_appevents) &mut move |vi: &mut ViIconMenuItem| {
 			vi.connect_activate(enc!((tx_appevents) move |_| {
-				let _e = tx_appevents.send_blocking(AppEvents::HideOrShow);
+				tx_appevents.toggle_window_visibility();
 			}));
 		}) as &'_ mut dyn FnMut(&'_ mut ViIconMenuItem);
 
 		let next_position = enc!((tx_appevents) &mut move |vi: &mut ViIconMenuItem| {
 			vi.connect_activate(enc!((tx_appevents) move |_| {
-				let _e = tx_appevents.send_blocking(AppEvents::NextPosition);
+				tx_appevents.move_window_to_next_position();
 			}));
 		});
 
 		let abouttheprogram = enc!((tx_appevents) &mut move |vi: &mut ViIconMenuItem| {
 			vi.connect_activate(enc!((tx_appevents) move |_| {
-				let _e = tx_appevents.send_blocking(AppEvents::AboutTheProgram);
+				tx_appevents.show_or_focus_aboutdialog();
 			}));
 		});
 
 		let exit = enc!((tx_appevents) &mut move |vi: &mut ViIconMenuItem| {
 			vi.connect_activate(enc!((tx_appevents) move |_| {
-				let _e = tx_appevents.send_blocking(AppEvents::Exit);
+				tx_appevents.exit();
 			}));
 		});
 
@@ -177,23 +179,6 @@ fn main() -> anyhowResult<()> {
 	Ok(())
 }
 
-enum KeyboardEvents {
-	ShiftF8,
-	KpPlus,
-	KpMinus,
-	DoubleShift,
-	Escape,
-}
-
-enum AppEvents {
-	Keyboard(KeyboardEvents),
-	HideOrShow,
-	AboutTheProgram,
-	Exit,
-	NextPosition,
-	KeyboardListenerState(bool),
-}
-
 #[allow(clippy::too_many_arguments)]
 fn build_ui(
 	app: &gtk::Application,
@@ -202,7 +187,7 @@ fn build_ui(
 	c_display: &Rc<ViGraphDisplayInfo>,
 	defcss: &CssProvider,
 
-	sender: Sender<AppEvents>,
+	esender: AppEventSender,
 	receiver: Rc<Receiver<AppEvents>>,
 ) {
 	trace!("#[gui] Start initialization, name: {:?}", name_window);
@@ -667,7 +652,7 @@ fn build_ui(
 	dock_window.set_child(Some(&*vbox));
 	vbox.set_visible(true);
 
-	std::thread::spawn(enc!((sender)move || {
+	std::thread::spawn(enc!((esender)move || {
 		let keyboard_listener = KeyboardListenerBuilder::with_len::<6>()
 			.key_mapping(|key_mapping| {
 				key_mapping[0].set_key(Key::ShiftRight);
@@ -677,45 +662,40 @@ fn build_ui(
 				key_mapping[4].set_key(Key::KpMinus);
 				key_mapping[5].set_key(Key::Escape);
 			})
-			.handler(enc!((sender) move |state_array, _key, _state| match (
+			.handler(enc!((esender) move |state_array, _key, _state| match (
 					(
 						state_array[0].is_pressed(), // ShiftRight
 						state_array[1].is_pressed(), // ShiftLeft
 					),
 					state_array[2].is_pressed(), // F8
-					state_array[3].is_pressed(), // KpPlus
-					state_array[4].is_pressed(), // KpMinus
+					state_array[3].is_pressed(), // KeypadPlus
+					state_array[4].is_pressed(), // KeypadMinus
 					state_array[5].is_pressed(), // Escape
 				) {
 					((true, false) | (false, true), true, false, false, false) => {
 						// L/R SHIFT + F8
-						let _e = sender
-							.send_blocking(AppEvents::Keyboard(KeyboardEvents::ShiftF8));
+						esender.keyboard_event(KeyboardEvents::ShiftF8);
 					}
 					((true, false) | (false, true), false, true, false, false) => {
-						// L/R SHIFT + KpPlus
-						let _e = sender
-							.send_blocking(AppEvents::Keyboard(KeyboardEvents::KpPlus));
+						// L/R SHIFT + KeypadPlus
+						esender.keyboard_event(KeyboardEvents::KeypadPlus);
 					}
 					((true, false) | (false, true), false, false, true, false) => {
-						// L/R SHIFT + KpMinus
-						let _e = sender
-							.send_blocking(AppEvents::Keyboard(KeyboardEvents::KpMinus));
+						// L/R SHIFT + KeypadMinus
+						esender.keyboard_event(KeyboardEvents::KeypadMinus);
 					}
 					((true, false) | (false, true), false, false, false, true) => {
 						// L/R SHIFT + Escape
-						let _e = sender
-							.send_blocking(AppEvents::Keyboard(KeyboardEvents::Escape));
+						esender.keyboard_event(KeyboardEvents::Escape);
 					}
 					((true, true), ..) => {
 						// L+R SHIFT
-						let _e = sender
-							.send_blocking(AppEvents::Keyboard(KeyboardEvents::DoubleShift));
+						esender.keyboard_event(KeyboardEvents::DoubleShift);
 					}
 					_ => {}
 				}
 			)).on_startup(|| {
-				let _e = sender.send_blocking(AppEvents::KeyboardListenerState(true));
+				esender.keyboard_listener_enabled(true);
 			}).listen();
 
 		if let Err(e) = keyboard_listener {
@@ -723,7 +703,7 @@ fn build_ui(
 				"#[global keyboard] Error initializing global keyboard listener, keyboard shortcuts not available. {}",
 				e
 			);
-			let _e = sender.send_blocking(AppEvents::KeyboardListenerState(false));
+			esender.keyboard_listener_enabled(false);
 		}
 	}));
 
@@ -790,17 +770,17 @@ fn build_ui(
 			let mut wdock_vihotkey = None;
 			while let Ok(event) = receiver.recv().await {
 				match event {
-					AppEvents::HideOrShow | AppEvents::Keyboard(KeyboardEvents::ShiftF8) if dock_window.is_visible() => {
+					AppEvents::ToggleDockWindowVisibility | AppEvents::Keyboard(KeyboardEvents::ShiftF8) if dock_window.is_visible() => {
 						dock_window.hide();
 					},
-					AppEvents::HideOrShow | AppEvents::Keyboard(KeyboardEvents::ShiftF8) => {
+					AppEvents::ToggleDockWindowVisibility | AppEvents::Keyboard(KeyboardEvents::ShiftF8) => {
 						dock_window.show();
 					},
 					AppEvents::Exit | AppEvents::Keyboard(KeyboardEvents::Escape) => {
 						dock_window.close();
 						gtk::main_quit();
 					},
-					AppEvents::AboutTheProgram => {
+					AppEvents::ShowOrFocusAboutDialog => {
 						let mut write_aad = RefCell::borrow_mut(&app_about_dialog);
 						match *write_aad {
 							None => {
@@ -816,9 +796,9 @@ fn build_ui(
 							Some(ref a) => a.present(),
 						}
 					},
-					AppEvents::Keyboard(KeyboardEvents::KpPlus) => {},
-					AppEvents::Keyboard(KeyboardEvents::KpMinus) => {},
-					AppEvents::NextPosition | AppEvents::Keyboard(KeyboardEvents::DoubleShift) => {
+					AppEvents::Keyboard(KeyboardEvents::KeypadPlus) => {},
+					AppEvents::Keyboard(KeyboardEvents::KeypadMinus) => {},
+					AppEvents::MoveDockWindowToNextPosition | AppEvents::Keyboard(KeyboardEvents::DoubleShift) => {
 						let new_pos = { // NEXT POS IN SCREEN
 							let mut write = pos_inscreen.borrow_mut();
 							let new_pos = write.next();
@@ -828,7 +808,7 @@ fn build_ui(
 						};
 						dock_window.set_pos_inscreen(&*c_display, new_pos);
 					},
-					AppEvents::KeyboardListenerState(true) => {
+					AppEvents::KeyboardListenerEnabled(true) => {
 						if wdock_vihotkey.is_none() {
 							let arr = [
 								("view-conceal-symbolic", "Hide | Show (Shift and F8)"),
@@ -850,7 +830,7 @@ fn build_ui(
 							wdock_vihotkey = Some(vihotkey);
 						}
 					},
-					AppEvents::KeyboardListenerState(false) => {
+					AppEvents::KeyboardListenerEnabled(false) => {
 						if let Some(vihotkey) = wdock_vihotkey {
 							vihotkey.set_visible(false);
 							vbox.remove(&vihotkey);

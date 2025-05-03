@@ -79,29 +79,29 @@ impl ViGraph {
 						}else {
 							let _e = in_cr.set_source_surface(cache_surface, 0.0, 0.0);
 							let _e = in_cr.paint();
-							
+
 							return Ok(true.into());
 						}
-						
+
 						if let Ok(cr) = Context::new(cache_surface) {
 							if background_surface.draw_or_get(width, height, transparent, |surface| {
 								let _e = cr.set_source_surface(surface, 0.0, 0.0);
 								let _e = cr.paint();
-		
+
 								Ok(())
 							}).is_err() {
 								cr.set_source_rgba(0.255, 0.255, 0.255, transparent);
 								cr.rectangle(0.0, 0.0, width as _, height as _);
-								
+
 								let _e = cr.fill();
 							}
-		
+
 							let data = RefCell::borrow(&rc_data);
 							let (width, height): (f64, f64) = (width.into(), height.into());
 							let (r, g, b, transparent) = {
 								let color_config = app_config.get_color_app_config();
 								let a_forcolor = data.back().copied().unwrap_or_default();
-		
+
 								if a_forcolor >= 0.85 {
 									color_config.red().into_rgba(transparent)
 								} else if a_forcolor >= 0.75 {
@@ -110,7 +110,7 @@ impl ViGraph {
 									color_config.green().into_rgba(transparent)
 								}
 							};
-		
+
 							let x_step = width / (len - 1) as f64;
 							{// shadow
 								let (sr, sg, sb, st): (f64, f64, f64, f64) = (0.8, 0.8, 0.8, 0.2);
@@ -120,35 +120,35 @@ impl ViGraph {
 									cr.move_to(0.0, height * (1.0 - first_a) + yoffset);
 									cr.set_source_rgba(sr, sg, sb, st);
 									cr.set_line_width(width);
-		
+
 									for (i, a) in data.iter().enumerate() {
 										let x = (i + 1) as f64 * x_step;
 										let y = height * (1.0 - a) + yoffset;
-		
+
 										cr.line_to(x, y);
 									}
 								}
 								let _e = cr.stroke();
 							}
-		
+
 							if let Some(first_a) = data.front() {
 								cr.move_to(0.0, height * (1.0 - first_a));
 								cr.set_source_rgba(r, g, b, transparent);
 								cr.set_line_width(1.5);
-		
+
 								for (i, a) in data.iter().enumerate() {
 									let x = (i + 1) as f64 * x_step;
 									let y = height * (1.0 - a);
-		
+
 									cr.line_to(x, y);
 								}
 							}
 							let _e = cr.stroke();
-		
+
 							let _e = in_cr.set_source_surface(cache_surface, 0.0, 0.0);
 							let _e = in_cr.paint();
 						}
-						
+
 						Ok(false.into())
 					}
 				) {
@@ -205,7 +205,7 @@ impl ViGraphSender {
 }
 
 pub struct ViGraphCachedSurface {
-	surface: Option<ImageSurface>, 
+	surface: Option<ImageSurface>,
 	is_always_redraw: bool,
 }
 
@@ -217,25 +217,32 @@ impl ViGraphCachedSurface {
 			is_always_redraw: true,
 		}
 	}
-	
+
 	#[inline]
 	pub fn add_redraw(&mut self) {
 		self.is_always_redraw = true;
 	}
-	
-	pub fn get_or_recrate_surface<R>(&mut self, width: i32, height: i32, next: impl FnOnce(&ImageSurface, &mut bool) -> anyhowResult<R>) -> anyhowResult<R> {
+
+	pub fn get_or_recrate_surface<R>(
+		&mut self,
+		width: i32,
+		height: i32,
+		next: impl FnOnce(&ImageSurface, &mut bool) -> anyhowResult<R>,
+	) -> anyhowResult<R> {
 		match self.surface {
-			Some(ref a) if a.width() == width && a.height() == height => next(a, &mut self.is_always_redraw),
-			_=> match ImageSurface::create(cairo::Format::ARgb32, width, height) {
+			Some(ref a) if a.width() == width && a.height() == height => {
+				next(a, &mut self.is_always_redraw)
+			}
+			_ => match ImageSurface::create(cairo::Format::ARgb32, width, height) {
 				Ok(a) => {
 					self.surface = Some(a);
 					self.is_always_redraw = true;
-					
+
 					match self.surface {
 						Some(ref a) => next(a, &mut self.is_always_redraw),
 						_ => unimplemented!(),
 					}
-				},
+				}
 				Err(e) => Err(e.into()),
 			},
 		}
