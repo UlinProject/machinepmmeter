@@ -77,7 +77,7 @@ impl ViDockHead {
 		maybe!((version) {
 			let version_label = ViLabel::new("versionhead_vilabel", &*app_config, version, ())
 				.set_align(Align::End)
-				.set_margin_end(4)
+				.set_margin_end(3)
 				.set_margin_top(2);
 
 			head.pack_end(&version_label, true, true, 0);

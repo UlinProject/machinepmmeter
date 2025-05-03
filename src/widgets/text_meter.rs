@@ -85,7 +85,7 @@ impl ViTextMeter {
 
 		let limit = ViLabel::new("arg_vitextmeter", app_config, "LIMIT: 0", Weight::Normal)
 			.set_visible(false)
-			.set_margin_end(10)
+			.set_margin_end(8)
 			.set_align(Align::End)
 			.set_margin_top(margin_top)
 			.set_margin_bottom(margin_bottom);
