@@ -181,7 +181,7 @@ fn main() -> anyhowResult<()> {
 			.into_iter(),
 		);
 
-		Rc::new(tray_menu)
+		tray_menu
 	};
 
 	let application = Application::new(Some(APP_ID), Default::default());
@@ -213,7 +213,7 @@ fn build_ui(
 ) {
 	trace!("#[gui] Start initialization, name: {:?}", name_window);
 
-	let dock_window = Rc::new(ViDockWindow::new(app, name_window, &**app_config));
+	let dock_window = ViDockWindow::new(app, name_window, &**app_config);
 	let (c_transparent, _is_transparent_mode) = app_config
 		.get_window_app_config()
 		.get_transparent()
@@ -233,7 +233,7 @@ fn build_ui(
 		);
 
 	let vigraph_surface = ViGraphBackgroundSurface::default();
-	let vbox = Rc::new(GtkBox::new(gtk::Orientation::Vertical, 0));
+	let vbox = GtkBox::new(gtk::Orientation::Vertical, 0);
 	vbox.set_valign(gtk::Align::Fill);
 	vbox.set_halign(gtk::Align::Baseline);
 
@@ -335,7 +335,7 @@ fn build_ui(
 						Some(vigraph_surface.clone()),
 						c_transparent,
 					);
-					let data = Rc::new(RefCell::new(0.0));
+					let data = RefCell::new(0.0);
 					vbox.pack_start(&*vimetr, false, false, 0);
 					glib::timeout_add_local(std::time::Duration::from_millis(10), move || {
 						let mut w = RefCell::borrow_mut(&data);
@@ -358,7 +358,7 @@ fn build_ui(
 						Some(vigraph_surface.clone()),
 						c_transparent,
 					);
-					let data = Rc::new(RefCell::new(0.0));
+					let data = RefCell::new(0.0);
 					vbox.pack_start(&*vimetr, false, false, 0);
 					glib::timeout_add_local(std::time::Duration::from_millis(1), move || {
 						let mut w = RefCell::borrow_mut(&data);
@@ -381,7 +381,7 @@ fn build_ui(
 						Some(vigraph_surface.clone()),
 						c_transparent,
 					);
-					let data = Rc::new(RefCell::new(0.0));
+					let data = RefCell::new(0.0);
 					vbox.pack_start(&*vimetr, false, false, 0);
 					glib::timeout_add_local(std::time::Duration::from_millis(1), move || {
 						let mut w = RefCell::borrow_mut(&data);
@@ -665,7 +665,7 @@ fn build_ui(
 		0,
 	); // expand: true, fill: true
 
-	dock_window.set_child(Some(&*vbox));
+	dock_window.set_child(Some(&vbox));
 	vbox.set_visible(true);
 
 	std::thread::spawn(enc!((esender) move || {
