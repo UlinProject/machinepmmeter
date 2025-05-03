@@ -1,32 +1,13 @@
 use async_channel::Receiver;
 use async_channel::Sender;
 use log::error;
+use crate::app::keyboard::AppKeyboardEvents;
 
 #[inline]
 pub fn app_event_channel() -> (AppEventSender, Receiver<AppEvents>) {
 	let (tx, rx) = async_channel::unbounded();
 
 	(AppEventSender(tx), rx)
-}
-
-#[derive(Debug, Clone, Copy)]
-pub enum AppKeyboardEvents {
-	ShiftF8,
-	KeypadA,
-	KeypadD,
-	Keypad1,
-	Keypad2,
-	Keypad3,
-	Keypad4,
-	Keypad5,
-	Keypad6,
-	Keypad7,
-	Keypad8,
-	Keypad9,
-	KeypadPlus,
-	KeypadMinus,
-	DoubleShift,
-	Escape,
 }
 
 #[derive(Debug, Clone, Copy)]
