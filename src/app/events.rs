@@ -1,7 +1,7 @@
+use crate::app::keyboard::AppKeyboardEvents;
 use async_channel::Receiver;
 use async_channel::Sender;
 use log::error;
-use crate::app::keyboard::AppKeyboardEvents;
 
 #[inline]
 pub fn app_event_channel() -> (AppEventSender, Receiver<AppEvents>) {

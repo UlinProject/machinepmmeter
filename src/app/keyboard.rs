@@ -1,8 +1,8 @@
+use crate::app::events::AppEventSender;
+use crate::core::keyboard::KeyboardListenerBuilder;
+use crate::core::keyboard::key::Key;
 use enclose::enc;
 use log::error;
-use crate::app::events::AppEventSender;
-use crate::core::keyboard::key::Key;
-use crate::core::keyboard::KeyboardListenerBuilder;
 
 #[derive(Debug, Clone, Copy)]
 pub enum AppKeyboardEvents {
@@ -146,4 +146,3 @@ pub fn spawn_keyboard_thread(esender: AppEventSender) {
 		}
 	});
 }
-

@@ -1,4 +1,4 @@
-use crate::{__gen_transparent_gtk_type, app::config::WindowAppConfig};
+use crate::{__gen_transparent_gtk_type, app::config::WindowAppConfig, core::maybe::Maybe, maybe};
 use gtk::{
 	Application, ApplicationWindow, cairo,
 	ffi::GtkApplicationWindow,
@@ -98,8 +98,17 @@ impl AppViDockWindow {
 		__connect_transparent_background(&self.0, screen.as_ref(), alpha)
 	}
 
-	pub fn set_pos_inscreen(&self, monitor: impl AsRef<Monitor>, pos: PosINScreen) {
-		let (window_width, window_height) = (self.0.allocated_width(), self.0.allocated_height());
+	pub fn set_pos_inscreen(
+		&self,
+		monitor: impl AsRef<Monitor>,
+		window_width: impl Maybe<i32>,
+		window_height: impl Maybe<i32>,
+		pos: PosINScreen,
+	) {
+		let (window_width, window_height) = (
+			maybe!((window_width) {window_width} else {self.0.allocated_width()}),
+			maybe!((window_height) {window_height} else {self.0.allocated_height()}),
+		);
 		let (display_width, display_height) = {
 			let rect = monitor.as_ref().geometry();
 			let w = rect.width();
@@ -135,16 +144,28 @@ impl AppViDockWindow {
 		self.0.move_(x, y);
 	}
 
-	pub fn adjust_window_height(&self) {
-		let width = self.size().0;
-		let height = if let Some(child) = self.child() {
-			let (m, _) = child.preferred_size();
-			m.height
-		} else {
-			return;
-		};
+	pub fn adjust_window_height(&self) -> Option<(i32, i32)> {
+		let result = (|| {
+			let (c_width, c_height) = self.size();
+			let new_height = if let Some(child) = self.child() {
+				let (m, _) = child.preferred_size();
 
-		self.resize(width, height);
+				m.height
+			} else {
+				return None;
+			};
+
+			if c_height != new_height {
+				self.resize(c_width, new_height);
+
+				return Some((c_width, new_height));
+			}
+
+			None
+		})();
+		trace!("adjust_window_height, result: {:?}", result);
+		
+		result
 	}
 }
 

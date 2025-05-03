@@ -6,7 +6,7 @@ use crate::app::cli::AppCli;
 use crate::app::config::AppConfig;
 use crate::app::dock_window::{AppViDockWindow, PosINScreen};
 use crate::app::events::{AppEventSender, AppEvents};
-use crate::app::keyboard::{spawn_keyboard_thread, AppKeyboardEvents};
+use crate::app::keyboard::{AppKeyboardEvents, spawn_keyboard_thread};
 use crate::app::tray_menu::{AppTrayMenu, AppTrayMenuItem};
 use crate::core::display::ViGraphDisplayInfo;
 use crate::widgets::ViMeter;
@@ -56,8 +56,8 @@ pub mod app {
 	pub mod config;
 	pub mod dock_window;
 	pub mod events;
-	pub mod tray_menu;
 	pub mod keyboard;
+	pub mod tray_menu;
 }
 
 const APP_ID: &str = "com.ulinkot.machinepmmeter";
@@ -233,6 +233,7 @@ fn build_ui(
 			},
 		);
 
+	let pos_inscreen = Rc::new(RefCell::new(app_config.get_window_app_config().get_pos()));
 	let vigraph_surface = ViGraphBackgroundSurface::default();
 	let vbox = GtkBox::new(gtk::Orientation::Vertical, 0);
 	vbox.set_valign(gtk::Align::Fill);
@@ -241,66 +242,72 @@ fn build_ui(
 	let notebook = {
 		let notebook = Notebook::new();
 		notebook.style_context().add_class("vinotebook");
-		notebook.connect_switch_page(enc!((dock_window) move |notebook, _page, page_num| {
-			for i in 0..notebook.n_pages() {
-				if let Some(child) = notebook.nth_page(Some(i)) {
-					if let Some(tab_label) = notebook.tab_label(&child) {
-						if let Some(label) = tab_label.downcast_ref::<ViLabel>() {
-							let style = label.style_context();
+		notebook.connect_switch_page(
+			enc!((dock_window, c_display, pos_inscreen) move |notebook, _page, page_num| {
+				for i in 0..notebook.n_pages() {
+					if let Some(child) = notebook.nth_page(Some(i)) {
+						if let Some(tab_label) = notebook.tab_label(&child) {
+							if let Some(label) = tab_label.downcast_ref::<ViLabel>() {
+								let style = label.style_context();
 
-							if i != 0 && !style.has_class("notfirst_head_vinotebook") {
-								style.add_class("notfirst_head_vinotebook");
-							}
+								if i != 0 && !style.has_class("notfirst_head_vinotebook") {
+									style.add_class("notfirst_head_vinotebook");
+								}
 
-							if i == page_num {
-								if !style.has_class("active_head_vinotebook") {
-									style.add_class("active_head_vinotebook");
+								if i == page_num {
+									if !style.has_class("active_head_vinotebook") {
+										style.add_class("active_head_vinotebook");
+
+										label.read_text(|text| {
+											label.set_text(&format!("# {}", text));
+										});
+
+										if let Ok(scrolled_window) = child.downcast::<ScrolledWindow>() {
+											let height = if let Some(child) = scrolled_window.child() {
+												let (m, _) = child.preferred_size();
+												m.height
+											} else {
+												0
+											};
+
+											scrolled_window.set_hexpand(true);
+											scrolled_window.set_vexpand(true);
+											scrolled_window.set_size_request(-1, height);
+
+											scrolled_window.set_max_content_height(i32::MAX);
+										}
+									}
+									continue;
+								}
+
+								if style.has_class("active_head_vinotebook") {
+									style.remove_class("active_head_vinotebook");
 
 									label.read_text(|text| {
-										label.set_text(&format!("# {}", text));
+										if let Some(next_text) = text.strip_prefix("# ") {
+											label.set_text(next_text);
+										}
 									});
 
 									if let Ok(scrolled_window) = child.downcast::<ScrolledWindow>() {
-										let height = if let Some(child) = scrolled_window.child() {
-											let (m, _) = child.preferred_size();
-											m.height
-										} else {
-											0
-										};
-
-										scrolled_window.set_hexpand(true);
-										scrolled_window.set_vexpand(true);
-										scrolled_window.set_size_request(-1, height);
-
-										scrolled_window.set_max_content_height(i32::MAX);
+										scrolled_window.set_hexpand(false);
+										scrolled_window.set_vexpand(false);
+										scrolled_window.set_size_request(-1, 1);
+										scrolled_window.set_max_content_height(1);
 									}
-								}
-								continue;
-							}
-
-							if style.has_class("active_head_vinotebook") {
-								style.remove_class("active_head_vinotebook");
-
-								label.read_text(|text| {
-									if let Some(next_text) = text.strip_prefix("# ") {
-										label.set_text(next_text);
-									}
-								});
-
-								if let Ok(scrolled_window) = child.downcast::<ScrolledWindow>() {
-									scrolled_window.set_hexpand(false);
-									scrolled_window.set_vexpand(false);
-									scrolled_window.set_size_request(-1, 1);
-									scrolled_window.set_max_content_height(1);
 								}
 							}
 						}
 					}
 				}
-			}
-
-			dock_window.adjust_window_height();
-		}));
+				
+				glib::MainContext::default().spawn_local(enc!((c_display, dock_window, pos_inscreen) async move {
+					if let Some((window_width, height_window)) = dock_window.adjust_window_height() {
+						dock_window.set_pos_inscreen(&*c_display, window_width, height_window, *pos_inscreen.borrow());
+					}
+				}));
+			}),
+		);
 
 		#[cfg(feature = "demo_mode")]
 		#[cfg_attr(docsrs, doc(cfg(feature = "demo_mode")))]
@@ -671,7 +678,6 @@ fn build_ui(
 
 	spawn_keyboard_thread(esender);
 
-	let pos_inscreen = Rc::new(RefCell::new(app_config.get_window_app_config().get_pos()));
 	dock_window.connect_show(
 		enc!((pos_inscreen, c_display, dock_window, notebook) move |_| {
 			trace!("connect_show: ");
@@ -698,17 +704,14 @@ fn build_ui(
 				notebook.remove_page(Some(nid));
 			}));
 
-			let pos_inscreen: PosINScreen = *pos_inscreen.borrow();
-
-			dock_window.set_pos_inscreen(&*c_display, pos_inscreen);
+			dock_window.set_pos_inscreen(&*c_display, (), (), *pos_inscreen.borrow());
 		}),
 	);
 
 	dock_window.connect_resize_mode_notify(enc!((pos_inscreen, c_display, dock_window) move |_| {
 		trace!("connect_resize_mode_notify: ");
-		let pos_inscreen: PosINScreen = *pos_inscreen.borrow();
 
-		dock_window.set_pos_inscreen(&*c_display, pos_inscreen);
+		dock_window.set_pos_inscreen(&*c_display, (), (), *pos_inscreen.borrow());
 	}));
 	dock_window.connect_screen_changed(
 		enc!((pos_inscreen, app_config, c_display) move |dock_window, screen| {
@@ -723,7 +726,7 @@ fn build_ui(
 					owned_motitor.as_ref()
 			}).unwrap_or(c_monitor);
 
-			dock_window.set_pos_inscreen(monitor, pos_inscreen);
+			dock_window.set_pos_inscreen(monitor, (), (), pos_inscreen);
 		}),
 	);
 
@@ -797,7 +800,7 @@ fn build_ui(
 
 							new_pos
 						};
-						dock_window.set_pos_inscreen(&*c_display, new_pos);
+						dock_window.set_pos_inscreen(&*c_display, (), (), new_pos);
 					},
 					AppEvents::KeyboardListenerEnabled(true) => {
 						if wdock_vihotkey.is_none() {
@@ -827,7 +830,12 @@ fn build_ui(
 							vbox.remove(&vihotkey);
 
 							wdock_vihotkey = None;
-							dock_window.adjust_window_height();
+							
+							glib::MainContext::default().spawn_local(enc!((c_display, dock_window, pos_inscreen) async move {
+								if let Some((window_width, height_window)) = dock_window.adjust_window_height() {
+									dock_window.set_pos_inscreen(&*c_display, window_width, height_window, *pos_inscreen.borrow());
+								}
+							}));
 						}
 					},
 				}
