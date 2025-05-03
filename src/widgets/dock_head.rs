@@ -39,7 +39,7 @@ impl ViDockHead {
 	) -> Self {
 		let head = Box::new(gtk::Orientation::Horizontal, 0);
 		head.style_context().add_class("namehead");
-		head.set_valign(gtk::Align::Start);
+		head.set_valign(gtk::Align::Center);
 
 		head.connect_draw(enc!((app_config)move |window, cr| {
 			let head_color = app_config.get_window_app_config().get_head_color();
@@ -64,18 +64,25 @@ impl ViDockHead {
 			false.into()
 		}));
 
-		let name_label = ViLabel::new("namehead_vilabel", &*app_config, value, ())
-			.set_margin_start(4)
-			.set_margin_top(2);
-		head.pack_start(&name_label, false, true, 0); // expand: true, fill: true
-
+		head.pack_start(
+			&ViLabel::new("namehead_vilabel", &*app_config, value, ())
+				.set_align(Align::Start)
+				.set_margin_start(4)
+				.set_margin_top(2),
+			false,
+			true,
+			0,
+		);
+		
 		maybe!((version) {
 			let version_label = ViLabel::new("versionhead_vilabel", &*app_config, version, ())
 				.set_align(Align::End)
+				.set_margin_end(4)
 				.set_margin_top(2);
 
-			head.pack_start(&version_label, true, true, 0); // expand: true, fill: true
+			head.pack_end(&version_label, true, true, 0);
 		});
+		
 		head.set_visible(true);
 
 		Self(head)

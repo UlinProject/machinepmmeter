@@ -233,21 +233,9 @@ fn build_ui(
 
 	let vigraph_surface = ViGraphSurface::default();
 	let vbox = Rc::new(GtkBox::new(gtk::Orientation::Vertical, 0));
-	vbox.set_valign(gtk::Align::Start);
+	vbox.set_valign(gtk::Align::Fill);
 	vbox.set_halign(gtk::Align::Baseline);
-
-	vbox.pack_start(
-		&ViDockHead::new(
-			app_config.clone(),
-			name_window,
-			UPPERCASE_PKG_VERSION,
-			c_transparent,
-		),
-		true,
-		true,
-		0,
-	); // expand: true, fill: true
-
+	
 	{
 		let notebook = Notebook::new();
 		notebook.style_context().add_class("vinotebook");
@@ -258,6 +246,10 @@ fn build_ui(
 					if let Some(tab_label) = notebook.tab_label(&child) {
 						if let Some(label) = tab_label.downcast_ref::<ViLabel>() {
 							let style = label.style_context();
+
+							if i != 0 && !style.has_class("notfirst_head_vinotebook") {
+								style.add_class("notfirst_head_vinotebook");
+							}
 
 							if i == page_num {
 								if !style.has_class("active_head_vinotebook") {
@@ -547,9 +539,35 @@ fn build_ui(
 				}
 			}
 		}
+
+		for i in 1..notebook.n_pages() {
+			if let Some(child) = notebook.nth_page(Some(i)) {
+				if let Some(tab_label) = notebook.tab_label(&child) {
+					if let Some(label) = tab_label.downcast_ref::<ViLabel>() {
+						let style = label.style_context();
+						if !style.has_class("notfirst_head_vinotebook") {
+							style.add_class("notfirst_head_vinotebook");
+						}
+					}
+				}
+			}
+		}
+
 		vbox.pack_start(&notebook, true, true, 0);
 		notebook.set_visible(true);
 	}
+
+	vbox.pack_end(
+		&ViDockHead::new(
+			app_config.clone(),
+			name_window,
+			UPPERCASE_PKG_VERSION,
+			c_transparent,
+		),
+		true,
+		true,
+		0,
+	); // expand: true, fill: true
 
 	dock_window.set_child(Some(&*vbox));
 	vbox.set_visible(true);

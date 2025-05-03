@@ -84,9 +84,12 @@
 	border-bottom-width: 1px;
 	border-bottom-style: solid;
 	
-	margin-left: 3px;
 	padding-left: 3px;
 	padding-right: 3px;
+}
+
+.vinotebook .notfirst_head_vinotebook {
+	margin-left: 3px;
 }
 
 .vinotebook .head_vinotebook {
@@ -94,7 +97,7 @@
 }
 
 .vinotebook .first_head_vinotebook {
-	margin-left: 8px;
+	margin-left: 0px;
 }
 
 .vinotebook .active_head_vinotebook {
@@ -110,11 +113,11 @@
 }
 
 .namehead {
-	border-bottom-color: rgba(220, 220, 220, 0.8);
-	border-bottom-width: 2px;
-	border-bottom-style: solid;
+	border-top-color: rgba(220, 220, 220, 0.8);
+	border-top-width: 2px;
+	border-top-style: solid;
 	
-	margin-bottom: 4px;
+	margin-top: 4px;
 }
 
 .namehead_vilabel {
