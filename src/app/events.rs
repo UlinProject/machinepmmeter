@@ -10,8 +10,19 @@ pub fn app_event_channel() -> (AppEventSender, Receiver<AppEvents>) {
 }
 
 #[derive(Debug, Clone, Copy)]
-pub enum KeyboardEvents {
+pub enum AppKeyboardEvents {
 	ShiftF8,
+	KeypadA,
+	KeypadD,
+	Keypad1,
+	Keypad2,
+	Keypad3,
+	Keypad4,
+	Keypad5,
+	Keypad6,
+	Keypad7,
+	Keypad8,
+	Keypad9,
 	KeypadPlus,
 	KeypadMinus,
 	DoubleShift,
@@ -20,7 +31,7 @@ pub enum KeyboardEvents {
 
 #[derive(Debug, Clone, Copy)]
 pub enum AppEvents {
-	Keyboard(KeyboardEvents),
+	Keyboard(AppKeyboardEvents),
 	ToggleDockWindowVisibility,
 	ShowOrFocusAboutDialog,
 	Exit,
@@ -47,7 +58,7 @@ impl AppEventSender {
 	}
 
 	#[inline]
-	pub fn keyboard_event(&self, e: KeyboardEvents) {
+	pub fn keyboard_event(&self, e: AppKeyboardEvents) {
 		self.__send(AppEvents::Keyboard(e));
 	}
 
