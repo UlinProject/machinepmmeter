@@ -49,6 +49,7 @@ mod core {
 	pub mod keyboard;
 	pub mod maybe;
 }
+
 pub mod app {
 	pub mod about_dialog;
 	pub mod cli;
@@ -733,15 +734,15 @@ fn build_ui(
 			let mut wdock_vihotkey = None;
 			while let Ok(event) = receiver.recv().await {
 				match event {
-					AppEvents::Keyboard(AppKeyboardEvents::Keypad1) => notebook.set_page(0),
-					AppEvents::Keyboard(AppKeyboardEvents::Keypad2) => notebook.set_page(1),
-					AppEvents::Keyboard(AppKeyboardEvents::Keypad3) => notebook.set_page(2),
-					AppEvents::Keyboard(AppKeyboardEvents::Keypad4) => notebook.set_page(3),
-					AppEvents::Keyboard(AppKeyboardEvents::Keypad5) => notebook.set_page(4),
-					AppEvents::Keyboard(AppKeyboardEvents::Keypad6) => notebook.set_page(5),
-					AppEvents::Keyboard(AppKeyboardEvents::Keypad7) => notebook.set_page(6),
-					AppEvents::Keyboard(AppKeyboardEvents::Keypad8) => notebook.set_page(7),
-					AppEvents::Keyboard(AppKeyboardEvents::Keypad9) => notebook.set_page(8),
+					AppEvents::Keyboard(AppKeyboardEvents::Num1) => notebook.set_page(0),
+					AppEvents::Keyboard(AppKeyboardEvents::Num2) => notebook.set_page(1),
+					AppEvents::Keyboard(AppKeyboardEvents::Num3) => notebook.set_page(2),
+					AppEvents::Keyboard(AppKeyboardEvents::Num4) => notebook.set_page(3),
+					AppEvents::Keyboard(AppKeyboardEvents::Num5) => notebook.set_page(4),
+					AppEvents::Keyboard(AppKeyboardEvents::Num6) => notebook.set_page(5),
+					AppEvents::Keyboard(AppKeyboardEvents::Num7) => notebook.set_page(6),
+					AppEvents::Keyboard(AppKeyboardEvents::Num8) => notebook.set_page(7),
+					AppEvents::Keyboard(AppKeyboardEvents::Num9) => notebook.set_page(8),
 					AppEvents::Keyboard(AppKeyboardEvents::KeypadA) => {
 						let mut a_page = notebook.current_page().unwrap_or(1);
 						if a_page == 0 {
