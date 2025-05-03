@@ -49,14 +49,18 @@ impl ViGraph {
 		graph_area.set_size_request(width, height);
 
 		let background_surface = general_background_surface.map_or_else(Default::default, |a| a);
-		graph_area.connect_realize(enc!((background_surface) move |da| {
-			let (width, height) = {
-				let allocation = da.allocation();
+		
+		#[cfg(feature = "graph-background-cache")]
+		#[cfg_attr(docsrs, doc(cfg(feature = "graph-background-cache")))] {
+			graph_area.connect_realize(enc!((background_surface) move |da| {
+				let (width, height) = {
+					let allocation = da.allocation();
 
-				(allocation.width(), allocation.height())
-			};
-			let _e = background_surface.draw_or_get(width, height, transparent, |_|{ Ok(()) });
-		}));
+					(allocation.width(), allocation.height())
+				};
+				let _e = background_surface.draw_or_get(width, height, transparent, |_|{ Ok(()) });
+			}));
+		}
 
 		graph_area.connect_draw(
 			enc!((rc_data, background_surface, app_config, cache_surface) move |da, in_cr| {
