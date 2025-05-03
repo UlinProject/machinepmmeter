@@ -301,11 +301,9 @@ fn build_ui(
 					}
 				}
 				
-				glib::MainContext::default().spawn_local(enc!((c_display, dock_window, pos_inscreen) async move {
-					if let Some((window_width, height_window)) = dock_window.adjust_window_height() {
-						dock_window.set_pos_inscreen(&*c_display, window_width, height_window, *pos_inscreen.borrow());
-					}
-				}));
+				if let Some((window_width, height_window)) = dock_window.adjust_window_height() {
+					dock_window.set_pos_inscreen(&*c_display, window_width, height_window, *pos_inscreen.borrow());
+				}
 			}),
 		);
 
@@ -831,11 +829,9 @@ fn build_ui(
 
 							wdock_vihotkey = None;
 							
-							glib::MainContext::default().spawn_local(enc!((c_display, dock_window, pos_inscreen) async move {
-								if let Some((window_width, height_window)) = dock_window.adjust_window_height() {
-									dock_window.set_pos_inscreen(&*c_display, window_width, height_window, *pos_inscreen.borrow());
-								}
-							}));
+							if let Some((window_width, height_window)) = dock_window.adjust_window_height() {
+								dock_window.set_pos_inscreen(&*c_display, window_width, height_window, *pos_inscreen.borrow());
+							}
 						}
 					},
 				}
