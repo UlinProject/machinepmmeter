@@ -185,18 +185,19 @@ fn main() -> anyhowResult<()> {
 	};
 
 	let application = Application::new(Some(APP_ID), Default::default());
-	application.connect_activate(enc!((app_config, rx_appevents, tray_menu) move |app| {
+	application.connect_activate(enc!((app_config, rx_appevents) move |app| {
+		gtk::StyleContext::add_provider_for_screen(
+			AsRef::<Screen>::as_ref(&c_display as &ViGraphDisplayInfo),
+			&defcss,
+			gtk::STYLE_PROVIDER_PRIORITY_APPLICATION,
+		);
+		
 		let name_window = app_config.get_name_or_default();
-		build_ui(app, name_window, &app_config, &c_display, &defcss, tx_appevents.clone(), rx_appevents.clone());
-
-		if !tray_menu.is_connected() {
-			error!(
-				"#[global traymenu] Error initializing tray menu, tray menu will be unavailable.",
-			);
-		}
+		build_ui(app, name_window, &app_config, &c_display, tx_appevents.clone(), rx_appevents.clone());
 	}));
 
 	application.run();
+	drop(tray_menu);
 	Ok(())
 }
 
@@ -206,17 +207,11 @@ fn build_ui(
 	name_window: &str,
 	app_config: &Rc<AppConfig>,
 	c_display: &Rc<ViGraphDisplayInfo>,
-	defcss: &CssProvider,
 
 	esender: AppEventSender,
 	receiver: Rc<Receiver<AppEvents>>,
 ) {
 	trace!("#[gui] Start initialization, name: {:?}", name_window);
-	gtk::StyleContext::add_provider_for_screen(
-		AsRef::<Screen>::as_ref(c_display as &ViGraphDisplayInfo),
-		defcss,
-		gtk::STYLE_PROVIDER_PRIORITY_APPLICATION,
-	);
 
 	let dock_window = Rc::new(ViDockWindow::new(app, name_window, &**app_config));
 	let (c_transparent, _is_transparent_mode) = app_config
@@ -673,7 +668,7 @@ fn build_ui(
 	dock_window.set_child(Some(&*vbox));
 	vbox.set_visible(true);
 
-	std::thread::spawn(enc!((esender)move || {
+	std::thread::spawn(enc!((esender) move || {
 		let keyboard_listener = KeyboardListenerBuilder::with_len::<6>()
 			.key_mapping(|key_mapping| {
 				key_mapping[0].set_key(Key::ShiftRight);
