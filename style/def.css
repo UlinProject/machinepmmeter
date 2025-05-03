@@ -1,5 +1,5 @@
 
-.vidockwindow * {
+.appvidockwindow * {
 	color: inherit;
 	font-size: inherit;
 	background-color: initial;
@@ -8,7 +8,7 @@
 	font-variant: inherit;
 	font-weight: inherit;
 	text-shadow: inherit;
-	icon-shadow: inherit;
+	-gtk-icon-shadow: inherit;
 	box-shadow: initial;
 	margin-top: initial;
 	margin-left: initial;

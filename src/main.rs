@@ -4,10 +4,10 @@
 use crate::app::about_dialog::AppAboutDialog;
 use crate::app::cli::AppCli;
 use crate::app::config::AppConfig;
+use crate::app::dock_window::{AppViDockWindow, PosINScreen};
 use crate::app::events::{AppEventSender, AppEvents, KeyboardEvents};
 use crate::app::tray_menu::{AppTrayMenu, AppTrayMenuItem};
 use crate::core::display::ViGraphDisplayInfo;
-use crate::core::dock_window::{PosINScreen, ViDockWindow};
 use crate::core::keyboard::KeyboardListenerBuilder;
 use crate::core::keyboard::key::Key;
 use crate::widgets::ViMeter;
@@ -37,7 +37,7 @@ use gtk::{Box as GtkBox, CssProvider};
 use lm_sensors::{LMSensors, SubFeatureRef};
 use log::{error, info, trace, warn};
 use std::cell::RefCell;
-use std::io::{stderr, Write};
+use std::io::{Write, stderr};
 use std::rc::Rc;
 use std::{fs, panic};
 
@@ -45,7 +45,6 @@ mod widgets;
 mod core {
 	pub mod constuppercase;
 	pub mod display;
-	pub mod dock_window;
 	pub mod eight_bitcolor;
 	pub mod gtk_codegen;
 	pub mod keyboard;
@@ -55,6 +54,7 @@ pub mod app {
 	pub mod about_dialog;
 	pub mod cli;
 	pub mod config;
+	pub mod dock_window;
 	pub mod events;
 	pub mod tray_menu;
 }
@@ -85,14 +85,14 @@ fn main() -> anyhowResult<()> {
 			);
 			let _e = lock.flush();
 		}
-		
+
 		std::process::exit(-1);
 	}));
-	
+
 	if unsafe { libc::getuid() == 0 } {
 		panic!("Do not run graphical applications with root user rights.");
 	}
-	
+
 	env_logger::try_init()?;
 	let cli = AppCli::parse();
 
@@ -191,7 +191,7 @@ fn main() -> anyhowResult<()> {
 			&defcss,
 			gtk::STYLE_PROVIDER_PRIORITY_APPLICATION,
 		);
-		
+
 		let name_window = app_config.get_name_or_default();
 		build_ui(app, name_window, &app_config, &c_display, tx_appevents.clone(), rx_appevents.clone());
 	}));
@@ -213,7 +213,7 @@ fn build_ui(
 ) {
 	trace!("#[gui] Start initialization, name: {:?}", name_window);
 
-	let dock_window = ViDockWindow::new(app, name_window, &**app_config);
+	let dock_window = AppViDockWindow::new(app, name_window, &**app_config);
 	let (c_transparent, _is_transparent_mode) = app_config
 		.get_window_app_config()
 		.get_transparent()
@@ -335,7 +335,7 @@ fn build_ui(
 						Some(vigraph_surface.clone()),
 						c_transparent,
 					);
-					let data = RefCell::new(0.0);
+					let data = Rc::new(RefCell::new(0.0));
 					vbox.pack_start(&*vimetr, false, false, 0);
 					glib::timeout_add_local(std::time::Duration::from_millis(10), move || {
 						let mut w = RefCell::borrow_mut(&data);

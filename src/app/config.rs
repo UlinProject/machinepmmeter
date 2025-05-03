@@ -1,5 +1,5 @@
 use crate::UPPERCASE_PKG_NAME;
-use crate::core::dock_window::PosINScreen;
+use crate::app::dock_window::PosINScreen;
 use crate::core::eight_bitcolor::EightBitColor;
 use gtk::pango;
 use serde::Deserialize;
