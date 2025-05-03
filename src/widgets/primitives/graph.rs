@@ -251,7 +251,15 @@ impl ViGraphCachedSurface {
 
 #[repr(transparent)]
 #[derive(Debug, Clone, Default)]
+#[cfg(feature = "graph-background-cache")]
+#[cfg_attr(docsrs, doc(cfg(feature = "graph-background-cache")))]
 pub struct ViGraphBackgroundSurface(Rc<RefCell<Option<ImageSurface>>>);
+
+#[repr(transparent)]
+#[derive(Debug, Clone, Default)]
+#[cfg(not(feature = "graph-background-cache"))]
+#[cfg_attr(docsrs, doc(cfg(not(feature = "graph-background-cache"))))]
+pub struct ViGraphBackgroundSurface();
 
 impl ViGraphBackgroundSurface {
 	pub fn draw_or_get<R>(
@@ -261,11 +269,17 @@ impl ViGraphBackgroundSurface {
 		transparent: f64,
 		next: impl FnOnce(&ImageSurface) -> anyhowResult<R>,
 	) -> anyhowResult<R> {
+		#[cfg(feature = "graph-background-cache")]
+		#[cfg_attr(docsrs, doc(cfg(feature = "graph-background-cache")))]
 		let mut w = self.0.borrow_mut();
 		{
-			if let Some(ref surface) = *w {
-				if surface.width() == width && surface.height() == height {
-					return next(surface);
+			#[cfg(feature = "graph-background-cache")]
+			#[cfg_attr(docsrs, doc(cfg(feature = "graph-background-cache")))]
+			{
+				if let Some(ref surface) = *w {
+					if surface.width() == width && surface.height() == height {
+						return next(surface);
+					}
 				}
 			}
 
@@ -302,7 +316,12 @@ impl ViGraphBackgroundSurface {
 			let _e = cr.restore();
 
 			let result = next(&surface);
-			*w = Some(surface);
+
+			#[cfg(feature = "graph-background-cache")]
+			#[cfg_attr(docsrs, doc(cfg(feature = "graph-background-cache")))]
+			{
+				*w = Some(surface);
+			}
 
 			result
 		}
