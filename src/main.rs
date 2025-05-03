@@ -163,14 +163,14 @@ fn main() -> anyhowResult<()> {
 
 	let application = Application::new(Some(APP_ID), Default::default());
 	application.connect_activate(enc!((app_config, rx_appevents, tray_menu) move |app| {
+		let name_window = app_config.get_name_or_default();
+		build_ui(app, name_window, &app_config, &c_display, &defcss, tx_appevents.clone(), rx_appevents.clone());
+		
 		if !tray_menu.is_connected() {
 			error!(
 				"#[global traymenu] Error initializing tray menu, tray menu will be unavailable.",
 			);
 		}
-
-		let name_window = app_config.get_name_or_default();
-		build_ui(app, name_window, &app_config, &c_display, &defcss, tx_appevents.clone(), rx_appevents.clone());
 	}));
 
 	application.run();
@@ -239,7 +239,6 @@ fn build_ui(
 	{
 		let notebook = Notebook::new();
 		notebook.style_context().add_class("vinotebook");
-		notebook.set_vexpand(true);
 		notebook.connect_switch_page(move |notebook, _page, page_num| {
 			for i in 0..notebook.n_pages() {
 				if let Some(child) = notebook.nth_page(Some(i)) {
@@ -276,11 +275,14 @@ fn build_ui(
 				}
 			}
 		});
+		
+		#[cfg(feature = "demo_mode")]
+		#[cfg_attr(docsrs, doc(cfg(feature = "demo_mode")))]
 		notebook.append_page(
 			&{
 				let vbox = GtkBox::new(gtk::Orientation::Vertical, 0);
 				vbox.style_context().add_class("vinotebookpage");
-				vbox.set_valign(gtk::Align::Start);
+				vbox.set_valign(gtk::Align::Fill);
 				vbox.set_halign(gtk::Align::Baseline);
 
 				{
@@ -369,7 +371,7 @@ fn build_ui(
 					});
 				}
 
-				vbox.pack_start(&ViLabel::new((), &**app_config, "Notice: This page does not contain any useful information and is for debugging purposes only.", Weight::Bold)
+				vbox.pack_end(&ViLabel::new((), &**app_config, "Notice: This page does not contain any useful information and is for debugging purposes only.", Weight::Bold)
 					.set_margin_start(4)
 					.set_margin_bottom(3)
 					.set_wrap(true)
@@ -392,7 +394,7 @@ fn build_ui(
 			&{
 				let vbox = GtkBox::new(gtk::Orientation::Vertical, 0);
 				vbox.style_context().add_class("vinotebookpage");
-				vbox.set_valign(gtk::Align::Start);
+				vbox.set_valign(gtk::Align::Fill);
 				vbox.set_halign(gtk::Align::Baseline);
 
 				let sensors: LMSensors = lm_sensors::Initializer::default()
@@ -410,7 +412,7 @@ fn build_ui(
 						)
 						.set_margin_top(4)
 						.set_margin_start(4)
-						.set_margin_bottom(3)
+						.set_margin_bottom(4)
 						.set_align(Align::Start)
 						.connect_nonblack_background(0.0, 0.0, 0.0, c_transparent),
 						false,
@@ -521,6 +523,17 @@ fn build_ui(
 							}
 						}
 					}
+				}
+				
+				if let Some(version) = sensors.version() {
+					vbox.pack_end(&ViLabel::new((), &**app_config, &format!("Version: {}", version), Weight::Bold)
+						.set_margin_start(4)
+						.set_margin_bottom(4)
+						.set_wrap(true)
+						.set_wrap_mode(WrapMode::Word)
+						.set_max_width_chars(45)
+						.set_align(Align::Center)
+						.connect_nonblack_background(0.0, 0.0, 0.0, c_transparent), false, false, 0);
 				}
 				vbox.set_visible(true);
 				vbox
@@ -662,7 +675,7 @@ fn build_ui(
 
 	/*glib::timeout_add_local(
 		std::time::Duration::from_millis(2000),
-		enc!((sender)move || {
+		enc!((sender) move || {
 			let _e = sender.send_blocking(AppEvents::KeyboardListenerState(true));
 
 			ControlFlow::Continue
@@ -670,7 +683,7 @@ fn build_ui(
 	);
 	glib::timeout_add_local(
 		std::time::Duration::from_millis(1500),
-		enc!((sender)move || {
+		enc!((sender) move || {
 			let _e = sender.send_blocking(AppEvents::KeyboardListenerState(false));
 
 			ControlFlow::Continue

@@ -34,5 +34,6 @@ all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
-default = [ "x11_keyboard" ]
+default = [ "x11_keyboard", "demo_mode" ]
 x11_keyboard = [ "x11", "libc" ]
+demo_mode = []
