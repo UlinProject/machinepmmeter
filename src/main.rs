@@ -37,8 +37,10 @@ use gtk::{Box as GtkBox, CssProvider};
 use lm_sensors::{LMSensors, SubFeatureRef};
 use log::{error, info, trace, warn};
 use std::cell::RefCell;
-use std::fs;
+use std::io::{stderr, Write};
+use std::io::stdout;
 use std::rc::Rc;
+use std::{fs, panic};
 
 mod widgets;
 mod core {
@@ -72,6 +74,22 @@ const UPPERCASE_PKG_VERSION: &str = const_ascii_uppercase!(PKG_VERSION);
 const PKG_DESCRIPTION: &str = env!("CARGO_PKG_DESCRIPTION");
 
 fn main() -> anyhowResult<()> {
+	panic::set_hook(Box::new(|p_hook_info| {
+		{
+			let stderr = stderr();
+			let mut lock = stderr.lock();
+
+			let _e = writeln!(
+				lock,
+				"###\n## The application cannot continue its operation due to a panic detected:\n###\n{}",
+				p_hook_info
+			);
+			let _e = lock.flush();
+		}
+		
+		std::process::exit(-1);
+	}));
+	
 	env_logger::try_init()?;
 	let cli = AppCli::parse();
 
