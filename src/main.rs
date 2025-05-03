@@ -287,8 +287,8 @@ fn build_ui(
 								if let Ok(scrolled_window) = child.downcast::<ScrolledWindow>() {
 									scrolled_window.set_hexpand(false);
 									scrolled_window.set_vexpand(false);
-									scrolled_window.set_size_request(-1, 50);
-									scrolled_window.set_max_content_height(50);
+									scrolled_window.set_size_request(-1, 1);
+									scrolled_window.set_max_content_height(1);
 								}
 							}
 						}
@@ -409,8 +409,8 @@ fn build_ui(
 				scrolled_window.set_policy(gtk::PolicyType::Never, gtk::PolicyType::Automatic);  // Disable horizontal scrolling
 				scrolled_window.set_hexpand(false);
 				scrolled_window.set_vexpand(false);
-				scrolled_window.set_size_request(-1, 50);
-				scrolled_window.set_max_content_height(50);
+				scrolled_window.set_size_request(-1, 1);
+				scrolled_window.set_max_content_height(1);
 				
 				scrolled_window.set_child(Some(&vbox));
 				scrolled_window.set_visible(true);
@@ -573,8 +573,8 @@ fn build_ui(
 				scrolled_window.set_policy(gtk::PolicyType::Never, gtk::PolicyType::Automatic);  // Disable horizontal scrolling
 				scrolled_window.set_hexpand(false);
 				scrolled_window.set_vexpand(false);
-				scrolled_window.set_size_request(-1, 50);
-				scrolled_window.set_max_content_height(50);
+				scrolled_window.set_size_request(-1, 1);
+				scrolled_window.set_max_content_height(1);
 				
 				scrolled_window.set_child(Some(&vbox));
 				scrolled_window.set_visible(true);
