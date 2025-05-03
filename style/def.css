@@ -82,13 +82,20 @@
 	margin: 0px;
 	background-color: rgba(220, 220, 220, 0);
 	color: rgba(255, 255, 255, 0.8);
-	border-color: rgba(220, 220, 220, 0.2);
-	border-width: 2px;
-	border-style: solid;
+	border-top-color: rgba(220, 220, 220, 0.2);
+	border-top-width: 1px;
+	border-top-style: solid;
+	border-left-color: rgba(220, 220, 220, 0.2);
+	border-left-width: 1px;
+	border-left-style: solid;
+	border-right-color: rgba(220, 220, 220, 0.2);
+	border-right-width: 1px;
+	border-right-style: solid;
+	border-bottom-width: 0px;
 	
-	padding-left: 4px;
-	padding-right: 4px;
-	padding-top: 4px;
+	padding-left: 5px;
+	padding-right: 5px;
+	padding-top: 3px;
 }
 
 .vinotebook .notfirst_head_vinotebook {
@@ -101,7 +108,9 @@
 
 .vinotebook .active_head_vinotebook {
 	background-color: rgb(255, 255, 0);
-	border-color: rgba(220, 220, 220, 0);
+	border-top-color: rgba(220, 220, 220, 0);
+	border-left-color: rgba(220, 220, 220, 0);
+	border-right-color: rgba(220, 220, 220, 0);
 	color: rgb(0, 0, 0);
 }
 

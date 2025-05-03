@@ -228,7 +228,6 @@ impl ViGraphCachedSurface {
 			Some(ref a) if a.width() == width && a.height() == height => next(a, &mut self.is_always_redraw),
 			_=> match ImageSurface::create(cairo::Format::ARgb32, width, height) {
 				Ok(a) => {
-					println!("RECREATE_SURFACE");
 					self.surface = Some(a);
 					self.is_always_redraw = true;
 					
