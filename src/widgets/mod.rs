@@ -3,8 +3,8 @@ use crate::app::config::AppConfig;
 use crate::core::maybe::Maybe;
 use crate::maybe;
 use crate::widgets::primitives::graph::ViGraph;
+use crate::widgets::primitives::graph::ViGraphBackgroundSurface;
 use crate::widgets::primitives::graph::ViGraphSender;
-use crate::widgets::primitives::graph::ViGraphSurface;
 use crate::widgets::primitives::label::ViLabel;
 use crate::widgets::text_meter::ViTextMeter;
 use crate::widgets::text_meter::ViTextMeterSender;
@@ -53,7 +53,7 @@ impl ViMeter {
 		head: impl Maybe<&'a str>,
 		width: i32,
 		len: usize,
-		general_background_surface: Option<ViGraphSurface>,
+		general_background_surface: Option<ViGraphBackgroundSurface>,
 		transparent: f64,
 	) -> ViMeterSender {
 		let vbox = Box::new(gtk::Orientation::Vertical, 0);

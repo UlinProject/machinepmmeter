@@ -12,7 +12,7 @@ use crate::core::keyboard::key::Key;
 use crate::widgets::ViMeter;
 use crate::widgets::dock_head::ViDockHead;
 use crate::widgets::hotkeys::ViHotkeyItems;
-use crate::widgets::primitives::graph::ViGraphSurface;
+use crate::widgets::primitives::graph::ViGraphBackgroundSurface;
 use crate::widgets::primitives::icon_menuitem::ViIconMenuItem;
 use crate::widgets::primitives::label::ViLabel;
 use anyhow::anyhow;
@@ -231,7 +231,7 @@ fn build_ui(
 			},
 		);
 
-	let vigraph_surface = ViGraphSurface::default();
+	let vigraph_surface = ViGraphBackgroundSurface::default();
 	let vbox = Rc::new(GtkBox::new(gtk::Orientation::Vertical, 0));
 	vbox.set_valign(gtk::Align::Fill);
 	vbox.set_halign(gtk::Align::Baseline);
