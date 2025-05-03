@@ -28,10 +28,9 @@ use gtk::glib::Cast;
 use gtk::pango::{Weight, WrapMode};
 use gtk::prelude::{NotebookExtManual, WidgetExt};
 use gtk::traits::{
-	BoxExt, ContainerExt, CssProviderExt, GtkMenuItemExt, GtkWindowExt, NotebookExt,
-	StyleContextExt,
+	BinExt, BoxExt, ContainerExt, CssProviderExt, GtkMenuItemExt, GtkWindowExt, NotebookExt, ScrolledWindowExt, StyleContextExt
 };
-use gtk::{Align, Application, Notebook};
+use gtk::{Align, Application, Notebook, ScrolledWindow};
 use gtk::{Box as GtkBox, CssProvider};
 use lm_sensors::{LMSensors, SubFeatureRef};
 use log::{error, info, trace, warn};
@@ -236,10 +235,10 @@ fn build_ui(
 	vbox.set_valign(gtk::Align::Fill);
 	vbox.set_halign(gtk::Align::Baseline);
 	
-	{
+	let notebook = {
 		let notebook = Notebook::new();
 		notebook.style_context().add_class("vinotebook");
-		notebook.connect_switch_page(move |notebook, _page, page_num| {
+		notebook.connect_switch_page(enc!((dock_window) move |notebook, _page, page_num| {
 			for i in 0..notebook.n_pages() {
 				if let Some(child) = notebook.nth_page(Some(i)) {
 					if let Some(tab_label) = notebook.tab_label(&child) {
@@ -257,6 +256,21 @@ fn build_ui(
 									label.read_text(|text| {
 										label.set_text(&format!("# {}", text));
 									});
+									
+									if let Ok(scrolled_window) = child.downcast::<ScrolledWindow>() {
+										let height = if let Some(child) = scrolled_window.child() {
+											let (m, _) = child.preferred_size();
+											m.height
+										} else {
+											0
+										};
+										
+										scrolled_window.set_hexpand(true);
+										scrolled_window.set_vexpand(true);
+										scrolled_window.set_size_request(-1, height);
+										
+										scrolled_window.set_max_content_height(i32::MAX);
+									}
 								}
 								continue;
 							}
@@ -269,12 +283,21 @@ fn build_ui(
 										label.set_text(next_text);
 									}
 								});
+								
+								if let Ok(scrolled_window) = child.downcast::<ScrolledWindow>() {
+									scrolled_window.set_hexpand(false);
+									scrolled_window.set_vexpand(false);
+									scrolled_window.set_size_request(-1, 50);
+									scrolled_window.set_max_content_height(50);
+								}
 							}
 						}
 					}
 				}
 			}
-		});
+			
+			dock_window.adjust_window_height();
+		}));
 		
 		#[cfg(feature = "demo_mode")]
 		#[cfg_attr(docsrs, doc(cfg(feature = "demo_mode")))]
@@ -380,8 +403,18 @@ fn build_ui(
 					.set_align(Align::Center)
 					.connect_nonblack_background(0.0, 0.0, 0.0, c_transparent), false, false, 0);
 				vbox.set_visible(true);
-
-				vbox
+				
+				
+				let scrolled_window = ScrolledWindow::builder().build();
+				scrolled_window.set_policy(gtk::PolicyType::Never, gtk::PolicyType::Automatic);  // Disable horizontal scrolling
+				scrolled_window.set_hexpand(false);
+				scrolled_window.set_vexpand(false);
+				scrolled_window.set_size_request(-1, 50);
+				scrolled_window.set_max_content_height(50);
+				
+				scrolled_window.set_child(Some(&vbox));
+				scrolled_window.set_visible(true);
+				scrolled_window
 			},
 			Some(&ViLabel::new(
 				"head_vinotebook",
@@ -536,7 +569,16 @@ fn build_ui(
 						.connect_nonblack_background(0.0, 0.0, 0.0, c_transparent), false, false, 0);
 				}
 				vbox.set_visible(true);
-				vbox
+				let scrolled_window = ScrolledWindow::builder().build();
+				scrolled_window.set_policy(gtk::PolicyType::Never, gtk::PolicyType::Automatic);  // Disable horizontal scrolling
+				scrolled_window.set_hexpand(false);
+				scrolled_window.set_vexpand(false);
+				scrolled_window.set_size_request(-1, 50);
+				scrolled_window.set_max_content_height(50);
+				
+				scrolled_window.set_child(Some(&vbox));
+				scrolled_window.set_visible(true);
+				scrolled_window
 			},
 			Some(&ViLabel::new(
 				"head_vinotebook",
@@ -545,14 +587,7 @@ fn build_ui(
 				Weight::Bold,
 			)),
 		);
-		if let Some(child) = notebook.nth_page(Some(0)) {
-			if let Some(tab_label) = notebook.tab_label(&child) {
-				if let Some(label) = tab_label.downcast_ref::<ViLabel>() {
-					label.style_context().add_class("first_head_notebook");
-				}
-			}
-		}
-
+		
 		for i in 1..notebook.n_pages() {
 			if let Some(child) = notebook.nth_page(Some(i)) {
 				if let Some(tab_label) = notebook.tab_label(&child) {
@@ -565,10 +600,21 @@ fn build_ui(
 				}
 			}
 		}
-
+		
+		if let Some(child) = notebook.nth_page(Some(0)) {
+			if let Some(tab_label) = notebook.tab_label(&child) {
+				if let Some(label) = tab_label.downcast_ref::<ViLabel>() {
+					label.style_context().add_class("first_head_notebook");
+				}
+			}
+		}
+		
 		vbox.pack_start(&notebook, true, true, 0);
 		notebook.set_visible(true);
-	}
+		notebook.set_page(0);
+		
+		Rc::new(notebook)
+	};
 
 	vbox.pack_end(
 		&ViDockHead::new(
@@ -646,7 +692,29 @@ fn build_ui(
 	}));
 
 	let pos_inscreen = Rc::new(RefCell::new(app_config.get_window_app_config().get_pos()));
-	dock_window.connect_show(enc!((pos_inscreen, c_display, dock_window) move |_| {
+	dock_window.connect_show(enc!((pos_inscreen, c_display, dock_window, notebook) move |_| {
+		glib::MainContext::default().spawn_local(enc!((notebook) async move {
+			notebook.insert_page(
+				&{
+					let scrolled_window = ScrolledWindow::builder().build();
+					scrolled_window.set_policy(gtk::PolicyType::Never, gtk::PolicyType::Automatic);  // Disable horizontal scrolling
+					scrolled_window.set_hexpand(false);
+					scrolled_window.set_vexpand(false);
+					scrolled_window.set_size_request(-1, 1);
+					scrolled_window.set_max_content_height(1);
+					
+					scrolled_window.set_visible(true);
+					scrolled_window
+				},
+				None::<&ViLabel>,
+				Some(0),
+			);
+			
+			notebook.set_page(0);
+			notebook.set_page(1);
+			notebook.remove_page(Some(0));
+		}));
+		
 		let pos_inscreen: PosINScreen = *pos_inscreen.borrow();
 
 		dock_window.set_pos_inscreen(&*c_display, pos_inscreen);
@@ -654,7 +722,7 @@ fn build_ui(
 
 	dock_window.connect_resize_mode_notify(enc!((pos_inscreen, c_display, dock_window) move |_| {
 		let pos_inscreen: PosINScreen = *pos_inscreen.borrow();
-
+		
 		dock_window.set_pos_inscreen(&*c_display, pos_inscreen);
 	}));
 	dock_window.connect_screen_changed(
@@ -672,23 +740,6 @@ fn build_ui(
 			dock_window.set_pos_inscreen(monitor, pos_inscreen);
 		}),
 	);
-
-	/*glib::timeout_add_local(
-		std::time::Duration::from_millis(2000),
-		enc!((sender) move || {
-			let _e = sender.send_blocking(AppEvents::KeyboardListenerState(true));
-
-			ControlFlow::Continue
-		}),
-	);
-	glib::timeout_add_local(
-		std::time::Duration::from_millis(1500),
-		enc!((sender) move || {
-			let _e = sender.send_blocking(AppEvents::KeyboardListenerState(false));
-
-			ControlFlow::Continue
-		}),
-	);*/
 
 	glib::MainContext::default().spawn_local(
 		enc!((c_display, dock_window, pos_inscreen, vbox, app_config) async move {
@@ -762,6 +813,7 @@ fn build_ui(
 							vbox.remove(&vihotkey);
 
 							wdock_vihotkey = None;
+							dock_window.adjust_window_height();
 						}
 					},
 				}

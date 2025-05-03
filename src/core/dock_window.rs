@@ -1,9 +1,6 @@
 use crate::{__gen_transparent_gtk_type, app::config::WindowAppConfig};
 use gtk::{
-	Application, ApplicationWindow, cairo,
-	ffi::GtkApplicationWindow,
-	gdk::{Monitor, Screen, WindowTypeHint, traits::MonitorExt},
-	traits::{GtkWindowExt, StyleContextExt, WidgetExt},
+	cairo, ffi::GtkApplicationWindow, gdk::{traits::MonitorExt, Monitor, Screen, WindowTypeHint}, traits::{BinExt, GtkWindowExt, StyleContextExt, WidgetExt}, Application, ApplicationWindow
 };
 use log::trace;
 use serde::Deserialize;
@@ -133,6 +130,18 @@ impl ViDockWindow {
 		};
 
 		self.0.move_(x, y);
+	}
+	
+	pub fn adjust_window_height(&self) {
+		let width = self.size().0;
+		let height = if let Some(child) = self.child() {
+			let (m, _) = child.preferred_size();
+			m.height
+		} else {
+			0
+		};
+
+		self.resize(width, height);
 	}
 }
 
