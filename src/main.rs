@@ -611,7 +611,6 @@ fn build_ui(
 		
 		vbox.pack_start(&notebook, true, true, 0);
 		notebook.set_visible(true);
-		notebook.set_page(0);
 		
 		Rc::new(notebook)
 	};
@@ -694,10 +693,11 @@ fn build_ui(
 	let pos_inscreen = Rc::new(RefCell::new(app_config.get_window_app_config().get_pos()));
 	dock_window.connect_show(enc!((pos_inscreen, c_display, dock_window, notebook) move |_| {
 		glib::MainContext::default().spawn_local(enc!((notebook) async move {
+			let nid = notebook.n_pages();
 			notebook.insert_page(
 				&{
 					let scrolled_window = ScrolledWindow::builder().build();
-					scrolled_window.set_policy(gtk::PolicyType::Never, gtk::PolicyType::Automatic);  // Disable horizontal scrolling
+					scrolled_window.set_policy(gtk::PolicyType::Never, gtk::PolicyType::Automatic);
 					scrolled_window.set_hexpand(false);
 					scrolled_window.set_vexpand(false);
 					scrolled_window.set_size_request(-1, 1);
@@ -707,12 +707,12 @@ fn build_ui(
 					scrolled_window
 				},
 				None::<&ViLabel>,
-				Some(0),
+				Some(nid),
 			);
 			
+			notebook.set_page(nid as _);
 			notebook.set_page(0);
-			notebook.set_page(1);
-			notebook.remove_page(Some(0));
+			notebook.remove_page(Some(nid));
 		}));
 		
 		let pos_inscreen: PosINScreen = *pos_inscreen.borrow();
