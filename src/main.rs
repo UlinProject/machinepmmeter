@@ -7,13 +7,12 @@ use crate::app::config::AppConfig;
 use crate::app::dockwindow::{AppViDockWindow, PosINScreen};
 use crate::app::events::{AppEventSender, AppEvents};
 use crate::app::keyboard::{AppKeyboardEvents, spawn_keyboard_thread};
-use crate::app::traymenu::{AppTrayMenu, AppTrayMenuItem};
+use crate::app::traymenu::app_traymenu;
 use crate::core::display::ViGraphDisplayInfo;
 use crate::widgets::ViMeter;
 use crate::widgets::dockhead::ViDockHead;
 use crate::widgets::hotkeys::ViHotkeyItems;
 use crate::widgets::primitives::graph::ViGraphBackgroundSurface;
-use crate::widgets::primitives::iconmenuitem::ViIconMenuItem;
 use crate::widgets::primitives::label::ViLabel;
 use anyhow::anyhow;
 use anyhow::{Context, Result as anyhowResult};
@@ -28,7 +27,7 @@ use gtk::glib::Cast;
 use gtk::pango::{Weight, WrapMode};
 use gtk::prelude::{NotebookExtManual, WidgetExt};
 use gtk::traits::{
-	BinExt, BoxExt, ContainerExt, CssProviderExt, GtkMenuItemExt, GtkWindowExt, NotebookExt,
+	BinExt, BoxExt, ContainerExt, CssProviderExt, GtkWindowExt, NotebookExt,
 	ScrolledWindowExt, StyleContextExt,
 };
 use gtk::{Align, Application, Notebook, ScrolledWindow};
@@ -137,69 +136,7 @@ fn main() -> anyhowResult<()> {
 
 	let (tx_appevents, rx_appevents) = crate::app::events::app_event_channel();
 	let rx_appevents = Rc::new(rx_appevents);
-	let tray_menu = {
-		// Tray menu
-		let hide_or_show = enc!((tx_appevents) &mut move |vi: &mut ViIconMenuItem| {
-			vi.connect_activate(enc!((tx_appevents) move |_| {
-				tx_appevents.toggle_window_visibility();
-			}));
-		}) as &'_ mut dyn FnMut(&'_ mut ViIconMenuItem);
-
-		let next_position = enc!((tx_appevents) &mut move |vi: &mut ViIconMenuItem| {
-			vi.connect_activate(enc!((tx_appevents) move |_| {
-				tx_appevents.move_window_to_next_position();
-			}));
-		});
-
-		let next_tab = enc!((tx_appevents) &mut move |vi: &mut ViIconMenuItem| {
-			vi.connect_activate(enc!((tx_appevents) move |_| {
-				tx_appevents.move_tab_to_next_position();
-			}));
-		});
-
-		let prev_tab = enc!((tx_appevents) &mut move |vi: &mut ViIconMenuItem| {
-			vi.connect_activate(enc!((tx_appevents) move |_| {
-				tx_appevents.move_tab_to_prev_position();
-			}));
-		});
-
-		let abouttheprogram = enc!((tx_appevents) &mut move |vi: &mut ViIconMenuItem| {
-			vi.connect_activate(enc!((tx_appevents) move |_| {
-				tx_appevents.show_or_focus_aboutdialog();
-			}));
-		});
-
-		let exit = enc!((tx_appevents) &mut move |vi: &mut ViIconMenuItem| {
-			vi.connect_activate(enc!((tx_appevents) move |_| {
-				tx_appevents.exit();
-			}));
-		});
-
-		let tray_menu = AppTrayMenu::new(
-			APP_ID,
-			PKG_ICON,
-			PKG_NAME,
-			PKG_DESCRIPTION,
-			[
-				AppTrayMenuItem::icon_item("view-conceal-symbolic", "Hide | Show", hide_or_show),
-				AppTrayMenuItem::Separator,
-				AppTrayMenuItem::icon_item("go-next-symbolic", "Next tab", next_tab),
-				AppTrayMenuItem::icon_item("go-previous-symbolic", "Previous tab", prev_tab),
-				AppTrayMenuItem::Separator,
-				AppTrayMenuItem::icon_item(
-					"sidebar-show-right-symbolic-rtl",
-					"Next position",
-					next_position,
-				),
-				AppTrayMenuItem::Separator,
-				AppTrayMenuItem::item("About the program", abouttheprogram),
-				AppTrayMenuItem::icon_item("system-shutdown-symbolic", "Exit", exit),
-			]
-			.into_iter(),
-		);
-
-		tray_menu
-	};
+	let app_traymenu = app_traymenu(&tx_appevents);
 
 	let application = Application::new(Some(APP_ID), Default::default());
 	application.connect_activate(enc!((app_config, rx_appevents) move |app| {
@@ -214,7 +151,7 @@ fn main() -> anyhowResult<()> {
 	}));
 
 	application.run();
-	drop(tray_menu);
+	drop(app_traymenu);
 	Ok(())
 }
 
