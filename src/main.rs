@@ -4,7 +4,7 @@
 use crate::app::aboutdialog::AppAboutDialog;
 use crate::app::cli::AppCli;
 use crate::app::config::AppConfig;
-use crate::app::dockwindow::{AppViDockWindow, PosINScreen};
+use crate::app::dockwindow::{AppViDockWindow, HasTransparent, PosINScreen};
 use crate::app::events::{AppEventSender, AppEvents};
 use crate::app::keyboard::{AppKeyboardEvents, spawn_keyboard_thread};
 use crate::app::traymenu::app_traymenu;
@@ -169,24 +169,6 @@ fn build_ui(
 	trace!("#[gui] Start initialization, name: {:?}", name_window);
 
 	let dock_window = AppViDockWindow::new(app, name_window, &**app_config);
-	let (c_transparent, _is_transparent_mode) = app_config
-		.get_window_app_config()
-		.get_transparent()
-		.map_or_else(
-			|| (1.0, false),
-			|level| match !dock_window
-				.connect_transparent_background(&**c_display, level)
-				.is_true()
-			{
-				false => {
-					warn!("#[gui] Transparency was expected, but the system does not support it");
-
-					(1.0, false)
-				}
-				true => (level, true),
-			},
-		);
-
 	let pos_inscreen = Rc::new(RefCell::new(app_config.get_window_app_config().get_pos()));
 	let vigraph_surface = ViGraphBackgroundSurface::default();
 	let vbox = GtkBox::new(gtk::Orientation::Vertical, 0);
@@ -277,7 +259,7 @@ fn build_ui(
 						dock_window.allocation().width(),
 						200,
 						Some(vigraph_surface.clone()),
-						c_transparent,
+						1.0,
 					);
 					vbox.pack_start(&*vimetr, false, false, 0);
 					glib::timeout_add_local(std::time::Duration::from_millis(80), move || {
@@ -293,7 +275,7 @@ fn build_ui(
 						dock_window.allocation().width(),
 						200,
 						Some(vigraph_surface.clone()),
-						c_transparent,
+						1.0,
 					);
 					let data = RefCell::new(0.0);
 					vbox.pack_start(&*vimetr, false, false, 0);
@@ -316,7 +298,7 @@ fn build_ui(
 						dock_window.allocation().width(),
 						200,
 						Some(vigraph_surface.clone()),
-						c_transparent,
+						1.0,
 					);
 					let data = RefCell::new(0.0);
 					vbox.pack_start(&*vimetr, false, false, 0);
@@ -339,7 +321,7 @@ fn build_ui(
 						dock_window.allocation().width(),
 						200,
 						Some(vigraph_surface.clone()),
-						c_transparent,
+						1.0,
 					);
 					let data = RefCell::new(0.0);
 					vbox.pack_start(&*vimetr, false, false, 0);
@@ -363,7 +345,7 @@ fn build_ui(
 					.set_wrap_mode(WrapMode::Word)
 					.set_max_width_chars(45)
 					.set_align(Align::Center)
-					.connect_nonblack_background(0.0, 0.0, 0.0, c_transparent), false, false, 0);
+					.connect_nonblack_background(0.0, 0.0, 0.0, 1.0), false, false, 0);
 				vbox.set_visible(true);
 
 				let scrolled_window = ScrolledWindow::builder().build();
@@ -408,7 +390,7 @@ fn build_ui(
 						.set_margin_start(4)
 						.set_margin_bottom(4)
 						.set_align(Align::Start)
-						.connect_nonblack_background(0.0, 0.0, 0.0, c_transparent),
+						.connect_nonblack_background(0.0, 0.0, 0.0, 1.0),
 						false,
 						false,
 						0,
@@ -471,7 +453,7 @@ fn build_ui(
 									dock_window.allocation().width(),
 									200,
 									Some(vigraph_surface.clone()),
-									c_transparent,
+									1.0,
 								);
 
 								vbox.pack_start(&*vimetr, false, false, 0);
@@ -533,7 +515,7 @@ fn build_ui(
 						.set_wrap_mode(WrapMode::Word)
 						.set_max_width_chars(45)
 						.set_align(Align::Center)
-						.connect_nonblack_background(0.0, 0.0, 0.0, c_transparent),
+						.connect_nonblack_background(0.0, 0.0, 0.0, 1.0),
 						false,
 						false,
 						0,
@@ -612,14 +594,38 @@ fn build_ui(
 
 		notebook
 	};
+	
+	if let Some(level) = app_config.get_window_app_config().get_transparent() {
+		if level != 1.0 {
+			match c_display.screen_rgba_visual() {
+				Some(visual) => {
+					dock_window.set_visual(Some(&visual));
+					
+					let mut is_connected_notepadlabelrealized = false;
+					if let Some(child) = notebook.nth_page(Some(0)) {
+						if let Some(tab_label) = notebook.tab_label(&child) {
+							tab_label.connect_realize(enc!((c_display, dock_window) move |tab_label| {
+								let notebook_labelheight = tab_label.allocated_height();
+								
+								dock_window.connect_transparent_background(notebook_labelheight as f64, level);
+							}));
+							is_connected_notepadlabelrealized = true;
+						}
+					}
+					
+					if !is_connected_notepadlabelrealized {
+						dock_window.connect_transparent_background(30.0, level);
+					}
+				},
+				None => {
+					warn!("#[gui] Transparency was expected, but the system does not support it");
+				}
+			}
+		}
+	}
 
 	vbox.pack_end(
-		&ViDockHead::new(
-			app_config.clone(),
-			name_window,
-			UPPERCASE_PKG_VERSION,
-			c_transparent,
-		),
+		&ViDockHead::new(app_config.clone(), name_window, UPPERCASE_PKG_VERSION, 1.0),
 		true,
 		true,
 		0,
@@ -651,7 +657,7 @@ fn build_ui(
 					}
 				}
 			}
-			
+
 			if let Some((window_width, height_window)) = dock_window.adjust_window_height() {
 				dock_window.set_pos_inscreen(&*c_display, window_width, height_window, *pos_inscreen.borrow());
 			}
@@ -769,7 +775,7 @@ fn build_ui(
 								&*app_config,
 								"# Hot keys",
 								arr.into_iter(),
-								c_transparent,
+								1.0,
 							);
 							vbox.add(&vihotkey);
 							vihotkey.set_visible(true);

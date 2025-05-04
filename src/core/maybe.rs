@@ -51,6 +51,7 @@ use gtk::pango::Weight;
 
 #[macro_export]
 macro_rules! maybe {
+
 	[
 		($name: ident) {
 			$($true_code:tt)*
@@ -72,12 +73,22 @@ macro_rules! maybe {
 	};
 
 	[
-		($name: ident) $($code:tt)*
+		($name: ident) $($code:tt)+
 	] => {
 		if $name.has_value() {
 			let $name = $name.value();
 
 			$($code)*
 		}
-	}
+	};
+
+	[
+		($name: ident)
+	] => {
+		if $name.has_value() {
+			$name.value()
+		} else {
+			Default::default()
+		}
+	};
 }

@@ -62,40 +62,26 @@ impl AppViDockWindow {
 
 	pub fn connect_transparent_background(
 		&self,
-		screen: impl AsRef<Screen>,
+
+		start_height: impl Maybe<f64>,
 		alpha: f64,
-	) -> HasTransparent {
-		fn __connect_transparent_background(
-			app_window: &ApplicationWindow,
-			screen: &Screen,
-			alpha: f64,
-		) -> HasTransparent {
-			if let Some(visual) = screen.rgba_visual() {
-				app_window.set_visual(Some(&visual));
+	) {
+		let start_height = maybe!((start_height));
+		self.0.connect_draw(move |window, cr| {
+			let allocation = window.allocation();
+			cr.set_source_rgba(0.0, 0.0, 0.0, alpha);
+			cr.set_operator(cairo::Operator::Screen);
 
-				app_window.connect_draw(move |window, cr| {
-					let allocation = window.allocation();
-					cr.set_source_rgba(0.0, 0.0, 0.0, alpha);
-					cr.set_operator(cairo::Operator::Screen);
+			cr.rectangle(
+				0.0,
+				0.0 +start_height,
+				allocation.width().into(),
+				allocation.height() as f64 - start_height,
+			);
+			let _e = cr.fill();
 
-					cr.rectangle(
-						0.0,
-						0.0,
-						allocation.width().into(),
-						allocation.height().into(),
-					);
-					let _e = cr.fill();
-
-					false.into()
-				});
-
-				HasTransparent::True
-			} else {
-				HasTransparent::False
-			}
-		}
-
-		__connect_transparent_background(&self.0, screen.as_ref(), alpha)
+			false.into()
+		});
 	}
 
 	pub fn set_pos_inscreen(
