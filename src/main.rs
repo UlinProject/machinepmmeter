@@ -9,18 +9,14 @@ use crate::app::events::{AppEventSender, AppEvents};
 use crate::app::keyboard::{AppKeyboardEvents, spawn_keyboard_thread};
 use crate::app::traymenu::app_traymenu;
 use crate::core::display::ViGraphDisplayInfo;
-use crate::widgets::ViMeter;
 use crate::widgets::dockhead::ViDockHead;
 use crate::widgets::hotkeys::ViHotkeyItems;
 use crate::widgets::notebook::ViNotebook;
 use crate::widgets::primitives::graph::ViGraphBackgroundSurface;
-use crate::widgets::primitives::label::ViLabel;
-use anyhow::anyhow;
 use anyhow::{Context, Result as anyhowResult};
 use async_channel::Receiver;
 use clap::Parser;
 use enclose::enc;
-use glib::ControlFlow;
 use gtk::gdk::{Monitor, Screen};
 use gtk::gio::prelude::ApplicationExtManual;
 use gtk::gio::traits::ApplicationExt;
@@ -29,9 +25,8 @@ use gtk::prelude::{NotebookExtManual, WidgetExt};
 use gtk::traits::{
 	BinExt, BoxExt, ContainerExt, CssProviderExt, GtkWindowExt, NotebookExt, ScrolledWindowExt,
 };
-use gtk::{Align, Application, ScrolledWindow};
+use gtk::{Application, ScrolledWindow};
 use gtk::{Box as GtkBox, CssProvider};
-use lm_sensors::{LMSensors, SubFeatureRef};
 use log::{info, trace, warn};
 use std::cell::RefCell;
 use std::io::{Write, stderr};
@@ -57,6 +52,12 @@ pub mod app {
 	pub mod events;
 	pub mod keyboard;
 	pub mod traymenu;
+}
+pub mod metrics {
+	#[cfg(feature = "demo_mode")]
+	#[cfg_attr(docsrs, doc(cfg(feature = "demo_mode")))]
+	pub mod demo;
+	pub mod lm_sensors;
 }
 
 const APP_ID: &str = "com.ulinkot.machinepmmeter";
@@ -178,234 +179,20 @@ fn build_ui(
 	#[cfg(feature = "demo_mode")]
 	#[cfg_attr(docsrs, doc(cfg(feature = "demo_mode")))]
 	{
-		let vbox = vinotebook.append_page(
-			&**app_config,
-			"demo",
-			Some(
-				"Notice: This page does not contain any useful information and is for debugging purposes only.",
-			),
+		crate::metrics::demo::vinotebook_append_page(
+			app_config,
+			&vigraph_surface,
+			dock_window.allocation().width(),
+			&vinotebook,
 		);
-		{
-			let vimetr = ViMeter::new_visender(
-				app_config.clone(),
-				"# Demo (time: 80, value: 0.7)",
-				dock_window.allocation().width(),
-				200,
-				Some(vigraph_surface.clone()),
-				1.0,
-			);
-			vbox.pack_start(&*vimetr, false, false, 0);
-			glib::timeout_add_local(std::time::Duration::from_millis(80), move || {
-				vimetr.push_next_and_queue_draw(0.7, 0.7, 1.0, 0.0, 0.0);
-
-				ControlFlow::Continue
-			});
-		}
-		{
-			let vimetr = ViMeter::new_visender(
-				app_config.clone(),
-				"# Demo (time: 10ms, step: 0.1)",
-				dock_window.allocation().width(),
-				200,
-				Some(vigraph_surface.clone()),
-				1.0,
-			);
-			let data = RefCell::new(0.0);
-			vbox.pack_start(&*vimetr, false, false, 0);
-			glib::timeout_add_local(std::time::Duration::from_millis(10), move || {
-				let mut w = RefCell::borrow_mut(&data);
-				vimetr.push_next_and_queue_draw(*w, *w, 1.0, 0.0, 0.0);
-
-				*w += 0.1;
-				if *w >= 1.0 {
-					*w = 0.0;
-				}
-
-				ControlFlow::Continue
-			});
-		}
-		{
-			let vimetr = ViMeter::new_visender(
-				app_config.clone(),
-				"# Demo (time: 1ms, step: 0.01)",
-				dock_window.allocation().width(),
-				200,
-				Some(vigraph_surface.clone()),
-				1.0,
-			);
-			let data = RefCell::new(0.0);
-			vbox.pack_start(&*vimetr, false, false, 0);
-			glib::timeout_add_local(std::time::Duration::from_millis(1), move || {
-				let mut w = RefCell::borrow_mut(&data);
-				vimetr.push_next_and_queue_draw(*w, *w, 1.0, 0.0, 0.0);
-
-				*w += 0.01;
-				if *w >= 1.0 {
-					*w = 0.0;
-				}
-
-				ControlFlow::Continue
-			});
-		}
-		{
-			let vimetr = ViMeter::new_visender(
-				app_config.clone(),
-				"# Demo (time: 1ms, step: 0.001)",
-				dock_window.allocation().width(),
-				200,
-				Some(vigraph_surface.clone()),
-				1.0,
-			);
-			let data = RefCell::new(0.0);
-			vbox.pack_start(&*vimetr, false, false, 0);
-			glib::timeout_add_local(std::time::Duration::from_millis(1), move || {
-				let mut w = RefCell::borrow_mut(&data);
-				vimetr.push_next_and_queue_draw(*w, *w, 1.0, 0.0, 0.0);
-
-				*w += 0.001;
-				if *w >= 1.0 {
-					*w = 0.0;
-				}
-
-				ControlFlow::Continue
-			});
-		}
 	}
 
 	{
-		let sensors: LMSensors = lm_sensors::Initializer::default()
-			.initialize()
-			.map_err(|e| anyhow!("{:?}", e))
-			.unwrap(); // TODO REFACTORING ME!
-		let vbox = vinotebook.append_page(
-			&**app_config,
-			"lm_sensors",
-			sensors
-				.version()
-				.map(|a| format!("Version: {}", a))
-				.as_deref(),
+		crate::metrics::lm_sensors::vinotebook_append_page(app_config,
+			&vigraph_surface,
+			dock_window.allocation().width(),
+			&vinotebook,
 		);
-		for chip in sensors.chip_iter(None) {
-			vbox.pack_start(
-				&ViLabel::new(
-					"info_vitextmeter",
-					&**app_config,
-					&format!("# {} ({})", chip, chip.bus()),
-					(),
-				)
-				.set_margin_top(4)
-				.set_margin_start(4)
-				.set_margin_bottom(4)
-				.set_align(Align::Start)
-				.connect_nonblack_background(0.0, 0.0, 0.0, 1.0),
-				false,
-				false,
-				0,
-			);
-
-			println!("{} ({})", chip, chip.bus());
-
-			// Print all features of the current chip.
-			for feature in chip.feature_iter() {
-				if let Some(name) = feature.name().transpose().unwrap() {
-					println!("    {}: {}", name, feature);
-
-					#[derive(Debug, Clone, Default)]
-					struct Value<'a> {
-						input: Option<(f64, Rc<SubFeatureRef<'a>>)>,
-						max: Option<(f64, Rc<SubFeatureRef<'a>>)>,
-						crit: Option<(f64, Rc<SubFeatureRef<'a>>)>,
-						high: Option<(f64, Rc<SubFeatureRef<'a>>)>,
-					}
-
-					let mut c_value = Value::default();
-					for sub_feature in feature.sub_feature_iter() {
-						let sub_feature = Rc::new(sub_feature);
-						if let Some(Ok(name)) = sub_feature.name() {
-							if name.ends_with("input") {
-								if let Ok(value) = sub_feature.value() {
-									let v = value.raw_value();
-									if v != 0.0 && v < 65261.0 && v > -273.0 {
-										c_value.input = (v, sub_feature).into();
-									}
-								}
-							} else if name.ends_with("max") {
-								if let Ok(value) = sub_feature.value() {
-									let v = value.raw_value();
-									if v != 0.0 && v < 65261.0 && v > -273.0 {
-										c_value.max = (v, sub_feature).into();
-									}
-								}
-							} else if name.ends_with("high") {
-								if let Ok(value) = sub_feature.value() {
-									let v = value.raw_value();
-									if v != 0.0 && v < 65261.0 && v > -273.0 {
-										c_value.high = (v, sub_feature).into();
-									}
-								}
-							} else if name.ends_with("crit") {
-								if let Ok(value) = sub_feature.value() {
-									let v = value.raw_value();
-									if v != 0.0 && v < 65261.0 && v > -273.0 {
-										c_value.crit = (v, sub_feature).into();
-									}
-								}
-							}
-						}
-					}
-					if c_value.input.is_some() {
-						let vimetr = ViMeter::new_visender(
-							app_config.clone(),
-							name,
-							dock_window.allocation().width(),
-							200,
-							Some(vigraph_surface.clone()),
-							1.0,
-						);
-
-						vbox.pack_start(&*vimetr, false, false, 0);
-
-						for _ in 0..400 {
-							if let Some((input, sub_in)) = &c_value.input {
-								if let Some((crit_or_max, sub_crit_or_max)) =
-									c_value.crit.as_ref().or(c_value.max.as_ref())
-								{
-									#[inline]
-									const fn map(
-										x: f64,
-										in_min: f64,
-										in_max: f64,
-										out_min: f64,
-										out_max: f64,
-									) -> f64 {
-										(x - in_min) * (out_max - out_min) / (in_max - in_min)
-											+ out_min
-									}
-
-									let v = sub_in.raw_value().unwrap();
-									let graph = map(v, 0.0, *crit_or_max, 0.0, 1.0);
-									vimetr.push_next_and_queue_draw(
-										v,
-										graph,
-										*crit_or_max,
-										*crit_or_max,
-										0.0,
-									);
-								} else {
-									vimetr.push_next_and_queue_draw(
-										sub_in.raw_value().unwrap(),
-										(),
-										(),
-										0.0,
-										0.0,
-									);
-								}
-							}
-						}
-					}
-				}
-			}
-		}
 	}
 
 	if let Some(level) = app_config.get_window_app_config().get_transparent() {
