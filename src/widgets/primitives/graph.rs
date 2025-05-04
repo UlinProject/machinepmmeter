@@ -32,6 +32,36 @@ __gen_transparent_gtk_type! {
 	)
 }
 
+#[repr(transparent)]
+pub struct ViGraphData(VecDeque<f64>);
+
+impl ViGraphData {
+	pub fn with_len(len: usize) -> Self {
+		Self(VecDeque::from(vec![0.0; len]))
+	}
+
+	#[inline]
+	pub fn back(&self) -> Option<f64> {
+		self.0.back().copied()
+	}
+
+	#[inline]
+	pub fn front(&self) -> Option<f64> {
+		self.0.front().copied()
+	}
+
+	#[inline]
+	pub fn iter(&self) -> impl Iterator<Item = &f64> {
+		self.0.iter()
+	}
+
+	#[inline]
+	pub fn push_next(&mut self, v: f64) {
+		self.0.pop_front();
+		self.0.push_back(v);
+	}
+}
+
 impl ViGraph {
 	pub fn new_graphsender(
 		app_config: Rc<AppConfig>,
@@ -42,7 +72,7 @@ impl ViGraph {
 		len: usize,
 		transparent: f64,
 	) -> ViGraphSender {
-		let rc_data = Rc::new(RefCell::new(VecDeque::from(vec![0.0; len])));
+		let rc_data = Rc::new(RefCell::new(ViGraphData::with_len(len)));
 		let cache_surface = Rc::new(RefCell::new(ViGraphCachedSurface::empty()));
 
 		let graph_area = DrawingArea::new();
@@ -107,12 +137,17 @@ impl ViGraph {
 								let color_config = app_config.get_color_app_config();
 								let a_forcolor = data.back().copied().unwrap_or_default();
 
-								if a_forcolor >= 0.85 {
-									color_config.red().into_rgba(transparent)
-								} else if a_forcolor >= 0.75 {
-									color_config.orange().into_rgba(transparent)
-								} else {
-									color_config.green().into_rgba(transparent)
+								match data.back() {
+									Some(aback) => {
+										if aback >= 0.85 {
+											color_config.red().into_rgba(transparent)
+										} else if aback >= 0.75 {
+											color_config.orange().into_rgba(transparent)
+										} else {
+											color_config.green().into_rgba(transparent)
+										}
+									}
+									None => color_config.green().into_rgba(transparent)
 								}
 							};
 
@@ -174,7 +209,7 @@ impl ViGraph {
 }
 
 pub struct ViGraphSender {
-	data: Rc<RefCell<VecDeque<f64>>>,
+	data: Rc<RefCell<ViGraphData>>,
 	cache_surface: Rc<RefCell<ViGraphCachedSurface>>,
 	vi: ViGraph,
 }
@@ -197,8 +232,7 @@ impl ViGraphSender {
 	pub fn push_next(&self, v: f64) {
 		let mut lock = RefCell::borrow_mut(&self.data);
 
-		lock.pop_front();
-		lock.push_back(v);
+		lock.push_next(v);
 	}
 
 	#[inline]
