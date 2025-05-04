@@ -81,6 +81,11 @@ impl KeyStateEntry {
 	pub const fn set_key(&mut self, key: Key) {
 		self.key = key;
 	}
+	
+	#[inline]
+	pub const fn get_key(&self) -> Key {
+		self.key
+	}
 
 	#[inline]
 	pub const fn is_pressed(&self) -> bool {

@@ -2,7 +2,7 @@ use crate::{__gen_transparent_gtk_type, app::config::WindowAppConfig, core::mayb
 use gtk::{
 	Application, ApplicationWindow, cairo,
 	ffi::GtkApplicationWindow,
-	gdk::{Monitor, Screen, WindowTypeHint, traits::MonitorExt},
+	gdk::{Monitor, WindowTypeHint, traits::MonitorExt},
 	traits::{BinExt, GtkWindowExt, StyleContextExt, WidgetExt},
 };
 use log::trace;
@@ -183,28 +183,6 @@ impl PosINScreen {
 			PosINScreen::TopRight => PosINScreen::RightCenter,
 			PosINScreen::RightCenter => PosINScreen::BottomRight,
 			PosINScreen::BottomRight => PosINScreen::TopLeft,
-		}
-	}
-}
-
-#[derive(Debug, Clone, Copy)]
-#[repr(u8)]
-pub enum HasTransparent {
-	True = true as _,
-	False = false as _,
-}
-
-impl HasTransparent {
-	#[inline]
-	pub const fn is_true(&self) -> bool {
-		matches!(self, Self::True)
-	}
-
-	#[inline]
-	pub const fn unwrap_or(&self, default: bool) -> bool {
-		match self {
-			Self::False => default,
-			Self::True => true,
 		}
 	}
 }

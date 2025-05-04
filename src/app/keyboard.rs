@@ -1,5 +1,4 @@
 use crate::app::events::AppEventSender;
-use crate::core::keyboard::ButtonState;
 use crate::core::keyboard::KeyboardListenerBuilder;
 use crate::core::keyboard::key::Key;
 use enclose::enc;
@@ -8,8 +7,8 @@ use log::error;
 #[derive(Debug, Clone, Copy)]
 pub enum AppKeyboardEvents {
 	ShiftF8,
-	KeypadA,
-	KeypadD,
+	KeyA,
+	KeyD,
 	KeyP,
 	Num1,
 	Num2,
@@ -20,8 +19,8 @@ pub enum AppKeyboardEvents {
 	Num7,
 	Num8,
 	Num9,
-	KeypadPlus,
-	KeypadMinus,
+	KeyPlus,
+	KeyMinus,
 	Escape,
 }
 
@@ -29,8 +28,8 @@ pub fn spawn_keyboard_thread(esender: AppEventSender) {
 	std::thread::spawn(move || {
 		let keyboard_listener = KeyboardListenerBuilder::with_len::<18>()
 			.key_mapping(|key_mapping| {
-				key_mapping[0].set_key(Key::ShiftRight);
-				key_mapping[1].set_key(Key::ShiftLeft);
+				key_mapping[0].set_key(Key::ShiftLeft);
+				key_mapping[1].set_key(Key::ShiftRight);
 				key_mapping[2].set_key(Key::F8);
 				key_mapping[3].set_key(Key::KpPlus);
 				key_mapping[4].set_key(Key::KpMinus);
@@ -49,101 +48,48 @@ pub fn spawn_keyboard_thread(esender: AppEventSender) {
 				key_mapping[17].set_key(Key::KeyP);
 			})
 			.handler(enc!((esender) move |state_array, _key, _state| {
-				let astate = (
-					(
-						state_array[0].is_pressed(), // ShiftRight
-						state_array[1].is_pressed(), // ShiftLeft
-					),
-					state_array[2].is_pressed(), // F8
-					state_array[3].is_pressed(), // KeypadPlus
-					state_array[4].is_pressed(), // KeypadMinus
-					state_array[5].is_pressed(), // Escape
-					state_array[6].is_pressed(), // KeyA
-					state_array[7].is_pressed(), // KeyD
-					state_array[8].is_pressed(), // Key1
-					state_array[9].is_pressed(), // Key2
-					state_array[10].is_pressed(), // Key3
-					state_array[11].is_pressed(), // Key4
-					state_array[12].is_pressed(), // Key5
-					state_array[13].is_pressed(), // Key6
-					state_array[14].is_pressed(), // Key7
-					state_array[15].is_pressed(), // Key8
-					state_array[16].is_pressed(), // Key9
-					state_array[17].is_pressed(), // KeyP
-				);
-				let sendevent = |e| {
-					esender.keyboard_event(e);
-				};
-				match astate {
-					((true, true), ..) => {
-						// L+R SHIFT
-					}
-					((true, false) | (false, true), true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false) => {
-						// L/R SHIFT + F8
-						sendevent(AppKeyboardEvents::ShiftF8);
-					}
-					((true, false) | (false, true), false, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false) => {
-						// L/R SHIFT + KeypadPlus
-						sendevent(AppKeyboardEvents::KeypadPlus);
-					}
-					((true, false) | (false, true), false, false, true, false, false, false, false, false, false, false, false, false, false, false, false, false) => {
-						// L/R SHIFT + KeypadMinus
-						sendevent(AppKeyboardEvents::KeypadMinus);
-					}
-					((true, false) | (false, true), false, false, false, true, false, false, false, false, false, false, false, false, false, false, false, false) => {
-						// L/R SHIFT + Escape
-						sendevent(AppKeyboardEvents::Escape);
-					}
-					((true, false) | (false, true), false, false, false, false, true, false, false, false, false, false, false, false, false, false, false, false) => {
-						// L/R SHIFT + A
-						sendevent(AppKeyboardEvents::KeypadA);
-					}
-					((true, false) | (false, true), false, false, false, false, false, true, false, false, false, false, false, false, false, false, false, false) => {
-						// L/R SHIFT + D
-						sendevent(AppKeyboardEvents::KeypadD);
-					}
-					((true, false) | (false, true), false, false, false, false, false, false, true, false, false, false, false, false, false, false, false, false) => {
-						// L/R SHIFT + 1
-						sendevent(AppKeyboardEvents::Num1);
-					}
-					((true, false) | (false, true), false, false, false, false, false, false, false, true, false, false, false, false, false, false, false, false) => {
-						// L/R SHIFT + 2
-						sendevent(AppKeyboardEvents::Num2);
-					}
-					((true, false) | (false, true), false, false, false, false, false, false, false, false, true, false, false, false, false, false, false, false) => {
-						// L/R SHIFT + 3
-						sendevent(AppKeyboardEvents::Num3);
-					}
-					((true, false) | (false, true), false, false, false, false, false, false, false, false, false, true, false, false, false, false, false, false) => {
-						// L/R SHIFT + 4
-						sendevent(AppKeyboardEvents::Num4);
-					}
-					((true, false) | (false, true), false, false, false, false, false, false, false, false, false, false, true, false, false, false, false, false) => {
-						// L/R SHIFT + 5
-						sendevent(AppKeyboardEvents::Num5);
-					}
-					((true, false) | (false, true), false, false, false, false, false, false, false, false, false, false, false, true, true, false, false, false) => {
-						// L/R SHIFT + 6
-						sendevent(AppKeyboardEvents::Num6);
-					}
-					((true, false) | (false, true), false, false, false, false, false, false, false, false, false, false, false, false, true, false, false, false) => {
-						// L/R SHIFT + 7
-						sendevent(AppKeyboardEvents::Num7);
-					}
-					((true, false) | (false, true), false, false, false, false, false, false, false, false, false, false, false, false, false, true, false, false) => {
-						// L/R SHIFT + 8
-						sendevent(AppKeyboardEvents::Num8);
-					}
-					((true, false) | (false, true), false, false, false, false, false, false, false, false, false, false, false, false, false, false, true, false) => {
-						// L/R SHIFT + 9
-						sendevent(AppKeyboardEvents::Num9);
+				let mut sa_iter = state_array.iter();
+				match (
+					sa_iter.next(), // ShiftLeft
+					sa_iter.next(), // ShiftRight
+				) {
+					(Some(left), Some(right)) => {
+						let left = left.is_pressed();
+						let right = right.is_pressed();
+						
+						if (left && !right) || (!left && right) {
+							let mut pressed_key = None;
+							for astate in sa_iter {
+								if astate.is_pressed() {
+									if pressed_key.is_some() {
+										return;
+									}
+									pressed_key = Some(astate.get_key());
+								}
+							}
+							esender.keyboard_event(match pressed_key {
+								Some(Key::F8) => AppKeyboardEvents::ShiftF8,
+								Some(Key::KpPlus) => AppKeyboardEvents::KeyPlus,
+								Some(Key::KpMinus) => AppKeyboardEvents::KeyMinus,
+								Some(Key::Escape) => AppKeyboardEvents::Escape,
+								Some(Key::KeyA) => AppKeyboardEvents::KeyA,
+								Some(Key::KeyD) => AppKeyboardEvents::KeyD,
+								Some(Key::Num1) => AppKeyboardEvents::Num1,
+								Some(Key::Num2) => AppKeyboardEvents::Num2,
+								Some(Key::Num3) => AppKeyboardEvents::Num3,
+								Some(Key::Num4) => AppKeyboardEvents::Num4,
+								Some(Key::Num5) => AppKeyboardEvents::Num5,
+								Some(Key::Num6) => AppKeyboardEvents::Num6,
+								Some(Key::Num7) => AppKeyboardEvents::Num7,
+								Some(Key::Num8) => AppKeyboardEvents::Num8,
+								Some(Key::Num9) => AppKeyboardEvents::Num9,
+								Some(Key::KeyP) => AppKeyboardEvents::KeyP,
+								_ => return,
+							});
+						}
 					},
-					((true, false) | (false, true), false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, true) => {
-						// L/R SHIFT + 9
-						sendevent(AppKeyboardEvents::KeyP);
-					}
-					_ => {}
-				}
+					_ => {},
+				};
 			})).on_startup(|| {
 				esender.keyboard_listener_enabled(true);
 			}).listen();

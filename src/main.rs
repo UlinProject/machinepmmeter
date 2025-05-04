@@ -4,7 +4,7 @@
 use crate::app::aboutdialog::AppAboutDialog;
 use crate::app::cli::AppCli;
 use crate::app::config::AppConfig;
-use crate::app::dockwindow::{AppViDockWindow, HasTransparent, PosINScreen};
+use crate::app::dockwindow::{AppViDockWindow, PosINScreen};
 use crate::app::events::{AppEventSender, AppEvents};
 use crate::app::keyboard::{AppKeyboardEvents, spawn_keyboard_thread};
 use crate::app::traymenu::app_traymenu;
@@ -604,7 +604,7 @@ fn build_ui(
 					let mut is_connected_notepadlabelrealized = false;
 					if let Some(child) = notebook.nth_page(Some(0)) {
 						if let Some(tab_label) = notebook.tab_label(&child) {
-							tab_label.connect_realize(enc!((c_display, dock_window) move |tab_label| {
+							tab_label.connect_realize(enc!((dock_window) move |tab_label| {
 								let notebook_labelheight = tab_label.allocated_height();
 								
 								dock_window.connect_transparent_background(notebook_labelheight as f64, level);
@@ -702,7 +702,7 @@ fn build_ui(
 					AppEvents::Keyboard(AppKeyboardEvents::Num7) => notebook.set_page(6),
 					AppEvents::Keyboard(AppKeyboardEvents::Num8) => notebook.set_page(7),
 					AppEvents::Keyboard(AppKeyboardEvents::Num9) => notebook.set_page(8),
-					AppEvents::MoveTabToPrevPosition | AppEvents::Keyboard(AppKeyboardEvents::KeypadA) => {
+					AppEvents::MoveTabToPrevPosition | AppEvents::Keyboard(AppKeyboardEvents::KeyA) => {
 						let mut a_page = notebook.current_page().unwrap_or(1);
 						if a_page == 0 {
 							a_page = notebook.n_pages() - 1;
@@ -712,7 +712,7 @@ fn build_ui(
 
 						notebook.set_page(a_page as _);
 					},
-					AppEvents::MoveTabToNextPosition | AppEvents::Keyboard(AppKeyboardEvents::KeypadD) => {
+					AppEvents::MoveTabToNextPosition | AppEvents::Keyboard(AppKeyboardEvents::KeyD) => {
 						let mut a_page = notebook.current_page().unwrap_or(0) + 1;
 						if a_page >= notebook.n_pages() {
 							a_page = 0;
@@ -746,8 +746,8 @@ fn build_ui(
 							Some(ref a) => a.present(),
 						}
 					},
-					AppEvents::Keyboard(AppKeyboardEvents::KeypadPlus) => {},
-					AppEvents::Keyboard(AppKeyboardEvents::KeypadMinus) => {},
+					AppEvents::Keyboard(AppKeyboardEvents::KeyPlus) => {},
+					AppEvents::Keyboard(AppKeyboardEvents::KeyMinus) => {},
 					AppEvents::MoveDockWindowToNextPosition | AppEvents::Keyboard(AppKeyboardEvents::KeyP) => {
 						let new_pos = { // NEXT POS IN SCREEN
 							let mut write = pos_inscreen.borrow_mut();
