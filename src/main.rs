@@ -27,8 +27,8 @@ use gtk::glib::Cast;
 use gtk::pango::{Weight, WrapMode};
 use gtk::prelude::{NotebookExtManual, WidgetExt};
 use gtk::traits::{
-	BinExt, BoxExt, ContainerExt, CssProviderExt, GtkWindowExt, NotebookExt,
-	ScrolledWindowExt, StyleContextExt,
+	BinExt, BoxExt, ContainerExt, CssProviderExt, GtkWindowExt, NotebookExt, ScrolledWindowExt,
+	StyleContextExt,
 };
 use gtk::{Align, Application, Notebook, ScrolledWindow};
 use gtk::{Box as GtkBox, CssProvider};
@@ -623,7 +623,7 @@ fn build_ui(
 		true,
 		true,
 		0,
-	); // expand: true, fill: true
+	);
 
 	dock_window.set_child(Some(&vbox));
 	vbox.set_visible(true);
@@ -633,30 +633,28 @@ fn build_ui(
 	dock_window.connect_show(
 		enc!((pos_inscreen, c_display, dock_window, notebook) move |_| {
 			trace!("connect_show: ");
-			glib::MainContext::default().spawn_local(enc!((notebook) async move {
-				let nid = notebook.n_pages();
-				notebook.insert_page(
-					&{
-						let scrolled_window = ScrolledWindow::builder().build();
-						scrolled_window.set_policy(gtk::PolicyType::Never, gtk::PolicyType::Automatic);
-						scrolled_window.set_hexpand(false);
-						scrolled_window.set_vexpand(false);
-						scrolled_window.set_size_request(-1, 1);
-						scrolled_window.set_max_content_height(1);
+			if let Some(c_page) = notebook.current_page() {
+				if let Some(child) = notebook.nth_page(Some(c_page)) {
+					if let Ok(scrolled_window) = child.downcast::<ScrolledWindow>() {
+						let height = if let Some(child) = scrolled_window.child() {
+							let (m, _) = child.preferred_size();
+							m.height
+						} else {
+							0
+						};
 
-						scrolled_window.set_visible(true);
-						scrolled_window
-					},
-					None::<&ViLabel>,
-					Some(nid),
-				);
+						scrolled_window.set_hexpand(true);
+						scrolled_window.set_vexpand(true);
+						scrolled_window.set_size_request(-1, height);
 
-				notebook.set_page(nid as _);
-				notebook.set_page(0);
-				notebook.remove_page(Some(nid));
-			}));
-
-			dock_window.set_pos_inscreen(&*c_display, (), (), *pos_inscreen.borrow());
+						scrolled_window.set_max_content_height(i32::MAX);
+					}
+				}
+			}
+			
+			if let Some((window_width, height_window)) = dock_window.adjust_window_height() {
+				dock_window.set_pos_inscreen(&*c_display, window_width, height_window, *pos_inscreen.borrow());
+			}
 		}),
 	);
 
@@ -744,7 +742,7 @@ fn build_ui(
 					},
 					AppEvents::Keyboard(AppKeyboardEvents::KeypadPlus) => {},
 					AppEvents::Keyboard(AppKeyboardEvents::KeypadMinus) => {},
-					AppEvents::MoveDockWindowToNextPosition | AppEvents::Keyboard(AppKeyboardEvents::DoubleShift) => {
+					AppEvents::MoveDockWindowToNextPosition | AppEvents::Keyboard(AppKeyboardEvents::KeyP) => {
 						let new_pos = { // NEXT POS IN SCREEN
 							let mut write = pos_inscreen.borrow_mut();
 							let new_pos = write.next();
@@ -763,7 +761,7 @@ fn build_ui(
 								("go-previous-symbolic", "Previous tab (Shift and A)"),
 								(
 									"sidebar-show-right-symbolic-rtl",
-									"Next position (Left Shift and Right Shift)",
+									"Next position (Left Shift and P)",
 								),
 								("system-shutdown-symbolic", "Exit (Shift and Esc)")
 							];

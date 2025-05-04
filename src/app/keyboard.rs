@@ -1,4 +1,5 @@
 use crate::app::events::AppEventSender;
+use crate::core::keyboard::ButtonState;
 use crate::core::keyboard::KeyboardListenerBuilder;
 use crate::core::keyboard::key::Key;
 use enclose::enc;
@@ -9,6 +10,7 @@ pub enum AppKeyboardEvents {
 	ShiftF8,
 	KeypadA,
 	KeypadD,
+	KeyP,
 	Num1,
 	Num2,
 	Num3,
@@ -20,13 +22,12 @@ pub enum AppKeyboardEvents {
 	Num9,
 	KeypadPlus,
 	KeypadMinus,
-	DoubleShift,
 	Escape,
 }
 
 pub fn spawn_keyboard_thread(esender: AppEventSender) {
 	std::thread::spawn(move || {
-		let keyboard_listener = KeyboardListenerBuilder::with_len::<17>()
+		let keyboard_listener = KeyboardListenerBuilder::with_len::<18>()
 			.key_mapping(|key_mapping| {
 				key_mapping[0].set_key(Key::ShiftRight);
 				key_mapping[1].set_key(Key::ShiftLeft);
@@ -45,8 +46,10 @@ pub fn spawn_keyboard_thread(esender: AppEventSender) {
 				key_mapping[14].set_key(Key::Num7);
 				key_mapping[15].set_key(Key::Num8);
 				key_mapping[16].set_key(Key::Num9);
+				key_mapping[17].set_key(Key::KeyP);
 			})
-			.handler(enc!((esender) move |state_array, _key, _state| match (
+			.handler(enc!((esender) move |state_array, _key, _state| {
+				let astate = (
 					(
 						state_array[0].is_pressed(), // ShiftRight
 						state_array[1].is_pressed(), // ShiftLeft
@@ -66,74 +69,82 @@ pub fn spawn_keyboard_thread(esender: AppEventSender) {
 					state_array[14].is_pressed(), // Key7
 					state_array[15].is_pressed(), // Key8
 					state_array[16].is_pressed(), // Key9
-				) {
-					((true, false) | (false, true), true, false, false, false, false, false, false, false, false, false, false, false, false, false, false) => {
-						// L/R SHIFT + F8
-						esender.keyboard_event(AppKeyboardEvents::ShiftF8);
-					}
-					((true, false) | (false, true), false, true, false, false, false, false, false, false, false, false, false, false, false, false, false) => {
-						// L/R SHIFT + KeypadPlus
-						esender.keyboard_event(AppKeyboardEvents::KeypadPlus);
-					}
-					((true, false) | (false, true), false, false, true, false, false, false, false, false, false, false, false, false, false, false, false) => {
-						// L/R SHIFT + KeypadMinus
-						esender.keyboard_event(AppKeyboardEvents::KeypadMinus);
-					}
-					((true, false) | (false, true), false, false, false, true, false, false, false, false, false, false, false, false, false, false, false) => {
-						// L/R SHIFT + Escape
-						esender.keyboard_event(AppKeyboardEvents::Escape);
-					}
-					((true, false) | (false, true), false, false, false, false, true, false, false, false, false, false, false, false, false, false, false) => {
-						// L/R SHIFT + A
-						esender.keyboard_event(AppKeyboardEvents::KeypadA);
-					}
-					((true, false) | (false, true), false, false, false, false, false, true, false, false, false, false, false, false, false, false, false) => {
-						// L/R SHIFT + D
-						esender.keyboard_event(AppKeyboardEvents::KeypadD);
-					}
-					((true, false) | (false, true), false, false, false, false, false, false, true, false, false, false, false, false, false, false, false) => {
-						// L/R SHIFT + 1
-						esender.keyboard_event(AppKeyboardEvents::Num1);
-					}
-					((true, false) | (false, true), false, false, false, false, false, false, false, true, false, false, false, false, false, false, false) => {
-						// L/R SHIFT + 2
-						esender.keyboard_event(AppKeyboardEvents::Num2);
-					}
-					((true, false) | (false, true), false, false, false, false, false, false, false, false, true, false, false, false, false, false, false) => {
-						// L/R SHIFT + 3
-						esender.keyboard_event(AppKeyboardEvents::Num3);
-					}
-					((true, false) | (false, true), false, false, false, false, false, false, false, false, false, true, false, false, false, false, false) => {
-						// L/R SHIFT + 4
-						esender.keyboard_event(AppKeyboardEvents::Num4);
-					}
-					((true, false) | (false, true), false, false, false, false, false, false, false, false, false, false, true, false, false, false, false) => {
-						// L/R SHIFT + 5
-						esender.keyboard_event(AppKeyboardEvents::Num5);
-					}
-					((true, false) | (false, true), false, false, false, false, false, false, false, false, false, false, false, true, true, false, false) => {
-						// L/R SHIFT + 6
-						esender.keyboard_event(AppKeyboardEvents::Num6);
-					}
-					((true, false) | (false, true), false, false, false, false, false, false, false, false, false, false, false, false, true, false, false) => {
-						// L/R SHIFT + 7
-						esender.keyboard_event(AppKeyboardEvents::Num7);
-					}
-					((true, false) | (false, true), false, false, false, false, false, false, false, false, false, false, false, false, false, true, false) => {
-						// L/R SHIFT + 8
-						esender.keyboard_event(AppKeyboardEvents::Num8);
-					}
-					((true, false) | (false, true), false, false, false, false, false, false, false, false, false, false, false, false, false, false, true) => {
-						// L/R SHIFT + 9
-						esender.keyboard_event(AppKeyboardEvents::Num9);
-					}
+					state_array[17].is_pressed(), // KeyP
+				);
+				let sendevent = |e| {
+					esender.keyboard_event(e);
+				};
+				match astate {
 					((true, true), ..) => {
 						// L+R SHIFT
-						esender.keyboard_event(AppKeyboardEvents::DoubleShift);
+					}
+					((true, false) | (false, true), true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false) => {
+						// L/R SHIFT + F8
+						sendevent(AppKeyboardEvents::ShiftF8);
+					}
+					((true, false) | (false, true), false, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false) => {
+						// L/R SHIFT + KeypadPlus
+						sendevent(AppKeyboardEvents::KeypadPlus);
+					}
+					((true, false) | (false, true), false, false, true, false, false, false, false, false, false, false, false, false, false, false, false, false) => {
+						// L/R SHIFT + KeypadMinus
+						sendevent(AppKeyboardEvents::KeypadMinus);
+					}
+					((true, false) | (false, true), false, false, false, true, false, false, false, false, false, false, false, false, false, false, false, false) => {
+						// L/R SHIFT + Escape
+						sendevent(AppKeyboardEvents::Escape);
+					}
+					((true, false) | (false, true), false, false, false, false, true, false, false, false, false, false, false, false, false, false, false, false) => {
+						// L/R SHIFT + A
+						sendevent(AppKeyboardEvents::KeypadA);
+					}
+					((true, false) | (false, true), false, false, false, false, false, true, false, false, false, false, false, false, false, false, false, false) => {
+						// L/R SHIFT + D
+						sendevent(AppKeyboardEvents::KeypadD);
+					}
+					((true, false) | (false, true), false, false, false, false, false, false, true, false, false, false, false, false, false, false, false, false) => {
+						// L/R SHIFT + 1
+						sendevent(AppKeyboardEvents::Num1);
+					}
+					((true, false) | (false, true), false, false, false, false, false, false, false, true, false, false, false, false, false, false, false, false) => {
+						// L/R SHIFT + 2
+						sendevent(AppKeyboardEvents::Num2);
+					}
+					((true, false) | (false, true), false, false, false, false, false, false, false, false, true, false, false, false, false, false, false, false) => {
+						// L/R SHIFT + 3
+						sendevent(AppKeyboardEvents::Num3);
+					}
+					((true, false) | (false, true), false, false, false, false, false, false, false, false, false, true, false, false, false, false, false, false) => {
+						// L/R SHIFT + 4
+						sendevent(AppKeyboardEvents::Num4);
+					}
+					((true, false) | (false, true), false, false, false, false, false, false, false, false, false, false, true, false, false, false, false, false) => {
+						// L/R SHIFT + 5
+						sendevent(AppKeyboardEvents::Num5);
+					}
+					((true, false) | (false, true), false, false, false, false, false, false, false, false, false, false, false, true, true, false, false, false) => {
+						// L/R SHIFT + 6
+						sendevent(AppKeyboardEvents::Num6);
+					}
+					((true, false) | (false, true), false, false, false, false, false, false, false, false, false, false, false, false, true, false, false, false) => {
+						// L/R SHIFT + 7
+						sendevent(AppKeyboardEvents::Num7);
+					}
+					((true, false) | (false, true), false, false, false, false, false, false, false, false, false, false, false, false, false, true, false, false) => {
+						// L/R SHIFT + 8
+						sendevent(AppKeyboardEvents::Num8);
+					}
+					((true, false) | (false, true), false, false, false, false, false, false, false, false, false, false, false, false, false, false, true, false) => {
+						// L/R SHIFT + 9
+						sendevent(AppKeyboardEvents::Num9);
+					},
+					((true, false) | (false, true), false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, true) => {
+						// L/R SHIFT + 9
+						sendevent(AppKeyboardEvents::KeyP);
 					}
 					_ => {}
 				}
-			)).on_startup(|| {
+			})).on_startup(|| {
 				esender.keyboard_listener_enabled(true);
 			}).listen();
 

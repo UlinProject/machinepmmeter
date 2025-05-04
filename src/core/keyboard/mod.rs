@@ -14,7 +14,7 @@ pub mod x11;
 pub struct KeyboardListenerBuilder<const N: usize, KM, EH, SE>
 where
 	KM: FnOnce(&'_ mut [KeyStateEntry; N]) + Send + Sync + 'static,
-	EH: FnMut(&'_ [KeyStateEntry; N], Key, ButtonState) + Send + Sync + 'static,
+	EH: FnMut(&'_ mut [KeyStateEntry; N], Key, ButtonState) + Send + Sync + 'static,
 	SE: FnOnce(),
 {
 	key_mapping: KM,
@@ -134,7 +134,7 @@ impl
 	KeyboardListenerBuilder<
 		0,
 		&mut (dyn FnMut(&'_ mut [KeyStateEntry; 0]) + Send + Sync + 'static),
-		&mut (dyn FnMut(&'_ [KeyStateEntry; 0], Key, ButtonState) + Send + Sync + 'static),
+		&mut (dyn FnMut(&'_ mut [KeyStateEntry; 0], Key, ButtonState) + Send + Sync + 'static),
 		&mut (dyn FnMut()),
 	>
 {
@@ -143,7 +143,7 @@ impl
 	pub fn with_len<const N: usize>() -> KeyboardListenerBuilder<
 		N,
 		impl FnOnce(&'_ mut [KeyStateEntry; N]) + Send + Sync + 'static,
-		impl FnMut(&'_ [KeyStateEntry; N], Key, ButtonState) + Send + Sync + 'static,
+		impl FnMut(&'_ mut [KeyStateEntry; N], Key, ButtonState) + Send + Sync + 'static,
 		impl FnOnce(),
 	> {
 		KeyboardListenerBuilder {
@@ -157,7 +157,7 @@ impl
 impl<const N: usize, KM, EH, SE> KeyboardListenerBuilder<N, KM, EH, SE>
 where
 	KM: FnOnce(&'_ mut [KeyStateEntry; N]) + Send + Sync + 'static,
-	EH: FnMut(&'_ [KeyStateEntry; N], Key, ButtonState) + Send + Sync + 'static,
+	EH: FnMut(&'_ mut [KeyStateEntry; N], Key, ButtonState) + Send + Sync + 'static,
 	SE: FnOnce(),
 {
 	#[inline]
@@ -175,7 +175,7 @@ where
 	#[inline]
 	pub fn handler<NewEH>(self, handler: NewEH) -> KeyboardListenerBuilder<N, KM, NewEH, SE>
 	where
-		NewEH: FnMut(&'_ [KeyStateEntry; N], Key, ButtonState) + Send + Sync + 'static,
+		NewEH: FnMut(&'_ mut [KeyStateEntry; N], Key, ButtonState) + Send + Sync + 'static,
 	{
 		KeyboardListenerBuilder {
 			key_mapping: self.key_mapping,
@@ -216,7 +216,7 @@ where
 						key_entry.state = state;
 
 						let (key, state) = (key_entry.key, key_entry.state);
-						(self.handler)(&key_state_table.0, key, state);
+						(self.handler)(&mut key_state_table.0, key, state);
 					}
 				},
 				self.on_startup,

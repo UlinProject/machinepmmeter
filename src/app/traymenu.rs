@@ -1,11 +1,11 @@
-use crate::app::events::AppEventSender;
-use crate::core::traymenu::TrayMenu;
-use crate::core::traymenu::TrayMenuItem;
-use crate::widgets::primitives::iconmenuitem::ViIconMenuItem;
 use crate::APP_ID;
 use crate::PKG_DESCRIPTION;
 use crate::PKG_ICON;
 use crate::PKG_NAME;
+use crate::app::events::AppEventSender;
+use crate::core::traymenu::TrayMenu;
+use crate::core::traymenu::TrayMenuItem;
+use crate::widgets::primitives::iconmenuitem::ViIconMenuItem;
 pub use appindicator3::IndicatorCategory;
 use enclose::enc;
 use gtk::traits::GtkMenuItemExt;
