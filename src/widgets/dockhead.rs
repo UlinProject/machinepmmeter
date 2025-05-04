@@ -1,6 +1,9 @@
 use crate::{
-	__gen_transparent_gtk_type, app::config::AppConfig, core::maybe::Maybe, maybe,
-	widgets::primitives::label::ViLabel,
+	__gen_transparent_gtk_type,
+	app::config::AppConfig,
+	core::maybe::Maybe,
+	maybe,
+	widgets::primitives::{colorblock::ViColorBlock, label::ViLabel},
 };
 use enclose::enc;
 use gtk::{
@@ -132,12 +135,15 @@ impl ViDockHead {
 		);
 
 		maybe!((version) {
-			let version_label = ViLabel::new("versionhead_vilabel", &*app_config, version, ())
+			head.pack_end(
+				&ViLabel::new("versionhead_vilabel", &*app_config, version, ())
 				.set_align(Align::End)
-				.set_margin_end(3)
-				.set_margin_top(2);
-
-			head.pack_end(&version_label, true, true, 0);
+				.set_margin_end(2)
+				.set_margin_top(2),
+					false,
+					true,
+					0
+				);
 		});
 
 		head.set_visible(true);

@@ -129,17 +129,21 @@
 	margin-top: 4px;
 }
 
-.namehead_vilabel {
+.namehead .namehead_vilabel {
 	padding-top: 3px;
 	color: rgb(0, 0, 0);
 	font-weight: bold;
+	
+	text-shadow: -2px -2px 0 rgba(220, 220, 220, 0.3), 2px -2px 0 rgba(220, 220, 220, 0.3), -2px 2px 0 rgba(220, 220, 220, 0.3), 2px 2px 0 rgba(220, 220, 220, 0.3);
 }
 
-.versionhead_vilabel {
+.namehead .versionhead_vilabel {
 	padding-top: 2px;
 	padding-right: 2px;
 	color: rgb(0, 0, 0);
 	font-weight: bold;
+	
+	text-shadow: -2px -2px 0 rgba(220, 220, 220, 0.3), 2px -2px 0 rgba(220, 220, 220, 0.3), -2px 2px 0 rgba(220, 220, 220, 0.3), 2px 2px 0 rgba(220, 220, 220, 0.3);
 }
 
 .vitextmeter {
