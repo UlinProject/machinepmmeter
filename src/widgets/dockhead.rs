@@ -1,9 +1,6 @@
 use crate::{
-	__gen_transparent_gtk_type,
-	app::config::AppConfig,
-	core::maybe::Maybe,
-	maybe,
-	widgets::primitives::{colorblock::ViColorBlock, label::ViLabel},
+	__gen_transparent_gtk_type, app::config::AppConfig, core::maybe::Maybe, maybe,
+	widgets::primitives::label::ViLabel,
 };
 use enclose::enc;
 use gtk::{

@@ -54,7 +54,7 @@
 	transition-delay: initial;
 	engine: initial;
 	gtk-key-bindings: initial;
-   
+
 	-GtkWidget-focus-line-width: 0;
 	-GtkWidget-focus-padding: 0;
 	-GtkNotebook-initial-gap: 0;
@@ -158,11 +158,11 @@
 	border-bottom-style: solid;
 }
 
-.info_vitextmeter {
+.vitextmeter .info_vitextmeter {
 	font-weight: bold;
 }
 
-.arg_vitextmeter {
+.vitextmeter .arg_vitextmeter {
 	padding-top: 5px;
 	padding: 0;
 	margin: 0;

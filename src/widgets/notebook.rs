@@ -122,14 +122,11 @@ impl ViNotebook {
 		f_app_config: impl AsRef<FontAppConfig>,
 		tab_label: &str,
 		notice: Option<&str>,
-		append: impl FnOnce(&Box),
-	) {
+	) -> Box {
 		let vbox = Box::new(gtk::Orientation::Vertical, 0);
 		vbox.style_context().add_class("vinotebookpage");
 		vbox.set_valign(gtk::Align::Fill);
 		vbox.set_halign(gtk::Align::Baseline);
-
-		append(&vbox);
 
 		if let Some(notice) = notice {
 			vbox.pack_end(
@@ -206,6 +203,8 @@ impl ViNotebook {
 				}
 			}
 		}
+
+		vbox
 	}
 }
 
