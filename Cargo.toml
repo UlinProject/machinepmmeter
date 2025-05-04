@@ -34,7 +34,8 @@ all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
-default = [ "x11_keyboard", "graph-background-cache", "demo_mode"]
+default = [ "x11_keyboard", "graph-background-cache", "graph-shadows", "demo_mode"]
 x11_keyboard = [ "x11", "libc" ]
 demo_mode = []
 graph-background-cache = []
+graph-shadows = []

@@ -116,6 +116,8 @@ impl ViGraph {
 							};
 
 							let x_step = width / (len - 1) as f64;
+							#[cfg(feature = "graph-shadows")]
+							#[cfg_attr(docsrs, doc(cfg(feature = "graph-shadows")))]
 							{// shadow
 								let (sr, sg, sb, st): (f64, f64, f64, f64) = (0.8, 0.8, 0.8, 0.2);
 								let yoffset = 1.0;
