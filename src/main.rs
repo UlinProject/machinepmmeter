@@ -151,6 +151,18 @@ fn main() -> anyhowResult<()> {
 			}));
 		});
 
+		let next_tab = enc!((tx_appevents) &mut move |vi: &mut ViIconMenuItem| {
+			vi.connect_activate(enc!((tx_appevents) move |_| {
+				tx_appevents.move_tab_to_next_position();
+			}));
+		});
+
+		let prev_tab = enc!((tx_appevents) &mut move |vi: &mut ViIconMenuItem| {
+			vi.connect_activate(enc!((tx_appevents) move |_| {
+				tx_appevents.move_tab_to_prev_position();
+			}));
+		});
+
 		let abouttheprogram = enc!((tx_appevents) &mut move |vi: &mut ViIconMenuItem| {
 			vi.connect_activate(enc!((tx_appevents) move |_| {
 				tx_appevents.show_or_focus_aboutdialog();
@@ -170,6 +182,10 @@ fn main() -> anyhowResult<()> {
 			PKG_DESCRIPTION,
 			[
 				AppTrayMenuItem::icon_item("view-conceal-symbolic", "Hide | Show", hide_or_show),
+				AppTrayMenuItem::Separator,
+				AppTrayMenuItem::icon_item("go-next-symbolic", "Next tab", next_tab),
+				AppTrayMenuItem::icon_item("go-previous-symbolic", "Previous tab", prev_tab),
+				AppTrayMenuItem::Separator,
 				AppTrayMenuItem::icon_item(
 					"sidebar-show-right-symbolic-rtl",
 					"Next position",
@@ -744,7 +760,7 @@ fn build_ui(
 					AppEvents::Keyboard(AppKeyboardEvents::Num7) => notebook.set_page(6),
 					AppEvents::Keyboard(AppKeyboardEvents::Num8) => notebook.set_page(7),
 					AppEvents::Keyboard(AppKeyboardEvents::Num9) => notebook.set_page(8),
-					AppEvents::Keyboard(AppKeyboardEvents::KeypadA) => {
+					AppEvents::MoveTabToPrevPosition | AppEvents::Keyboard(AppKeyboardEvents::KeypadA) => {
 						let mut a_page = notebook.current_page().unwrap_or(1);
 						if a_page == 0 {
 							a_page = notebook.n_pages() - 1;
@@ -754,7 +770,7 @@ fn build_ui(
 
 						notebook.set_page(a_page as _);
 					},
-					AppEvents::Keyboard(AppKeyboardEvents::KeypadD) => {
+					AppEvents::MoveTabToNextPosition | AppEvents::Keyboard(AppKeyboardEvents::KeypadD) => {
 						let mut a_page = notebook.current_page().unwrap_or(0) + 1;
 						if a_page >= notebook.n_pages() {
 							a_page = 0;
@@ -804,6 +820,9 @@ fn build_ui(
 						if wdock_vihotkey.is_none() {
 							let arr = [
 								("view-conceal-symbolic", "Hide | Show (Shift and F8)"),
+								("zoom-original-symbolic", "Selecting a tab (Shift and 1 | 2 | ..)"),
+								("go-next-symbolic", "Next tab (Shift and D)"),
+								("go-previous-symbolic", "Previous tab (Shift and A)"),
 								(
 									"sidebar-show-right-symbolic-rtl",
 									"Next position (Left Shift and Right Shift)",

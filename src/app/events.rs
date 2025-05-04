@@ -17,6 +17,8 @@ pub enum AppEvents {
 	ShowOrFocusAboutDialog,
 	Exit,
 	MoveDockWindowToNextPosition,
+	MoveTabToPrevPosition,
+	MoveTabToNextPosition,
 	KeyboardListenerEnabled(bool),
 }
 
@@ -56,6 +58,16 @@ impl AppEventSender {
 	#[inline]
 	pub fn move_window_to_next_position(&self) {
 		self.__send(AppEvents::MoveDockWindowToNextPosition);
+	}
+
+	#[inline]
+	pub fn move_tab_to_next_position(&self) {
+		self.__send(AppEvents::MoveTabToNextPosition);
+	}
+
+	#[inline]
+	pub fn move_tab_to_prev_position(&self) {
+		self.__send(AppEvents::MoveTabToPrevPosition);
 	}
 
 	#[inline]
