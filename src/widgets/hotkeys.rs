@@ -36,10 +36,12 @@ impl ViHotkeyItems {
 	pub fn new<'a, 'n>(
 		f_app_config: impl AsRef<FontAppConfig> + Copy,
 		head: impl Maybe<&'n str>,
-		array: impl Iterator<Item = (&'a str, &'a str)>,
+		array: impl Iterator<Item = (&'a str, &'a str, &'a str)>,
 		c_transparent: f64,
 	) -> Self {
 		let all = Box::new(Orientation::Vertical, 0);
+		all.set_valign(gtk::Align::Fill);
+		all.set_halign(gtk::Align::Baseline);
 
 		maybe!((head) {
 			all.pack_start(
@@ -56,9 +58,9 @@ impl ViHotkeyItems {
 		});
 		{
 			let shortcasthbox = Box::new(Orientation::Vertical, 1);
-			for (icon, text) in array {
+			for (icon, text, key) in array {
 				shortcasthbox.pack_start(
-					&ViHotkeyItem::new(f_app_config, icon, text),
+					&ViHotkeyItem::new(f_app_config, icon, text, key),
 					false,
 					false,
 					0,

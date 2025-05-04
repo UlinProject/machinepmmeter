@@ -574,15 +574,15 @@ fn build_ui(
 					AppEvents::KeyboardListenerEnabled(true) => {
 						if wdock_vihotkey.is_none() {
 							let arr = [
-								("view-conceal-symbolic", "Hide | Show (Shift and F8)"),
-								("zoom-original-symbolic", "Selecting a tab (Shift and 1 | 2 | ..)"),
-								("go-next-symbolic", "Next tab (Shift and D)"),
-								("go-previous-symbolic", "Previous tab (Shift and A)"),
+								("view-conceal-symbolic", "Hide | Show", "(Shift and F8)"),
+								("zoom-original-symbolic", "Selecting a tab", "(Shift and 1 | 2 | ..)"),
+								("go-next-symbolic", "Next tab", "(Shift and D)"),
+								("go-previous-symbolic", "Previous tab", "(Shift and A)"),
 								(
 									"sidebar-show-right-symbolic-rtl",
-									"Next position (Left Shift and P)",
+									"Next position", "(Shift and P)",
 								),
-								("system-shutdown-symbolic", "Exit (Shift and Esc)")
+								("system-shutdown-symbolic", "Exit", "(Shift and Esc)")
 							];
 							let vihotkey = ViHotkeyItems::new(
 								&*app_config,

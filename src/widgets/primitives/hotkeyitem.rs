@@ -6,6 +6,7 @@ use gtk::Box;
 use gtk::Image;
 use gtk::Orientation;
 use gtk::ffi::GtkBox;
+use gtk::pango::Weight;
 use gtk::traits::BoxExt;
 use gtk::traits::WidgetExt;
 
@@ -29,8 +30,15 @@ __gen_transparent_gtk_type! {
 }
 
 impl ViHotkeyItem {
-	pub fn new(f_app_config: impl AsRef<FontAppConfig>, icon: &str, text: &str) -> Self {
+	pub fn new(
+		f_app_config: impl AsRef<FontAppConfig>,
+		icon: &str,
+		info: &str,
+		hotkey: &str,
+	) -> Self {
 		let hbox = Box::new(Orientation::Horizontal, 0);
+		hbox.set_valign(gtk::Align::Baseline);
+		hbox.set_halign(gtk::Align::Fill);
 
 		{
 			let image = Image::from_icon_name(Some(icon), gtk::IconSize::Button);
@@ -40,11 +48,24 @@ impl ViHotkeyItem {
 			image.set_visible(true);
 		}
 
-		let label = ViLabel::new((), f_app_config, text, ())
-			.set_align(Align::Start)
-			.set_margin_top(4)
-			.set_margin_start(3);
-		hbox.pack_start(&label, false, false, 0);
+		hbox.pack_start(
+			&ViLabel::new((), &f_app_config, info, ())
+				.set_align(Align::Start)
+				.set_margin_top(4)
+				.set_margin_start(3),
+			false,
+			false,
+			0,
+		);
+		hbox.pack_start(
+			&ViLabel::new((), f_app_config, hotkey, Weight::Bold)
+				.set_align(Align::Start)
+				.set_margin_top(4)
+				.set_margin_start(3),
+			false,
+			false,
+			0,
+		);
 		hbox.set_visible(true);
 
 		Self(hbox)

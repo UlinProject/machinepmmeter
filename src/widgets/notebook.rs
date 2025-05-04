@@ -134,7 +134,8 @@ impl ViNotebook {
 		if let Some(notice) = notice {
 			vbox.pack_end(
 				&ViLabel::new((), &f_app_config, notice, Weight::Bold)
-					.set_margin_start(4)
+					.set_margin_start(3)
+					.set_margin_end(3)
 					.set_margin_bottom(3)
 					.set_wrap(true)
 					.set_wrap_mode(WrapMode::Word)
