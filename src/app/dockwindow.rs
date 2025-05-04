@@ -164,7 +164,7 @@ impl AppViDockWindow {
 			None
 		})();
 		trace!("adjust_window_height, result: {:?}", result);
-		
+
 		result
 	}
 }

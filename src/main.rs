@@ -300,7 +300,7 @@ fn build_ui(
 						}
 					}
 				}
-				
+
 				if let Some((window_width, height_window)) = dock_window.adjust_window_height() {
 					dock_window.set_pos_inscreen(&*c_display, window_width, height_window, *pos_inscreen.borrow());
 				}
@@ -828,7 +828,7 @@ fn build_ui(
 							vbox.remove(&vihotkey);
 
 							wdock_vihotkey = None;
-							
+
 							if let Some((window_width, height_window)) = dock_window.adjust_window_height() {
 								dock_window.set_pos_inscreen(&*c_display, window_width, height_window, *pos_inscreen.borrow());
 							}
