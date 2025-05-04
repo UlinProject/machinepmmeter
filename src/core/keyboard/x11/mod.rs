@@ -1,6 +1,6 @@
 use crate::core::keyboard::ButtonState;
 use crate::core::keyboard::key::Key;
-use crate::core::keyboard::x11::data_contaier::{ExterDataContainer, SafeDropExterDataContainer};
+use crate::core::keyboard::x11::datacontaier::{ExterDataContainer, SafeDropExterDataContainer};
 use crate::core::keyboard::x11::display::XDisplay;
 use crate::core::keyboard::x11::record::interdata::XRecordInterceptData;
 use crate::core::keyboard::x11::record::range::XRecordRange;
@@ -14,7 +14,7 @@ use x11::xlib::{self};
 use x11::xrecord::{self};
 
 pub mod context;
-pub mod data_contaier;
+pub mod datacontaier;
 pub mod display;
 pub mod record {
 	pub mod interdata;

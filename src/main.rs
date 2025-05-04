@@ -10,7 +10,7 @@ use crate::app::keyboard::{AppKeyboardEvents, spawn_keyboard_thread};
 use crate::app::traymenu::{AppTrayMenu, AppTrayMenuItem};
 use crate::core::display::ViGraphDisplayInfo;
 use crate::widgets::ViMeter;
-use crate::widgets::dock_head::ViDockHead;
+use crate::widgets::dockhead::ViDockHead;
 use crate::widgets::hotkeys::ViHotkeyItems;
 use crate::widgets::primitives::graph::ViGraphBackgroundSurface;
 use crate::widgets::primitives::iconmenuitem::ViIconMenuItem;
@@ -44,8 +44,8 @@ mod widgets;
 mod core {
 	pub mod constuppercase;
 	pub mod display;
-	pub mod eight_bitcolor;
-	pub mod gtk_codegen;
+	pub mod eightbitcolor;
+	pub mod gtkcodegen;
 	pub mod keyboard;
 	pub mod maybe;
 }

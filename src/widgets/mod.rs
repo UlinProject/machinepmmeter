@@ -24,7 +24,7 @@ pub mod primitives {
 	pub mod label;
 }
 
-pub mod dock_head;
+pub mod dockhead;
 pub mod hotkeys;
 pub mod textmeter;
 

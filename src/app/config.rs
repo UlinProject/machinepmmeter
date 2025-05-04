@@ -1,6 +1,6 @@
 use crate::UPPERCASE_PKG_NAME;
 use crate::app::dockwindow::PosINScreen;
-use crate::core::eight_bitcolor::EightBitColor;
+use crate::core::eightbitcolor::EightBitColor;
 use gtk::pango;
 use serde::Deserialize;
 use std::borrow::Cow;
