@@ -4,7 +4,10 @@ use crate::{
 };
 use enclose::enc;
 use gtk::{
-	cairo::{self, Context, ImageSurface}, ffi::GtkBox, traits::{BoxExt, StyleContextExt, WidgetExt}, Align, Box
+	Align, Box,
+	cairo::{self, Context, ImageSurface},
+	ffi::GtkBox,
+	traits::{BoxExt, StyleContextExt, WidgetExt},
 };
 use std::{cell::RefCell, rc::Rc};
 
@@ -39,7 +42,7 @@ impl ViDockHead {
 		head.style_context().add_class("namehead");
 		head.set_valign(gtk::Align::Center);
 		head.set_halign(gtk::Align::Fill);
-		
+
 		let background: Rc<RefCell<Option<ImageSurface>>> = Default::default();
 		head.connect_draw(enc!((app_config, background) move |window, in_cr| {
 			let mut w = background.borrow_mut();
@@ -51,16 +54,16 @@ impl ViDockHead {
 			if width <= 1 || height <= 1 {
 				return false.into();
 			}
-			
+
 			if let Some(ref surface) = *w {
 				if surface.width() == width && surface.height() == height {
 					let _e = in_cr.set_source_surface(surface, 0.0, 0.0);
 					let _e = in_cr.paint();
-					
+
 					return false.into();
 				}
 			}
-			
+
 			let head_color = app_config.get_window_app_config().get_head_color();
 			if let Ok(surface) = ImageSurface::create(cairo::Format::ARgb32, width, height) {
 				if let Ok(cr) = Context::new(&surface) {
@@ -107,10 +110,10 @@ impl ViDockHead {
 
 						let _e = cr.stroke();
 					}
-					
+
 					let _e = in_cr.set_source_surface(&surface, 0.0, 0.0);
 					let _e = in_cr.paint();
-					
+
 					*w = Some(surface);
 				}
 			}
