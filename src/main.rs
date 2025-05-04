@@ -47,6 +47,7 @@ mod core {
 	pub mod gtkcodegen;
 	pub mod keyboard;
 	pub mod maybe;
+	pub mod traymenu;
 }
 
 pub mod app {
