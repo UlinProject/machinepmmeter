@@ -4,11 +4,9 @@ use crate::{
 };
 use enclose::enc;
 use gtk::{
-	Align, Box,
-	ffi::GtkBox,
-	traits::{BoxExt, StyleContextExt, WidgetExt},
+	cairo::{self, Context, ImageSurface}, ffi::GtkBox, traits::{BoxExt, StyleContextExt, WidgetExt}, Align, Box
 };
-use std::rc::Rc;
+use std::{cell::RefCell, rc::Rc};
 
 #[repr(transparent)]
 #[derive(Debug)]
@@ -40,27 +38,83 @@ impl ViDockHead {
 		let head = Box::new(gtk::Orientation::Horizontal, 0);
 		head.style_context().add_class("namehead");
 		head.set_valign(gtk::Align::Center);
+		head.set_halign(gtk::Align::Fill);
+		
+		let background: Rc<RefCell<Option<ImageSurface>>> = Default::default();
+		head.connect_draw(enc!((app_config, background) move |window, in_cr| {
+			let mut w = background.borrow_mut();
+			let (width, height) = {
+				let allocation = window.allocation();
 
-		head.connect_draw(enc!((app_config)move |window, cr| {
-			let head_color = app_config.get_window_app_config().get_head_color();
-
-			if head_color.is_notblack(transparent) {
-					let (r, g, b, a) = head_color.into_rgba(transparent);
-					let (width, height) = {
-						let allocation = window.allocation();
-
-						(allocation.width().into(), allocation.height().into())
-					};
-
-					cr.set_source_rgba(r, g, b, a);
-					cr.rectangle(
-						0.0,
-						0.0,
-						width,
-						height
-					);
-					let _e = cr.fill();
+				(allocation.width(), allocation.height())
+			};
+			if width <= 1 || height <= 1 {
+				return false.into();
 			}
+			
+			if let Some(ref surface) = *w {
+				if surface.width() == width && surface.height() == height {
+					let _e = in_cr.set_source_surface(surface, 0.0, 0.0);
+					let _e = in_cr.paint();
+					
+					return false.into();
+				}
+			}
+			
+			let head_color = app_config.get_window_app_config().get_head_color();
+			if let Ok(surface) = ImageSurface::create(cairo::Format::ARgb32, width, height) {
+				if let Ok(cr) = Context::new(&surface) {
+					let (width, height) = (width.into(), height.into());
+					{ // background
+						let (r, g, b, a) = head_color.into_rgba(transparent);
+
+						cr.set_source_rgba(r, g, b, a);
+						cr.rectangle(
+							0.0,
+							0.0,
+							width,
+							height
+						);
+						let _e = cr.fill();
+					}
+
+					{ // grid
+						let (r, g, b, a) = (0.0, 0.0, 0.0, 0.1);
+						let line_width = 0.7;
+						let step = 8.0;
+
+						cr.set_source_rgba(r, g, b, a);
+						cr.set_line_width(line_width);
+
+						let x_offset = (width % (step+line_width)) / 2.0;
+						let y_offset = (height % (step+line_width)) / 2.0;
+
+						let mut x = x_offset;
+						while x <= width {
+							cr.move_to(x, 0.0);
+							cr.line_to(x, height);
+
+							x += step + line_width;
+						}
+
+						let mut y = y_offset;
+						while y <= height {
+							cr.move_to(0.0, y);
+							cr.line_to(width, y);
+
+							y += step +line_width;
+						}
+
+						let _e = cr.stroke();
+					}
+					
+					let _e = in_cr.set_source_surface(&surface, 0.0, 0.0);
+					let _e = in_cr.paint();
+					
+					*w = Some(surface);
+				}
+			}
+
 			false.into()
 		}));
 
