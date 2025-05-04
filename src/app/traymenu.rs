@@ -1,6 +1,6 @@
 use crate::core::maybe::Maybe;
 use crate::maybe;
-use crate::widgets::primitives::icon_menuitem::ViIconMenuItem;
+use crate::widgets::primitives::iconmenuitem::ViIconMenuItem;
 use appindicator3::Indicator;
 pub use appindicator3::IndicatorCategory;
 use appindicator3::IndicatorStatus;

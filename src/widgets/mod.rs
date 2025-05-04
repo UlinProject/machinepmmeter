@@ -6,8 +6,8 @@ use crate::widgets::primitives::graph::ViGraph;
 use crate::widgets::primitives::graph::ViGraphBackgroundSurface;
 use crate::widgets::primitives::graph::ViGraphSender;
 use crate::widgets::primitives::label::ViLabel;
-use crate::widgets::text_meter::ViTextMeter;
-use crate::widgets::text_meter::ViTextMeterSender;
+use crate::widgets::textmeter::ViTextMeter;
+use crate::widgets::textmeter::ViTextMeterSender;
 use gtk::Align;
 use gtk::Box;
 use gtk::ffi::GtkBox;
@@ -17,16 +17,16 @@ use std::ops::Deref;
 use std::rc::Rc;
 
 pub mod primitives {
-	pub mod color_block;
+	pub mod colorblock;
 	pub mod graph;
 	pub mod hotkeyitem;
-	pub mod icon_menuitem;
+	pub mod iconmenuitem;
 	pub mod label;
 }
 
 pub mod dock_head;
 pub mod hotkeys;
-pub mod text_meter;
+pub mod textmeter;
 
 #[repr(transparent)]
 #[derive(Debug)]

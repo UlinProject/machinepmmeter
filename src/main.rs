@@ -1,19 +1,19 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2025 Denis Kotlyarov (Денис Котляров) <denis2005991@gmail.com>
 
-use crate::app::about_dialog::AppAboutDialog;
+use crate::app::aboutdialog::AppAboutDialog;
 use crate::app::cli::AppCli;
 use crate::app::config::AppConfig;
-use crate::app::dock_window::{AppViDockWindow, PosINScreen};
+use crate::app::dockwindow::{AppViDockWindow, PosINScreen};
 use crate::app::events::{AppEventSender, AppEvents};
 use crate::app::keyboard::{AppKeyboardEvents, spawn_keyboard_thread};
-use crate::app::tray_menu::{AppTrayMenu, AppTrayMenuItem};
+use crate::app::traymenu::{AppTrayMenu, AppTrayMenuItem};
 use crate::core::display::ViGraphDisplayInfo;
 use crate::widgets::ViMeter;
 use crate::widgets::dock_head::ViDockHead;
 use crate::widgets::hotkeys::ViHotkeyItems;
 use crate::widgets::primitives::graph::ViGraphBackgroundSurface;
-use crate::widgets::primitives::icon_menuitem::ViIconMenuItem;
+use crate::widgets::primitives::iconmenuitem::ViIconMenuItem;
 use crate::widgets::primitives::label::ViLabel;
 use anyhow::anyhow;
 use anyhow::{Context, Result as anyhowResult};
@@ -51,13 +51,13 @@ mod core {
 }
 
 pub mod app {
-	pub mod about_dialog;
+	pub mod aboutdialog;
 	pub mod cli;
 	pub mod config;
-	pub mod dock_window;
+	pub mod dockwindow;
 	pub mod events;
 	pub mod keyboard;
-	pub mod tray_menu;
+	pub mod traymenu;
 }
 
 const APP_ID: &str = "com.ulinkot.machinepmmeter";

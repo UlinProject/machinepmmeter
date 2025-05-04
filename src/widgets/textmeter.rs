@@ -1,7 +1,7 @@
 use crate::{
 	__gen_transparent_gtk_type,
 	app::config::{ColorAppConfig, FontAppConfig},
-	widgets::primitives::{color_block::ViColorBlock, label::ViLabel},
+	widgets::primitives::{colorblock::ViColorBlock, label::ViLabel},
 };
 use gtk::{
 	Align, Box, Orientation,
