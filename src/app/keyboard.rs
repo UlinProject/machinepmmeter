@@ -56,7 +56,7 @@ pub fn spawn_keyboard_thread(esender: AppEventSender) {
 					(Some(left), Some(right)) => {
 						let left = left.is_pressed();
 						let right = right.is_pressed();
-						
+
 						if (left && !right) || (!left && right) {
 							let mut pressed_key = None;
 							for astate in sa_iter {
@@ -90,9 +90,11 @@ pub fn spawn_keyboard_thread(esender: AppEventSender) {
 					},
 					_ => {},
 				};
-			})).on_startup(|| {
+			}))
+			.on_startup(|| {
 				esender.keyboard_listener_enabled(true);
-			}).listen();
+			})
+			.listen();
 
 		if let Err(e) = keyboard_listener {
 			error!(

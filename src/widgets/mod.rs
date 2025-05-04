@@ -26,6 +26,7 @@ pub mod primitives {
 
 pub mod dockhead;
 pub mod hotkeys;
+pub mod notebook;
 pub mod textmeter;
 
 #[repr(transparent)]

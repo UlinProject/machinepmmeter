@@ -60,12 +60,7 @@ impl AppViDockWindow {
 		Self(window)
 	}
 
-	pub fn connect_transparent_background(
-		&self,
-
-		start_height: impl Maybe<f64>,
-		alpha: f64,
-	) {
+	pub fn connect_transparent_background(&self, start_height: impl Maybe<f64>, alpha: f64) {
 		let start_height = maybe!((start_height));
 		self.0.connect_draw(move |window, cr| {
 			let allocation = window.allocation();
@@ -74,7 +69,7 @@ impl AppViDockWindow {
 
 			cr.rectangle(
 				0.0,
-				0.0 +start_height,
+				0.0 + start_height,
 				allocation.width().into(),
 				allocation.height() as f64 - start_height,
 			);

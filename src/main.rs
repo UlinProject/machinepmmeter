@@ -12,6 +12,7 @@ use crate::core::display::ViGraphDisplayInfo;
 use crate::widgets::ViMeter;
 use crate::widgets::dockhead::ViDockHead;
 use crate::widgets::hotkeys::ViHotkeyItems;
+use crate::widgets::notebook::ViNotebook;
 use crate::widgets::primitives::graph::ViGraphBackgroundSurface;
 use crate::widgets::primitives::label::ViLabel;
 use anyhow::anyhow;
@@ -24,13 +25,11 @@ use gtk::gdk::{Monitor, Screen};
 use gtk::gio::prelude::ApplicationExtManual;
 use gtk::gio::traits::ApplicationExt;
 use gtk::glib::Cast;
-use gtk::pango::{Weight, WrapMode};
 use gtk::prelude::{NotebookExtManual, WidgetExt};
 use gtk::traits::{
 	BinExt, BoxExt, ContainerExt, CssProviderExt, GtkWindowExt, NotebookExt, ScrolledWindowExt,
-	StyleContextExt,
 };
-use gtk::{Align, Application, Notebook, ScrolledWindow};
+use gtk::{Align, Application, ScrolledWindow};
 use gtk::{Box as GtkBox, CssProvider};
 use lm_sensors::{LMSensors, SubFeatureRef};
 use log::{info, trace, warn};
@@ -175,448 +174,261 @@ fn build_ui(
 	vbox.set_valign(gtk::Align::Fill);
 	vbox.set_halign(gtk::Align::Baseline);
 
-	let notebook = {
-		let notebook = Notebook::new();
-		notebook.style_context().add_class("vinotebook");
-		notebook.connect_switch_page(
-			enc!((dock_window, c_display, pos_inscreen) move |notebook, _page, page_num| {
-				for i in 0..notebook.n_pages() {
-					if let Some(child) = notebook.nth_page(Some(i)) {
-						if let Some(tab_label) = notebook.tab_label(&child) {
-							if let Some(label) = tab_label.downcast_ref::<ViLabel>() {
-								let style = label.style_context();
+	let vinotebook = ViNotebook::new(c_display, &dock_window, &pos_inscreen);
+	vinotebook.append_page(
+		&**app_config,
+		"demo",
+		Some(
+			"Notice: This page does not contain any useful information and is for debugging purposes only.",
+		),
+		|vbox| {
+			{
+				let vimetr = ViMeter::new_visender(
+					app_config.clone(),
+					"# Demo (time: 80, value: 0.7)",
+					dock_window.allocation().width(),
+					200,
+					Some(vigraph_surface.clone()),
+					1.0,
+				);
+				vbox.pack_start(&*vimetr, false, false, 0);
+				glib::timeout_add_local(std::time::Duration::from_millis(80), move || {
+					vimetr.push_next_and_queue_draw(0.7, 0.7, 1.0, 0.0, 0.0);
 
-								if i != 0 && !style.has_class("notfirst_head_vinotebook") {
-									style.add_class("notfirst_head_vinotebook");
-								}
+					ControlFlow::Continue
+				});
+			}
+			{
+				let vimetr = ViMeter::new_visender(
+					app_config.clone(),
+					"# Demo (time: 10ms, step: 0.1)",
+					dock_window.allocation().width(),
+					200,
+					Some(vigraph_surface.clone()),
+					1.0,
+				);
+				let data = RefCell::new(0.0);
+				vbox.pack_start(&*vimetr, false, false, 0);
+				glib::timeout_add_local(std::time::Duration::from_millis(10), move || {
+					let mut w = RefCell::borrow_mut(&data);
+					vimetr.push_next_and_queue_draw(*w, *w, 1.0, 0.0, 0.0);
 
-								if i == page_num {
-									if !style.has_class("active_head_vinotebook") {
-										style.add_class("active_head_vinotebook");
-
-										label.read_text(|text| {
-											label.set_text(&format!("# {}", text));
-										});
-
-										if let Ok(scrolled_window) = child.downcast::<ScrolledWindow>() {
-											let height = if let Some(child) = scrolled_window.child() {
-												let (m, _) = child.preferred_size();
-												m.height
-											} else {
-												0
-											};
-
-											scrolled_window.set_hexpand(true);
-											scrolled_window.set_vexpand(true);
-											scrolled_window.set_size_request(-1, height);
-
-											scrolled_window.set_max_content_height(i32::MAX);
-										}
-									}
-									continue;
-								}
-
-								if style.has_class("active_head_vinotebook") {
-									style.remove_class("active_head_vinotebook");
-
-									label.read_text(|text| {
-										if let Some(next_text) = text.strip_prefix("# ") {
-											label.set_text(next_text);
-										}
-									});
-
-									if let Ok(scrolled_window) = child.downcast::<ScrolledWindow>() {
-										scrolled_window.set_hexpand(false);
-										scrolled_window.set_vexpand(false);
-										scrolled_window.set_size_request(-1, 1);
-										scrolled_window.set_max_content_height(1);
-									}
-								}
-							}
-						}
+					*w += 0.1;
+					if *w >= 1.0 {
+						*w = 0.0;
 					}
-				}
 
-				if let Some((window_width, height_window)) = dock_window.adjust_window_height() {
-					dock_window.set_pos_inscreen(&*c_display, window_width, height_window, *pos_inscreen.borrow());
-				}
-			}),
-		);
+					ControlFlow::Continue
+				});
+			}
+			{
+				let vimetr = ViMeter::new_visender(
+					app_config.clone(),
+					"# Demo (time: 1ms, step: 0.01)",
+					dock_window.allocation().width(),
+					200,
+					Some(vigraph_surface.clone()),
+					1.0,
+				);
+				let data = RefCell::new(0.0);
+				vbox.pack_start(&*vimetr, false, false, 0);
+				glib::timeout_add_local(std::time::Duration::from_millis(1), move || {
+					let mut w = RefCell::borrow_mut(&data);
+					vimetr.push_next_and_queue_draw(*w, *w, 1.0, 0.0, 0.0);
 
-		#[cfg(feature = "demo_mode")]
-		#[cfg_attr(docsrs, doc(cfg(feature = "demo_mode")))]
-		notebook.append_page(
-			&{
-				let vbox = GtkBox::new(gtk::Orientation::Vertical, 0);
-				vbox.style_context().add_class("vinotebookpage");
-				vbox.set_valign(gtk::Align::Fill);
-				vbox.set_halign(gtk::Align::Baseline);
+					*w += 0.01;
+					if *w >= 1.0 {
+						*w = 0.0;
+					}
 
-				{
-					let vimetr = ViMeter::new_visender(
-						app_config.clone(),
-						"# Demo (time: 80, value: 0.7)",
-						dock_window.allocation().width(),
-						200,
-						Some(vigraph_surface.clone()),
-						1.0,
-					);
-					vbox.pack_start(&*vimetr, false, false, 0);
-					glib::timeout_add_local(std::time::Duration::from_millis(80), move || {
-						vimetr.push_next_and_queue_draw(0.7, 0.7, 1.0, 0.0, 0.0);
+					ControlFlow::Continue
+				});
+			}
+			{
+				let vimetr = ViMeter::new_visender(
+					app_config.clone(),
+					"# Demo (time: 1ms, step: 0.001)",
+					dock_window.allocation().width(),
+					200,
+					Some(vigraph_surface.clone()),
+					1.0,
+				);
+				let data = RefCell::new(0.0);
+				vbox.pack_start(&*vimetr, false, false, 0);
+				glib::timeout_add_local(std::time::Duration::from_millis(1), move || {
+					let mut w = RefCell::borrow_mut(&data);
+					vimetr.push_next_and_queue_draw(*w, *w, 1.0, 0.0, 0.0);
 
-						ControlFlow::Continue
-					});
-				}
-				{
-					let vimetr = ViMeter::new_visender(
-						app_config.clone(),
-						"# Demo (time: 10ms, step: 0.1)",
-						dock_window.allocation().width(),
-						200,
-						Some(vigraph_surface.clone()),
-						1.0,
-					);
-					let data = RefCell::new(0.0);
-					vbox.pack_start(&*vimetr, false, false, 0);
-					glib::timeout_add_local(std::time::Duration::from_millis(10), move || {
-						let mut w = RefCell::borrow_mut(&data);
-						vimetr.push_next_and_queue_draw(*w, *w, 1.0, 0.0, 0.0);
+					*w += 0.001;
+					if *w >= 1.0 {
+						*w = 0.0;
+					}
 
-						*w += 0.1;
-						if *w >= 1.0 {
-							*w = 0.0;
-						}
+					ControlFlow::Continue
+				});
+			}
+		},
+	);
 
-						ControlFlow::Continue
-					});
-				}
-				{
-					let vimetr = ViMeter::new_visender(
-						app_config.clone(),
-						"# Demo (time: 1ms, step: 0.01)",
-						dock_window.allocation().width(),
-						200,
-						Some(vigraph_surface.clone()),
-						1.0,
-					);
-					let data = RefCell::new(0.0);
-					vbox.pack_start(&*vimetr, false, false, 0);
-					glib::timeout_add_local(std::time::Duration::from_millis(1), move || {
-						let mut w = RefCell::borrow_mut(&data);
-						vimetr.push_next_and_queue_draw(*w, *w, 1.0, 0.0, 0.0);
-
-						*w += 0.01;
-						if *w >= 1.0 {
-							*w = 0.0;
-						}
-
-						ControlFlow::Continue
-					});
-				}
-				{
-					let vimetr = ViMeter::new_visender(
-						app_config.clone(),
-						"# Demo (time: 1ms, step: 0.001)",
-						dock_window.allocation().width(),
-						200,
-						Some(vigraph_surface.clone()),
-						1.0,
-					);
-					let data = RefCell::new(0.0);
-					vbox.pack_start(&*vimetr, false, false, 0);
-					glib::timeout_add_local(std::time::Duration::from_millis(1), move || {
-						let mut w = RefCell::borrow_mut(&data);
-						vimetr.push_next_and_queue_draw(*w, *w, 1.0, 0.0, 0.0);
-
-						*w += 0.001;
-						if *w >= 1.0 {
-							*w = 0.0;
-						}
-
-						ControlFlow::Continue
-					});
-				}
-
-				vbox.pack_end(&ViLabel::new((), &**app_config, "Notice: This page does not contain any useful information and is for debugging purposes only.", Weight::Bold)
+	let sensors: LMSensors = lm_sensors::Initializer::default()
+		.initialize()
+		.map_err(|e| anyhow!("{:?}", e))
+		.unwrap(); // TODO REFACTORING ME!
+	vinotebook.append_page(
+		&**app_config,
+		"lm_sensors",
+		sensors
+			.version()
+			.map(|a| format!("Version: {}", a))
+			.as_deref(),
+		|vbox| {
+			for chip in sensors.chip_iter(None) {
+				vbox.pack_start(
+					&ViLabel::new(
+						"info_vitextmeter",
+						&**app_config,
+						&format!("# {} ({})", chip, chip.bus()),
+						(),
+					)
+					.set_margin_top(4)
 					.set_margin_start(4)
-					.set_margin_bottom(3)
-					.set_wrap(true)
-					.set_wrap_mode(WrapMode::Word)
-					.set_max_width_chars(45)
-					.set_align(Align::Center)
-					.connect_nonblack_background(0.0, 0.0, 0.0, 1.0), false, false, 0);
-				vbox.set_visible(true);
+					.set_margin_bottom(4)
+					.set_align(Align::Start)
+					.connect_nonblack_background(0.0, 0.0, 0.0, 1.0),
+					false,
+					false,
+					0,
+				);
 
-				let scrolled_window = ScrolledWindow::builder().build();
-				scrolled_window.set_policy(gtk::PolicyType::Never, gtk::PolicyType::Automatic);  // Disable horizontal scrolling
-				scrolled_window.set_hexpand(false);
-				scrolled_window.set_vexpand(false);
-				scrolled_window.set_size_request(-1, 1);
-				scrolled_window.set_max_content_height(1);
+				println!("{} ({})", chip, chip.bus());
 
-				scrolled_window.set_child(Some(&vbox));
-				scrolled_window.set_visible(true);
-				scrolled_window
-			},
-			Some(&ViLabel::new(
-				"head_vinotebook",
-				&**app_config,
-				"demo",
-				Weight::Bold,
-			)),
-		);
-		notebook.append_page(
-			&{
-				let vbox = GtkBox::new(gtk::Orientation::Vertical, 0);
-				vbox.style_context().add_class("vinotebookpage");
-				vbox.set_valign(gtk::Align::Fill);
-				vbox.set_halign(gtk::Align::Baseline);
+				// Print all features of the current chip.
+				for feature in chip.feature_iter() {
+					if let Some(name) = feature.name().transpose().unwrap() {
+						println!("    {}: {}", name, feature);
 
-				let sensors: LMSensors = lm_sensors::Initializer::default()
-					.initialize()
-					.map_err(|e| anyhow!("{:?}", e))
-					.unwrap(); // TODO REFACTORING ME?;
+						#[derive(Debug, Clone, Default)]
+						struct Value<'a> {
+							input: Option<(f64, Rc<SubFeatureRef<'a>>)>,
+							max: Option<(f64, Rc<SubFeatureRef<'a>>)>,
+							crit: Option<(f64, Rc<SubFeatureRef<'a>>)>,
+							high: Option<(f64, Rc<SubFeatureRef<'a>>)>,
+						}
 
-				for chip in sensors.chip_iter(None) {
-					vbox.pack_start(
-						&ViLabel::new(
-							"info_vitextmeter",
-							&**app_config,
-							&format!("# {} ({})", chip, chip.bus()),
-							(),
-						)
-						.set_margin_top(4)
-						.set_margin_start(4)
-						.set_margin_bottom(4)
-						.set_align(Align::Start)
-						.connect_nonblack_background(0.0, 0.0, 0.0, 1.0),
-						false,
-						false,
-						0,
-					);
-
-					println!("{} ({})", chip, chip.bus());
-
-					// Print all features of the current chip.
-					for feature in chip.feature_iter() {
-						if let Some(name) = feature.name().transpose().unwrap() {
-							println!("    {}: {}", name, feature);
-
-							#[derive(Debug, Clone, Default)]
-							struct Value<'a> {
-								input: Option<(f64, Rc<SubFeatureRef<'a>>)>,
-								max: Option<(f64, Rc<SubFeatureRef<'a>>)>,
-								crit: Option<(f64, Rc<SubFeatureRef<'a>>)>,
-								high: Option<(f64, Rc<SubFeatureRef<'a>>)>,
-							}
-
-							let mut c_value = Value::default();
-							for sub_feature in feature.sub_feature_iter() {
-								let sub_feature = Rc::new(sub_feature);
-								if let Some(Ok(name)) = sub_feature.name() {
-									if name.ends_with("input") {
-										if let Ok(value) = sub_feature.value() {
-											let v = value.raw_value();
-											if v != 0.0 && v < 65261.0 && v > -273.0 {
-												c_value.input = (v, sub_feature).into();
-											}
+						let mut c_value = Value::default();
+						for sub_feature in feature.sub_feature_iter() {
+							let sub_feature = Rc::new(sub_feature);
+							if let Some(Ok(name)) = sub_feature.name() {
+								if name.ends_with("input") {
+									if let Ok(value) = sub_feature.value() {
+										let v = value.raw_value();
+										if v != 0.0 && v < 65261.0 && v > -273.0 {
+											c_value.input = (v, sub_feature).into();
 										}
-									} else if name.ends_with("max") {
-										if let Ok(value) = sub_feature.value() {
-											let v = value.raw_value();
-											if v != 0.0 && v < 65261.0 && v > -273.0 {
-												c_value.max = (v, sub_feature).into();
-											}
+									}
+								} else if name.ends_with("max") {
+									if let Ok(value) = sub_feature.value() {
+										let v = value.raw_value();
+										if v != 0.0 && v < 65261.0 && v > -273.0 {
+											c_value.max = (v, sub_feature).into();
 										}
-									} else if name.ends_with("high") {
-										if let Ok(value) = sub_feature.value() {
-											let v = value.raw_value();
-											if v != 0.0 && v < 65261.0 && v > -273.0 {
-												c_value.high = (v, sub_feature).into();
-											}
+									}
+								} else if name.ends_with("high") {
+									if let Ok(value) = sub_feature.value() {
+										let v = value.raw_value();
+										if v != 0.0 && v < 65261.0 && v > -273.0 {
+											c_value.high = (v, sub_feature).into();
 										}
-									} else if name.ends_with("crit") {
-										if let Ok(value) = sub_feature.value() {
-											let v = value.raw_value();
-											if v != 0.0 && v < 65261.0 && v > -273.0 {
-												c_value.crit = (v, sub_feature).into();
-											}
+									}
+								} else if name.ends_with("crit") {
+									if let Ok(value) = sub_feature.value() {
+										let v = value.raw_value();
+										if v != 0.0 && v < 65261.0 && v > -273.0 {
+											c_value.crit = (v, sub_feature).into();
 										}
 									}
 								}
 							}
-							if c_value.input.is_some() {
-								let vimetr = ViMeter::new_visender(
-									app_config.clone(),
-									name,
-									dock_window.allocation().width(),
-									200,
-									Some(vigraph_surface.clone()),
-									1.0,
-								);
+						}
+						if c_value.input.is_some() {
+							let vimetr = ViMeter::new_visender(
+								app_config.clone(),
+								name,
+								dock_window.allocation().width(),
+								200,
+								Some(vigraph_surface.clone()),
+								1.0,
+							);
 
-								vbox.pack_start(&*vimetr, false, false, 0);
+							vbox.pack_start(&*vimetr, false, false, 0);
 
-								for _ in 0..400 {
-									if let Some((input, sub_in)) = &c_value.input {
-										if let Some((crit_or_max, sub_crit_or_max)) =
-											c_value.crit.as_ref().or(c_value.max.as_ref())
-										{
-											#[inline]
-											const fn map(
-												x: f64,
-												in_min: f64,
-												in_max: f64,
-												out_min: f64,
-												out_max: f64,
-											) -> f64 {
-												(x - in_min) * (out_max - out_min)
-													/ (in_max - in_min) + out_min
-											}
-
-											let v = sub_in.raw_value().unwrap();
-											let graph = map(v, 0.0, *crit_or_max, 0.0, 1.0);
-											vimetr.push_next_and_queue_draw(
-												v,
-												graph,
-												*crit_or_max,
-												*crit_or_max,
-												0.0,
-											);
-										} else {
-											vimetr.push_next_and_queue_draw(
-												sub_in.raw_value().unwrap(),
-												(),
-												(),
-												0.0,
-												0.0,
-											);
+							for _ in 0..400 {
+								if let Some((input, sub_in)) = &c_value.input {
+									if let Some((crit_or_max, sub_crit_or_max)) =
+										c_value.crit.as_ref().or(c_value.max.as_ref())
+									{
+										#[inline]
+										const fn map(
+											x: f64,
+											in_min: f64,
+											in_max: f64,
+											out_min: f64,
+											out_max: f64,
+										) -> f64 {
+											(x - in_min) * (out_max - out_min) / (in_max - in_min)
+												+ out_min
 										}
+
+										let v = sub_in.raw_value().unwrap();
+										let graph = map(v, 0.0, *crit_or_max, 0.0, 1.0);
+										vimetr.push_next_and_queue_draw(
+											v,
+											graph,
+											*crit_or_max,
+											*crit_or_max,
+											0.0,
+										);
+									} else {
+										vimetr.push_next_and_queue_draw(
+											sub_in.raw_value().unwrap(),
+											(),
+											(),
+											0.0,
+											0.0,
+										);
 									}
-									//std::thread::sleep_ms(1);
 								}
+								//std::thread::sleep_ms(1);
 							}
 						}
 					}
 				}
-
-				if let Some(version) = sensors.version() {
-					vbox.pack_end(
-						&ViLabel::new(
-							(),
-							&**app_config,
-							&format!("Version: {}", version),
-							Weight::Bold,
-						)
-						.set_margin_start(4)
-						.set_margin_bottom(4)
-						.set_wrap(true)
-						.set_wrap_mode(WrapMode::Word)
-						.set_max_width_chars(45)
-						.set_align(Align::Center)
-						.connect_nonblack_background(0.0, 0.0, 0.0, 1.0),
-						false,
-						false,
-						0,
-					);
-				}
-				vbox.set_visible(true);
-				let scrolled_window = ScrolledWindow::builder().build();
-				scrolled_window.set_policy(gtk::PolicyType::Never, gtk::PolicyType::Automatic); // Disable horizontal scrolling
-				scrolled_window.set_hexpand(false);
-				scrolled_window.set_vexpand(false);
-				scrolled_window.set_size_request(-1, 1);
-				scrolled_window.set_max_content_height(1);
-
-				scrolled_window.set_child(Some(&vbox));
-				scrolled_window.set_visible(true);
-				scrolled_window
-			},
-			Some(&ViLabel::new(
-				"head_vinotebook",
-				&**app_config,
-				"lm_sensors",
-				Weight::Bold,
-			)),
-		);
-
-		notebook.append_page(
-			&{
-				let vbox = GtkBox::new(gtk::Orientation::Vertical, 0);
-				vbox.style_context().add_class("vinotebookpage");
-				vbox.set_valign(gtk::Align::Fill);
-				vbox.set_halign(gtk::Align::Baseline);
-
-				let scrolled_window = ScrolledWindow::builder().build();
-				scrolled_window.set_policy(gtk::PolicyType::Never, gtk::PolicyType::Automatic);
-				scrolled_window.set_hexpand(false);
-				scrolled_window.set_vexpand(false);
-				scrolled_window.set_size_request(-1, 50);
-				scrolled_window.set_max_content_height(50);
-
-				scrolled_window.set_child(Some(&vbox));
-				vbox.set_visible(true);
-				scrolled_window.set_visible(true);
-				scrolled_window
-			},
-			Some(&ViLabel::new(
-				"head_vinotebook",
-				&**app_config,
-				"test",
-				Weight::Bold,
-			)),
-		);
-
-		for i in 1..notebook.n_pages() {
-			if let Some(child) = notebook.nth_page(Some(i)) {
-				if let Some(tab_label) = notebook.tab_label(&child) {
-					if let Some(label) = tab_label.downcast_ref::<ViLabel>() {
-						let style = label.style_context();
-						if !style.has_class("notfirst_head_vinotebook") {
-							style.add_class("notfirst_head_vinotebook");
-						}
-					}
-				}
 			}
-		}
+		},
+	);
 
-		if let Some(child) = notebook.nth_page(Some(0)) {
-			if let Some(tab_label) = notebook.tab_label(&child) {
-				if let Some(label) = tab_label.downcast_ref::<ViLabel>() {
-					label.style_context().add_class("first_head_vinotebook");
-				}
-			}
-		}
-
-		vbox.pack_start(&notebook, true, true, 0);
-		notebook.set_visible(true);
-
-		notebook
-	};
-	
 	if let Some(level) = app_config.get_window_app_config().get_transparent() {
 		if level != 1.0 {
 			match c_display.screen_rgba_visual() {
 				Some(visual) => {
 					dock_window.set_visual(Some(&visual));
-					
+
 					let mut is_connected_notepadlabelrealized = false;
-					if let Some(child) = notebook.nth_page(Some(0)) {
-						if let Some(tab_label) = notebook.tab_label(&child) {
+					if let Some(child) = vinotebook.nth_page(Some(0)) {
+						if let Some(tab_label) = vinotebook.tab_label(&child) {
 							tab_label.connect_realize(enc!((dock_window) move |tab_label| {
 								let notebook_labelheight = tab_label.allocated_height();
-								
+
 								dock_window.connect_transparent_background(notebook_labelheight as f64, level);
 							}));
 							is_connected_notepadlabelrealized = true;
 						}
 					}
-					
+
 					if !is_connected_notepadlabelrealized {
 						dock_window.connect_transparent_background(30.0, level);
 					}
-				},
+				}
 				None => {
 					warn!("#[gui] Transparency was expected, but the system does not support it");
 				}
@@ -624,6 +436,7 @@ fn build_ui(
 		}
 	}
 
+	vbox.pack_start(&vinotebook, true, true, 0);
 	vbox.pack_end(
 		&ViDockHead::new(app_config.clone(), name_window, UPPERCASE_PKG_VERSION, 1.0),
 		true,
@@ -637,10 +450,10 @@ fn build_ui(
 	spawn_keyboard_thread(esender);
 
 	dock_window.connect_show(
-		enc!((pos_inscreen, c_display, dock_window, notebook) move |_| {
+		enc!((pos_inscreen, c_display, dock_window, vinotebook) move |_| {
 			trace!("connect_show: ");
-			if let Some(c_page) = notebook.current_page() {
-				if let Some(child) = notebook.nth_page(Some(c_page)) {
+			if let Some(c_page) = vinotebook.current_page() {
+				if let Some(child) = vinotebook.nth_page(Some(c_page)) {
 					if let Ok(scrolled_window) = child.downcast::<ScrolledWindow>() {
 						let height = if let Some(child) = scrolled_window.child() {
 							let (m, _) = child.preferred_size();
@@ -693,32 +506,32 @@ fn build_ui(
 			let mut wdock_vihotkey = None;
 			while let Ok(event) = receiver.recv().await {
 				match event {
-					AppEvents::Keyboard(AppKeyboardEvents::Num1) => notebook.set_page(0),
-					AppEvents::Keyboard(AppKeyboardEvents::Num2) => notebook.set_page(1),
-					AppEvents::Keyboard(AppKeyboardEvents::Num3) => notebook.set_page(2),
-					AppEvents::Keyboard(AppKeyboardEvents::Num4) => notebook.set_page(3),
-					AppEvents::Keyboard(AppKeyboardEvents::Num5) => notebook.set_page(4),
-					AppEvents::Keyboard(AppKeyboardEvents::Num6) => notebook.set_page(5),
-					AppEvents::Keyboard(AppKeyboardEvents::Num7) => notebook.set_page(6),
-					AppEvents::Keyboard(AppKeyboardEvents::Num8) => notebook.set_page(7),
-					AppEvents::Keyboard(AppKeyboardEvents::Num9) => notebook.set_page(8),
+					AppEvents::Keyboard(AppKeyboardEvents::Num1) => vinotebook.set_page(0),
+					AppEvents::Keyboard(AppKeyboardEvents::Num2) => vinotebook.set_page(1),
+					AppEvents::Keyboard(AppKeyboardEvents::Num3) => vinotebook.set_page(2),
+					AppEvents::Keyboard(AppKeyboardEvents::Num4) => vinotebook.set_page(3),
+					AppEvents::Keyboard(AppKeyboardEvents::Num5) => vinotebook.set_page(4),
+					AppEvents::Keyboard(AppKeyboardEvents::Num6) => vinotebook.set_page(5),
+					AppEvents::Keyboard(AppKeyboardEvents::Num7) => vinotebook.set_page(6),
+					AppEvents::Keyboard(AppKeyboardEvents::Num8) => vinotebook.set_page(7),
+					AppEvents::Keyboard(AppKeyboardEvents::Num9) => vinotebook.set_page(8),
 					AppEvents::MoveTabToPrevPosition | AppEvents::Keyboard(AppKeyboardEvents::KeyA) => {
-						let mut a_page = notebook.current_page().unwrap_or(1);
+						let mut a_page = vinotebook.current_page().unwrap_or(1);
 						if a_page == 0 {
-							a_page = notebook.n_pages() - 1;
+							a_page = vinotebook.n_pages() - 1;
 						}else {
 							a_page -= 1;
 						}
 
-						notebook.set_page(a_page as _);
+						vinotebook.set_page(a_page as _);
 					},
 					AppEvents::MoveTabToNextPosition | AppEvents::Keyboard(AppKeyboardEvents::KeyD) => {
-						let mut a_page = notebook.current_page().unwrap_or(0) + 1;
-						if a_page >= notebook.n_pages() {
+						let mut a_page = vinotebook.current_page().unwrap_or(0) + 1;
+						if a_page >= vinotebook.n_pages() {
 							a_page = 0;
 						}
 
-						notebook.set_page(a_page as _);
+						vinotebook.set_page(a_page as _);
 					},
 					AppEvents::ToggleDockWindowVisibility | AppEvents::Keyboard(AppKeyboardEvents::ShiftF8) if dock_window.is_visible() => {
 						dock_window.hide();
