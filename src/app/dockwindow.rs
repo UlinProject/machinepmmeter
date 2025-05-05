@@ -160,8 +160,8 @@ pub enum PosINScreen {
 	Center = 4,
 	BottomCenter = 5,
 
-	#[default]
 	TopRight = 6,
+	#[default]
 	RightCenter = 7,
 	BottomRight = 8,
 }
