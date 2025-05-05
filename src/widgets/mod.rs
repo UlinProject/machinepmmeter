@@ -5,6 +5,7 @@ use crate::maybe;
 use crate::widgets::primitives::graph::ViGraph;
 use crate::widgets::primitives::graph::ViGraphBackgroundSurface;
 use crate::widgets::primitives::graph::ViGraphSender;
+use crate::widgets::primitives::graph::ViGraphStream;
 use crate::widgets::primitives::label::ViLabel;
 use crate::widgets::textmeter::ViTextMeter;
 use crate::widgets::textmeter::ViTextMeterSender;
@@ -49,14 +50,17 @@ __gen_transparent_gtk_type! {
 }
 
 impl ViMeter {
-	pub fn new_visender<'a>(
+	pub fn new_visender<'a, S>(
 		app_config: Rc<AppConfig>,
 		head: impl Maybe<&'a str>,
 		width: i32,
-		len: usize,
+		stream: S,
 		general_background_surface: Option<ViGraphBackgroundSurface>,
 		transparent: f64,
-	) -> ViMeterSender {
+	) -> ViMeterSender<S>
+	where
+		S: ViGraphStream,
+	{
 		let vbox = Box::new(gtk::Orientation::Vertical, 0);
 
 		maybe!((head)
@@ -79,10 +83,10 @@ impl ViMeter {
 
 		let graphsender = ViGraph::new_graphsender(
 			app_config.clone(),
+			stream,
 			general_background_surface,
 			width,
 			42,
-			len,
 			transparent,
 		);
 		graphsender.set_margin_bottom(6);
@@ -99,14 +103,58 @@ impl ViMeter {
 }
 
 #[allow(dead_code)]
-pub struct ViMeterSender {
+pub struct ViMeterSender<S>
+where
+	S: ViGraphStream,
+{
 	app_config: Rc<AppConfig>,
 	color_and_text: ViTextMeterSender,
-	graph: ViGraphSender,
+	graph: ViGraphSender<S>,
 	meter: ViMeter,
 }
 
-impl ViMeterSender {
+impl<S> ViMeterSender<S>
+where
+	S: ViGraphStream,
+{
+	pub fn set_visible_graph(&self, vi: bool) -> bool {
+		if self.graph.is_visible() != vi {
+			self.graph.set_visible(vi);
+			match vi {
+				true => {
+					self.color_and_text.set_margin_bottom2(0);
+				},
+				false => {
+					self.color_and_text.set_margin_bottom2(6);
+				},
+			}
+			
+			return true;
+		}
+		
+		false
+	}
+	
+	pub fn set_visible_limit(&self, vi: bool) -> bool {
+		if self.color_and_text.is_visible_limit() != vi {
+			self.color_and_text.set_visible_limit(true);
+			
+			return true;
+		}
+		
+		false
+	}
+	
+	#[inline]
+	pub fn set_current_and_queue_draw(&self, v: &str) {
+		self.color_and_text.set_current_and_queue_draw(v);
+	}
+	
+	#[inline]
+	pub fn set_limit_and_queue_draw(&self, v: &str) {
+		self.color_and_text.set_limit_and_queue_draw(v);
+	}
+	
 	pub fn push_next_and_queue_draw(
 		&self,
 		current: f64,
@@ -116,16 +164,10 @@ impl ViMeterSender {
 		l_orange: f64,
 	) {
 		maybe!((graph_v) {
-			if !self.graph.is_visible() {
-				self.graph.set_visible(true);
-				self.color_and_text.set_margin_bottom2(0);
-			}
+			self.set_visible_graph(true);
 			self.graph.push_next(graph_v);
 		}else {
-			if self.graph.is_visible() {
-				self.graph.set_visible(false);
-				self.color_and_text.set_margin_bottom2(6);
-			}
+			self.set_visible_graph(false);
 		});
 
 		{
@@ -147,23 +189,27 @@ impl ViMeterSender {
 		self.color_and_text
 			.set_avg_and_queue_draw(&current.to_string()); // TODO REFACTOING ME
 		maybe!((limit) {
-			if !self.color_and_text.is_visible_limit() {
-				self.color_and_text.set_visible_limit(true);
-			}
+			self.set_visible_limit(true);
 			self.color_and_text
 					.set_limit_and_queue_draw(&limit.to_string()); // TODO REFACTOING ME
 		} else {
-			if self.color_and_text.is_visible_limit() {
-				self.color_and_text.set_visible_limit(false);
-			}
+			self.set_visible_limit(false);
 		});
 		self.color_and_text.set_visible_avg(false);
 
+		ViMeterSender::queue_draw(self);
+	}
+
+	#[inline]
+	pub fn queue_draw(&self) {
 		self.graph.queue_draw();
 	}
 }
 
-impl Deref for ViMeterSender {
+impl<S> Deref for ViMeterSender<S>
+where
+	S: ViGraphStream,
+{
 	type Target = ViMeter;
 
 	fn deref(&self) -> &Self::Target {

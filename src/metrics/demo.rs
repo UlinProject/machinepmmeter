@@ -2,6 +2,8 @@ use crate::app::config::AppConfig;
 use crate::widgets::ViMeter;
 use crate::widgets::notebook::ViNotebook;
 use crate::widgets::primitives::graph::ViGraphBackgroundSurface;
+use crate::widgets::primitives::graph::ViGraphRcStream;
+use crate::widgets::primitives::graph::ViGraphStream;
 use glib::ControlFlow;
 use gtk::traits::BoxExt;
 use std::cell::RefCell;
@@ -11,6 +13,7 @@ pub fn vinotebook_append_page(
 	app_config: &Rc<AppConfig>,
 	vigraph_surface: &ViGraphBackgroundSurface,
 	width: i32,
+	len: usize,
 	vinotebook: &ViNotebook,
 ) {
 	let vbox = vinotebook.append_page(
@@ -25,7 +28,7 @@ pub fn vinotebook_append_page(
 			app_config.clone(),
 			"# Demo (time: 80, value: 0.7)",
 			width,
-			200,
+			ViGraphRcStream::with_len(len),
 			Some(vigraph_surface.clone()),
 			1.0,
 		);
@@ -41,7 +44,7 @@ pub fn vinotebook_append_page(
 			app_config.clone(),
 			"# Demo (time: 10ms, step: 0.1)",
 			width,
-			200,
+			ViGraphRcStream::with_len(len),
 			Some(vigraph_surface.clone()),
 			1.0,
 		);
@@ -64,7 +67,7 @@ pub fn vinotebook_append_page(
 			app_config.clone(),
 			"# Demo (time: 1ms, step: 0.01)",
 			width,
-			200,
+			ViGraphRcStream::with_len(len),
 			Some(vigraph_surface.clone()),
 			1.0,
 		);
@@ -87,7 +90,7 @@ pub fn vinotebook_append_page(
 			app_config.clone(),
 			"# Demo (time: 1ms, step: 0.001)",
 			width,
-			200,
+			ViGraphRcStream::with_len(len),
 			Some(vigraph_surface.clone()),
 			1.0,
 		);

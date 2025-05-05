@@ -8,10 +8,13 @@ use gtk::cairo::Context;
 use gtk::cairo::ImageSurface;
 use gtk::ffi::GtkDrawingArea;
 use gtk::traits::WidgetExt;
+use log::warn;
 use std::cell::RefCell;
 use std::collections::VecDeque;
 use std::ops::Deref;
 use std::rc::Rc;
+use std::sync::Arc;
+use std::sync::Mutex;
 
 #[repr(transparent)]
 #[derive(Debug)]
@@ -51,28 +54,110 @@ impl ViGraphData {
 	}
 
 	#[inline]
+	pub fn len(&self) -> usize {
+		self.0.len()
+	}
+
+	#[inline]
 	pub fn iter(&self) -> impl Iterator<Item = &f64> {
 		self.0.iter()
 	}
 
 	#[inline]
-	pub fn push_next(&mut self, v: f64) {
+	pub fn push_next(&mut self, mut v: f64) {
+		if !(0.0..=1.0).contains(&v) {
+			warn!("#[ViGraphData, push_next] Very strange {}f for a graph.", v);
+
+			v = v.clamp(0.0, 1.0);
+		}
+
 		self.0.pop_front();
 		self.0.push_back(v);
 	}
 }
 
+pub trait ViGraphStream: Clone + 'static {
+	fn with_len(len: usize) -> Self;
+
+	fn read<R>(&self, read: impl FnMut(&ViGraphData) -> R) -> R;
+	fn write<R>(&self, write: impl FnMut(&mut ViGraphData) -> R) -> R;
+	fn push_next(&self, v: f64);
+}
+
+pub type ViGraphRcStream = Rc<RefCell<ViGraphData>>;
+impl ViGraphStream for ViGraphRcStream {
+	#[inline]
+	fn with_len(len: usize) -> Self {
+		Rc::new(RefCell::new(ViGraphData::with_len(len)))
+	}
+
+	fn write<R>(&self, mut write: impl FnMut(&mut ViGraphData) -> R) -> R {
+		let mut w = RefCell::borrow_mut(self);
+
+		write(&mut w)
+	}
+
+	fn read<R>(&self, mut read: impl FnMut(&ViGraphData) -> R) -> R {
+		let rdata = RefCell::borrow(self);
+
+		read(&rdata)
+	}
+
+	fn push_next(&self, v: f64) {
+		let mut w = RefCell::borrow_mut(self);
+
+		w.push_next(v);
+	}
+}
+
+pub type ViGraphArcStream = Arc<Mutex<ViGraphData>>;
+impl ViGraphStream for ViGraphArcStream {
+	#[inline]
+	fn with_len(len: usize) -> Self {
+		Arc::new(Mutex::new(ViGraphData::with_len(len)))
+	}
+
+	fn read<R>(&self, mut read: impl FnMut(&ViGraphData) -> R) -> R {
+		let rdata = match Mutex::try_lock(self) {
+			Ok(a) => a,
+			Err(_) => {
+				warn!(
+					"#[ViGraphStream, read] Fix the timings, rendering is requested at the moment of filling the data."
+				);
+
+				self.lock().unwrap_or_else(|e| e.into_inner())
+			} // always Err(TryLockError::WouldBlock)
+		};
+
+		read(&rdata)
+	}
+
+	fn write<R>(&self, mut write: impl FnMut(&mut ViGraphData) -> R) -> R {
+		let mut w = self.lock().unwrap_or_else(|e| e.into_inner());
+
+		write(&mut w)
+	}
+
+	fn push_next(&self, v: f64) {
+		let mut w = self.lock().unwrap_or_else(|e| e.into_inner());
+
+		w.push_next(v);
+	}
+}
+
 impl ViGraph {
-	pub fn new_graphsender(
+	pub fn new_graphsender<S>(
 		app_config: Rc<AppConfig>,
 
+		stream: S,
 		general_background_surface: Option<ViGraphBackgroundSurface>,
 		width: i32,
 		height: i32,
-		len: usize,
 		transparent: f64,
-	) -> ViGraphSender {
-		let rc_data = Rc::new(RefCell::new(ViGraphData::with_len(len)));
+	) -> ViGraphSender<S>
+	where
+		S: ViGraphStream,
+	{
 		let cache_surface = Rc::new(RefCell::new(ViGraphCachedSurface::empty()));
 
 		let graph_area = DrawingArea::new();
@@ -94,7 +179,7 @@ impl ViGraph {
 		}
 
 		graph_area.connect_draw(
-			enc!((rc_data, background_surface, app_config, cache_surface) move |da, in_cr| {
+			enc!((stream, background_surface, app_config, cache_surface) move |da, in_cr| {
 				let (width, height) = {
 					let allocation = da.allocation();
 
@@ -131,64 +216,65 @@ impl ViGraph {
 								let _e = cr.fill();
 							}
 
-							let data = RefCell::borrow(&rc_data);
-							let (width, height): (f64, f64) = (width.into(), height.into());
-							let (r, g, b, transparent) = {
-								let color_config = app_config.get_color_app_config();
-								let a_forcolor = data.back().copied().unwrap_or_default();
+							stream.read(|data| {
+								let (width, height): (f64, f64) = (width.into(), height.into());
+								let (r, g, b, transparent) = {
+									let color_config = app_config.get_color_app_config();
 
-								match data.back() {
-									Some(aback) => {
-										if aback >= 0.85 {
-											color_config.red().into_rgba(transparent)
-										} else if aback >= 0.75 {
-											color_config.orange().into_rgba(transparent)
-										} else {
-											color_config.green().into_rgba(transparent)
+									match data.back() {
+										Some(aback) => {
+											if aback >= 0.85 {
+												color_config.red().into_rgba(transparent)
+											} else if aback >= 0.75 {
+												color_config.orange().into_rgba(transparent)
+											} else {
+												color_config.green().into_rgba(transparent)
+											}
+										}
+										None => color_config.green().into_rgba(transparent)
+									}
+								};
+
+								let x_step = width / (data.len() - 1) as f64;
+								#[cfg(feature = "graph-shadows")]
+								#[cfg_attr(docsrs, doc(cfg(feature = "graph-shadows")))]
+								{// shadow
+									let (sr, sg, sb, st): (f64, f64, f64, f64) = (0.8, 0.8, 0.8, 0.2);
+									let yoffset = 1.0;
+									let width = 3.8;
+									if let Some(first_a) = data.front() {
+										cr.move_to(0.0, height * (1.0 - first_a) + yoffset);
+										cr.set_source_rgba(sr, sg, sb, st);
+										cr.set_line_width(width);
+
+										for (i, a) in data.iter().enumerate() {
+											let x = (i + 1) as f64 * x_step;
+											let y = height * (1.0 - a) + yoffset;
+
+											cr.line_to(x, y);
 										}
 									}
-									None => color_config.green().into_rgba(transparent)
+									let _e = cr.stroke();
 								}
-							};
 
-							let x_step = width / (len - 1) as f64;
-							#[cfg(feature = "graph-shadows")]
-							#[cfg_attr(docsrs, doc(cfg(feature = "graph-shadows")))]
-							{// shadow
-								let (sr, sg, sb, st): (f64, f64, f64, f64) = (0.8, 0.8, 0.8, 0.2);
-								let yoffset = 1.0;
-								let width = 3.8;
 								if let Some(first_a) = data.front() {
-									cr.move_to(0.0, height * (1.0 - first_a) + yoffset);
-									cr.set_source_rgba(sr, sg, sb, st);
-									cr.set_line_width(width);
+									cr.move_to(0.0, height * (1.0 - first_a));
+									cr.set_source_rgba(r, g, b, transparent);
+									cr.set_line_width(1.5);
 
 									for (i, a) in data.iter().enumerate() {
 										let x = (i + 1) as f64 * x_step;
-										let y = height * (1.0 - a) + yoffset;
+										let y = height * (1.0 - a);
 
 										cr.line_to(x, y);
 									}
 								}
 								let _e = cr.stroke();
-							}
 
-							if let Some(first_a) = data.front() {
-								cr.move_to(0.0, height * (1.0 - first_a));
-								cr.set_source_rgba(r, g, b, transparent);
-								cr.set_line_width(1.5);
+								let _e = in_cr.set_source_surface(cache_surface, 0.0, 0.0);
+								let _e = in_cr.paint();
+							});
 
-								for (i, a) in data.iter().enumerate() {
-									let x = (i + 1) as f64 * x_step;
-									let y = height * (1.0 - a);
-
-									cr.line_to(x, y);
-								}
-							}
-							let _e = cr.stroke();
-
-							let _e = in_cr.set_source_surface(cache_surface, 0.0, 0.0);
-							let _e = in_cr.paint();
 						}
 
 						Ok(false.into())
@@ -201,20 +287,26 @@ impl ViGraph {
 		);
 
 		ViGraphSender {
-			data: rc_data,
+			stream,
 			cache_surface,
 			vi: Self(graph_area),
 		}
 	}
 }
 
-pub struct ViGraphSender {
-	data: Rc<RefCell<ViGraphData>>,
+pub struct ViGraphSender<S>
+where
+	S: ViGraphStream,
+{
+	stream: S,
 	cache_surface: Rc<RefCell<ViGraphCachedSurface>>,
 	vi: ViGraph,
 }
 
-impl Deref for ViGraphSender {
+impl<S> Deref for ViGraphSender<S>
+where
+	S: ViGraphStream,
+{
 	type Target = ViGraph;
 
 	fn deref(&self) -> &Self::Target {
@@ -222,17 +314,19 @@ impl Deref for ViGraphSender {
 	}
 }
 
-impl ViGraphSender {
+impl<S> ViGraphSender<S>
+where
+	S: ViGraphStream,
+{
 	pub fn push_next_and_queue_draw(&self, v: f64) {
 		self.push_next(v);
 
 		ViGraphSender::queue_draw(self);
 	}
 
+	#[inline]
 	pub fn push_next(&self, v: f64) {
-		let mut lock = RefCell::borrow_mut(&self.data);
-
-		lock.push_next(v);
+		self.stream.push_next(v);
 	}
 
 	#[inline]

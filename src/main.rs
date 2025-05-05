@@ -30,7 +30,9 @@ use gtk::{Box as GtkBox, CssProvider};
 use log::{info, trace, warn};
 use std::cell::RefCell;
 use std::io::{Write, stderr};
+use std::num::NonZero;
 use std::rc::Rc;
+use std::time::Duration;
 use std::{fs, panic};
 
 mod widgets;
@@ -183,14 +185,20 @@ fn build_ui(
 			app_config,
 			&vigraph_surface,
 			dock_window.allocation().width(),
+			200,
 			&vinotebook,
 		);
 	}
 
 	{
-		crate::metrics::lm_sensors::vinotebook_append_page(app_config,
+		crate::metrics::lm_sensors::vinotebook_append_page(
+			app_config,
 			&vigraph_surface,
 			dock_window.allocation().width(),
+			2400,
+			Duration::from_millis(12),
+			unsafe { NonZero::new_unchecked(10) },
+			Duration::from_millis(1),
 			&vinotebook,
 		);
 	}
