@@ -101,6 +101,8 @@ fn main() -> anyhowResult<()> {
 		std::process::exit(-1);
 	}));
 
+	#[cfg(feature = "no-gui-root")]
+	#[cfg_attr(docsrs, doc(cfg(feature = "no-gui-root")))]
 	if unsafe { libc::getuid() == 0 } {
 		panic!("Do not run graphical applications with root user rights.");
 	}

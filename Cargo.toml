@@ -35,9 +35,10 @@ all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
-default = [ "x11_keyboard", "graph-background-cache", "graph-shadows", "jemalloc" ]
+default = [ "x11_keyboard", "graph-background-cache", "graph-shadows", "no-gui-root", "jemalloc" ]
 x11_keyboard = [ "x11", "libc" ]
 demo_mode = []
+no-gui-root = [ "libc" ]
 graph-background-cache = []
 graph-shadows = []
 jemalloc = [ "jemallocator" ]
