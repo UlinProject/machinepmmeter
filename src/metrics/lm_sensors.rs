@@ -20,6 +20,7 @@ use std::sync::Arc;
 use std::sync::Barrier;
 use std::sync::OnceLock;
 use std::time::Duration;
+use std::fmt::Write;
 
 #[repr(transparent)]
 #[derive(Debug)]
@@ -406,11 +407,20 @@ pub fn vinotebook_append_page(
 			
 			glib::MainContext::default().spawn_local(
 				enc!((item.recv => item) async move {
+					let mut f64buff = String::new();
 					while let Ok(event) = item.recv().await {
 						match event {
 							LmEvents::QueueDraw(current, max) => {
-								vimetr.set_current_and_queue_draw(&current.to_string()); // todo refactoring me
-								vimetr.set_limit_and_queue_draw(&max.to_string()); // todo refactoring me
+								{
+									let _e = write!(&mut f64buff, "{}", current);
+									vimetr.set_current_and_queue_draw(&f64buff);
+									f64buff.clear();
+								}
+								{
+									let _e = write!(&mut f64buff, "{}", max);
+									vimetr.set_limit_and_queue_draw(&f64buff);
+									f64buff.clear();
+								}
 								vimetr.queue_draw();
 							},
 						}
