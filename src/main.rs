@@ -247,7 +247,7 @@ fn build_ui(
 
 	vbox.pack_start(&vinotebook, true, true, 0);
 	vbox.pack_end(
-		&ViDockHead::new(app_config.clone(), name_window, UPPERCASE_PKG_VERSION, 1.0),
+		&ViDockHead::new(app_config, name_window, UPPERCASE_PKG_VERSION, 1.0),
 		true,
 		true,
 		0,

@@ -2,7 +2,7 @@ use x11::xrecord;
 
 use crate::core::keyboard::ButtonState;
 use crate::core::keyboard::key::Key;
-use crate::core::keyboard::x11::datacontaier::SafeDropExterDataContainer;
+use crate::core::keyboard::x11::datacontaier::SafeDropExternDataContainer;
 use crate::core::keyboard::x11::display::XDisplay;
 use std::num::NonZeroI32;
 use std::os::raw::c_char;
@@ -52,7 +52,7 @@ impl<'display> XRecordContext<'display> {
 	pub fn enable<'context>(
 		&'context mut self,
 		data_ptr: Option<
-			&mut SafeDropExterDataContainer<
+			&mut SafeDropExternDataContainer<
 				Box<dyn FnMut(Key, ButtonState) + Sync + Send + 'static>,
 			>,
 		>,

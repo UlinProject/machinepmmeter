@@ -32,7 +32,7 @@ __gen_transparent_gtk_type! {
 
 impl ViDockHead {
 	pub fn new<'a, 'b>(
-		app_config: Rc<AppConfig>,
+		app_config: &Rc<AppConfig>,
 
 		value: &'a str,
 		version: impl Maybe<&'b str>,
@@ -122,7 +122,7 @@ impl ViDockHead {
 		}));
 
 		head.pack_start(
-			&ViLabel::new("namehead_vilabel", &*app_config, value, ())
+			&ViLabel::new("namehead_vilabel", &**app_config, value, ())
 				.set_align(Align::Start)
 				.set_margin_start(4)
 				.set_margin_top(2),
@@ -133,7 +133,7 @@ impl ViDockHead {
 
 		maybe!((version) {
 			head.pack_end(
-				&ViLabel::new("versionhead_vilabel", &*app_config, version, ())
+				&ViLabel::new("versionhead_vilabel", &**app_config, version, ())
 				.set_align(Align::End)
 				.set_margin_end(2)
 				.set_margin_top(2),

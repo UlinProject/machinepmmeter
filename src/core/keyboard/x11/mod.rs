@@ -1,6 +1,6 @@
 use crate::core::keyboard::ButtonState;
 use crate::core::keyboard::key::Key;
-use crate::core::keyboard::x11::datacontaier::{ExterDataContainer, SafeDropExterDataContainer};
+use crate::core::keyboard::x11::datacontaier::{ExterDataContainer, SafeDropExternDataContainer};
 use crate::core::keyboard::x11::display::XDisplay;
 use crate::core::keyboard::x11::record::interdata::XRecordInterceptData;
 use crate::core::keyboard::x11::record::range::XRecordRange;
@@ -32,7 +32,7 @@ pub fn xlib(
 		.init_exeption(exception)
 		.map_err(XLibListenError::InitException)?;
 
-	let mut extern_data_container: SafeDropExterDataContainer<
+	let mut extern_data_container: SafeDropExternDataContainer<
 		Box<dyn FnMut(Key, ButtonState) + Sync + Send + 'static>,
 	> = ExterDataContainer::container(Box::new(key_pressrelease_event));
 

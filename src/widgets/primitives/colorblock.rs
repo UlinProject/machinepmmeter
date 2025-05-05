@@ -1,4 +1,5 @@
 use crate::{__gen_transparent_gtk_type, app::config::ColorAppConfig};
+use enclose::enc;
 use gtk::{
 	DrawingArea,
 	ffi::GtkDrawingArea,
@@ -38,7 +39,7 @@ impl ViColorBlock {
 		Self(drawing_area)
 	}
 
-	pub fn connect_color<const ALLOW_ONEDRAW_OPTIMIZE: bool>(
+	pub fn connect_color(
 		self,
 		c_app_config: impl AsRef<ColorAppConfig>,
 
@@ -47,10 +48,10 @@ impl ViColorBlock {
 	) -> Self {
 		let (red, green, blue) = get_color(c_app_config.as_ref());
 
-		self.connect_background::<ALLOW_ONEDRAW_OPTIMIZE>(red, green, blue, alpha)
+		self.connect_background(red, green, blue, alpha)
 	}
 
-	pub fn connect_background<const ALLOW_ONEDRAW_OPTIMIZE: bool>(
+	pub fn connect_background(
 		self,
 		red: u8,
 		green: u8,
@@ -69,26 +70,25 @@ impl ViColorBlock {
 			cr.rectangle(
 				0.0,
 				0.0,
-				allocation.width().into(),
-				allocation.height().into(),
+				allocation.width() as _,
+				allocation.height() as _,
 			);
 			let _ = cr.fill();
 
-			ALLOW_ONEDRAW_OPTIMIZE.into()
+			true.into()
 		});
 
 		self
 	}
 
-	pub fn connect_state_background<const ALLOW_ONEDRAW_OPTIMIZE: bool>(
+	pub fn connect_state_background(
 		self,
-		rcptr: Rc<RefCell<(f64, f64, f64, f64)>>,
+		rcptr: &Rc<RefCell<(f64, f64, f64, f64)>>,
 	) -> Self {
-		self.0.connect_draw(move |da, cr| {
-			let rcptr = rcptr.clone();
+		self.0.connect_draw(enc!((rcptr) move |da, cr| {
 			let allocation = da.allocation();
 
-			let rgba = {
+			let rgba: (f64, f64, f64, f64) = {
 				let read: Ref<(f64, f64, f64, f64)> = RefCell::borrow(&rcptr);
 				*read
 			};
@@ -96,8 +96,8 @@ impl ViColorBlock {
 			cr.rectangle(0.0, 0.0, allocation.width() as _, allocation.height() as _);
 			let _e = cr.fill();
 
-			ALLOW_ONEDRAW_OPTIMIZE.into()
-		});
+			true.into()
+		}));
 
 		self
 	}

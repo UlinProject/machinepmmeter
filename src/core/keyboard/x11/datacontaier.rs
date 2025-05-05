@@ -18,14 +18,14 @@ pub struct ExterDataContainer<T> {
 }
 
 impl<T> ExterDataContainer<T> {
-	pub fn container(data: T) -> SafeDropExterDataContainer<T> {
+	pub fn container(data: T) -> SafeDropExternDataContainer<T> {
 		let data = Box::new(Self {
 			lpadding: usize::MAX,
 			data: Mutex::new(Some(data)),
 			rpadding: usize::MAX,
 		});
 
-		SafeDropExterDataContainer(data)
+		SafeDropExternDataContainer(data)
 	}
 
 	pub fn check_and_lock<R>(&self, mut next: impl FnMut(&mut T) -> R) -> Option<R> {
@@ -44,16 +44,16 @@ impl<T> ExterDataContainer<T> {
 /// The root owner of `ExterDataContainer` must stop the container when `Drop` is
 /// called to prevent it from being used when `extern` is called.
 #[repr(transparent)]
-pub struct SafeDropExterDataContainer<T>(Box<ExterDataContainer<T>>);
+pub struct SafeDropExternDataContainer<T>(Box<ExterDataContainer<T>>);
 
-impl<T> SafeDropExterDataContainer<T> {
+impl<T> SafeDropExternDataContainer<T> {
 	#[inline]
 	pub fn as_ptr(&self) -> *const ExterDataContainer<T> {
 		Box::deref(&self.0) as *const _
 	}
 }
 
-impl<T> Deref for SafeDropExterDataContainer<T> {
+impl<T> Deref for SafeDropExternDataContainer<T> {
 	type Target = ExterDataContainer<T>;
 
 	#[inline]
@@ -62,14 +62,14 @@ impl<T> Deref for SafeDropExterDataContainer<T> {
 	}
 }
 
-impl<T> DerefMut for SafeDropExterDataContainer<T> {
+impl<T> DerefMut for SafeDropExternDataContainer<T> {
 	#[inline]
 	fn deref_mut(&mut self) -> &mut Self::Target {
 		Box::deref_mut(&mut self.0)
 	}
 }
 
-impl<T> Drop for SafeDropExterDataContainer<T> {
+impl<T> Drop for SafeDropExternDataContainer<T> {
 	fn drop(&mut self) {
 		self.lpadding = 0;
 		self.rpadding = 0;
