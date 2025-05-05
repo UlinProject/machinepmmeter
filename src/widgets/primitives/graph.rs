@@ -1,5 +1,7 @@
 use crate::__gen_transparent_gtk_type;
 use crate::app::config::AppConfig;
+use crate::core::maybe::Maybe;
+use crate::maybe;
 use anyhow::Result as anyhowResult;
 use enclose::enc;
 use gtk::DrawingArea;
@@ -151,8 +153,8 @@ impl ViGraph {
 
 		stream: S,
 		general_background_surface: Option<ViGraphBackgroundSurface>,
-		width: i32,
-		height: i32,
+		width: impl Maybe<i32>,
+		height: impl Maybe<i32>,
 		transparent: f64,
 	) -> ViGraphSender<S>
 	where
@@ -161,7 +163,10 @@ impl ViGraph {
 		let cache_surface = Rc::new(RefCell::new(ViGraphCachedSurface::empty()));
 
 		let graph_area = DrawingArea::new();
-		graph_area.set_size_request(width, height);
+		graph_area.set_size_request(
+			maybe!((width) {width} else {-1}),
+			maybe!((height) {height} else {42}),
+		);
 
 		let background_surface = general_background_surface.map_or_else(Default::default, |a| a);
 

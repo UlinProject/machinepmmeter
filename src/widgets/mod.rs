@@ -53,7 +53,8 @@ impl ViMeter {
 	pub fn new_visender<'a, S>(
 		app_config: Rc<AppConfig>,
 		head: impl Maybe<&'a str>,
-		width: i32,
+		width: impl Maybe<i32>,
+		height: impl Maybe<i32>,
 		stream: S,
 		general_background_surface: Option<ViGraphBackgroundSurface>,
 		transparent: f64,
@@ -86,7 +87,7 @@ impl ViMeter {
 			stream,
 			general_background_surface,
 			width,
-			42,
+			height,
 			transparent,
 		);
 		graphsender.set_margin_bottom(6);
@@ -123,38 +124,38 @@ where
 			match vi {
 				true => {
 					self.color_and_text.set_margin_bottom2(0);
-				},
+				}
 				false => {
 					self.color_and_text.set_margin_bottom2(6);
-				},
+				}
 			}
-			
+
 			return true;
 		}
-		
+
 		false
 	}
-	
+
 	pub fn set_visible_limit(&self, vi: bool) -> bool {
 		if self.color_and_text.is_visible_limit() != vi {
 			self.color_and_text.set_visible_limit(true);
-			
+
 			return true;
 		}
-		
+
 		false
 	}
-	
+
 	#[inline]
 	pub fn set_current_and_queue_draw(&self, v: &str) {
 		self.color_and_text.set_current_and_queue_draw(v);
 	}
-	
+
 	#[inline]
 	pub fn set_limit_and_queue_draw(&self, v: &str) {
 		self.color_and_text.set_limit_and_queue_draw(v);
 	}
-	
+
 	pub fn push_next_and_queue_draw(
 		&self,
 		current: f64,

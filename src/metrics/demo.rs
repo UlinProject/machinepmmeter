@@ -1,4 +1,5 @@
 use crate::app::config::AppConfig;
+use crate::core::maybe::Maybe;
 use crate::widgets::ViMeter;
 use crate::widgets::notebook::ViNotebook;
 use crate::widgets::primitives::graph::ViGraphBackgroundSurface;
@@ -12,7 +13,8 @@ use std::rc::Rc;
 pub fn vinotebook_append_page(
 	app_config: &Rc<AppConfig>,
 	vigraph_surface: &ViGraphBackgroundSurface,
-	width: i32,
+	width: impl Maybe<i32> + Copy,
+	height: impl Maybe<i32> + Copy,
 	len: usize,
 	vinotebook: &ViNotebook,
 ) {
@@ -28,6 +30,7 @@ pub fn vinotebook_append_page(
 			app_config.clone(),
 			"# Demo (time: 80, value: 0.7)",
 			width,
+			height,
 			ViGraphRcStream::with_len(len),
 			Some(vigraph_surface.clone()),
 			1.0,
@@ -44,6 +47,7 @@ pub fn vinotebook_append_page(
 			app_config.clone(),
 			"# Demo (time: 10ms, step: 0.1)",
 			width,
+			height,
 			ViGraphRcStream::with_len(len),
 			Some(vigraph_surface.clone()),
 			1.0,
@@ -67,6 +71,7 @@ pub fn vinotebook_append_page(
 			app_config.clone(),
 			"# Demo (time: 1ms, step: 0.01)",
 			width,
+			height,
 			ViGraphRcStream::with_len(len),
 			Some(vigraph_surface.clone()),
 			1.0,
@@ -90,6 +95,7 @@ pub fn vinotebook_append_page(
 			app_config.clone(),
 			"# Demo (time: 1ms, step: 0.001)",
 			width,
+			height,
 			ViGraphRcStream::with_len(len),
 			Some(vigraph_surface.clone()),
 			1.0,

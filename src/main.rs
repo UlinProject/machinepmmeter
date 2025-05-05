@@ -195,7 +195,8 @@ fn build_ui(
 		crate::metrics::demo::vinotebook_append_page(
 			app_config,
 			&vigraph_surface,
-			dock_window.allocation().width(),
+			(),
+			(),
 			200,
 			&vinotebook,
 		);
@@ -205,7 +206,8 @@ fn build_ui(
 		crate::metrics::lm_sensors::vinotebook_append_page(
 			app_config,
 			&vigraph_surface,
-			dock_window.allocation().width(),
+			(),
+			(),
 			2400,
 			Duration::from_millis(12),
 			unsafe { NonZero::new_unchecked(10) },

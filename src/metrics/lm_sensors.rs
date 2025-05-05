@@ -1,4 +1,5 @@
 use crate::app::config::AppConfig;
+use crate::core::maybe::Maybe;
 use crate::widgets::ViMeter;
 use crate::widgets::notebook::ViNotebook;
 use crate::widgets::primitives::graph::ViGraphArcStream;
@@ -14,13 +15,13 @@ use lm_sensors::SubFeatureRef;
 use lm_sensors::Value;
 use lm_sensors::value::Unit;
 use log::error;
+use std::fmt::Write;
 use std::num::NonZeroUsize;
 use std::rc::Rc;
 use std::sync::Arc;
 use std::sync::Barrier;
 use std::sync::OnceLock;
 use std::time::Duration;
-use std::fmt::Write;
 
 #[repr(transparent)]
 #[derive(Debug)]
@@ -100,7 +101,8 @@ enum SensorType {
 pub fn vinotebook_append_page(
 	app_config: &Rc<AppConfig>,
 	vigraph_surface: &ViGraphBackgroundSurface,
-	width: i32,
+	width: impl Maybe<i32> + Copy,
+	height: impl Maybe<i32> + Copy,
 	len: usize,
 	complete_redraw_step_time: Duration, // graph + limit + current
 
@@ -350,7 +352,7 @@ pub fn vinotebook_append_page(
 								}
 								std::thread::sleep(graph_time_onestep);
 							}
-							
+
 							let _e = sender.send_blocking(LmEvents::QueueDraw(current, max));
 						}
 					}
@@ -397,6 +399,7 @@ pub fn vinotebook_append_page(
 				app_config.clone(),
 				item.feature_name.as_str(),
 				width,
+				height,
 				item.stream.clone(),
 				Some(vigraph_surface.clone()),
 				1.0,
@@ -404,7 +407,7 @@ pub fn vinotebook_append_page(
 			vimetr.set_visible_graph(true);
 			vimetr.set_visible_limit(true);
 			vbox.pack_start(&*vimetr, false, false, 0);
-			
+
 			glib::MainContext::default().spawn_local(
 				enc!((item.recv => item) async move {
 					let mut f64buff = String::new();
