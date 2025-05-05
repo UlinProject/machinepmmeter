@@ -171,7 +171,10 @@ impl ViNotebook {
 				if let Some(child) = self.0.nth_page(Some(0)) {
 					if let Some(tab_label) = self.0.tab_label(&child) {
 						if let Some(label) = tab_label.downcast_ref::<ViLabel>() {
-							label.style_context().add_class("first_head_vinotebook");
+							let style = label.style_context();
+							if !style.has_class("first_head_vinotebook") {
+								style.add_class("first_head_vinotebook");
+							}
 						}
 					}
 				}
