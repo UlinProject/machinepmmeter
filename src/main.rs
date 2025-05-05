@@ -62,6 +62,15 @@ pub mod metrics {
 	pub mod lm_sensors;
 }
 
+#[cfg(all(not(target_env = "msvc"), feature = "demo_mode"))]
+#[cfg_attr(docsrs, doc(cfg(all(not(target_env = "msvc"), feature = "demo_mode"))))]
+use jemallocator::Jemalloc;
+
+#[cfg(all(not(target_env = "msvc"), feature = "demo_mode"))]
+#[cfg_attr(docsrs, doc(cfg(all(not(target_env = "msvc"), feature = "demo_mode"))))]
+#[global_allocator]
+static GLOBAL: Jemalloc = Jemalloc;
+
 const APP_ID: &str = "com.ulinkot.machinepmmeter";
 const PKG_ICON: &str = env!("CARGO_PKG_NAME");
 const PKG_WEBSITE: &str = env!("CARGO_PKG_REPOSITORY");
