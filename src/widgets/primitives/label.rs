@@ -44,7 +44,7 @@ impl ViLabel {
 			style.add_class("vilabel");
 			maybe!((class) style.add_class(class));
 		}
-		
+
 		{
 			// font
 			let mut font_desc;

@@ -373,22 +373,32 @@ fn build_ui(
 					},
 					AppEvents::KeyboardListenerEnabled(true) => {
 						if wdock_vihotkey.is_none() {
-							let arr = [
-								("view-conceal-symbolic", "Hide | Show", "(Shift and F8)"),
-								("zoom-original-symbolic", "Selecting a tab", "(Shift and 1 | 2 | ..)"),
-								("go-next-symbolic", "Next tab", "(Shift and D)"),
-								("go-previous-symbolic", "Previous tab", "(Shift and A)"),
-								(
-									"sidebar-show-right-symbolic-rtl",
-									"Next position", "(Shift and P)",
-								),
-								("system-shutdown-symbolic", "Exit", "(Shift and Esc)")
-							];
+							let arr = match vinotebook.n_pages() {
+								0 | 1 => &[
+									("view-conceal-symbolic", "Hide | Show", "(Shift and F8)"),
+									(
+										"sidebar-show-right-symbolic-rtl",
+										"Next position", "(Shift and P)",
+									),
+									("system-shutdown-symbolic", "Exit", "(Shift and Esc)")
+								] as &'static [_],
+
+								_ => &[
+									("view-conceal-symbolic", "Hide | Show", "(Shift and F8)"),
+									("zoom-original-symbolic", "Selecting a tab", "(Shift and 1 | 2 | ..)"),
+									("go-next-symbolic", "Next tab", "(Shift and D)"),
+									("go-previous-symbolic", "Previous tab", "(Shift and A)"),
+									(
+										"sidebar-show-right-symbolic-rtl",
+										"Next position", "(Shift and P)",
+									),
+									("system-shutdown-symbolic", "Exit", "(Shift and Esc)")
+								],
+							};
 							let vihotkey = ViHotkeyItems::new(
 								&*app_config,
 								"# Hot keys",
-								arr.into_iter(),
-								1.0,
+								arr.iter(),
 							);
 							vbox.add(&vihotkey);
 							vihotkey.set_visible(true);

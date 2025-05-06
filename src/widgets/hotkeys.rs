@@ -33,11 +33,10 @@ __gen_transparent_gtk_type! {
 }
 
 impl ViHotkeyItems {
-	pub fn new<'a, 'n>(
+	pub fn new<'item, 'n>(
 		f_app_config: impl AsRef<FontAppConfig> + Copy,
 		head: impl Maybe<&'n str>,
-		array: impl Iterator<Item = (&'a str, &'a str, &'a str)>,
-		c_transparent: f64,
+		items: impl Iterator<Item = &'item (&'item str, &'item str, &'item str)>,
 	) -> Self {
 		let all = Box::new(Orientation::Vertical, 0);
 		all.set_valign(gtk::Align::Fill);
@@ -49,8 +48,7 @@ impl ViHotkeyItems {
 					.set_margin_top(4)
 					.set_margin_start(4)
 					.set_margin_bottom(3)
-					.set_align(Align::Start)
-					.connect_nonblack_background(0.0, 0.0, 0.0, c_transparent),
+					.set_align(Align::Start),
 				false,
 				false,
 				0,
@@ -58,7 +56,7 @@ impl ViHotkeyItems {
 		});
 		{
 			let shortcasthbox = Box::new(Orientation::Vertical, 1);
-			for (icon, text, key) in array {
+			for (icon, text, key) in items {
 				shortcasthbox.pack_start(
 					&ViHotkeyItem::new(f_app_config, icon, text, key),
 					false,

@@ -416,7 +416,7 @@ pub fn vinotebook_append_page(
 							LmEvents::QueueDraw(current, max) => {
 								vimetr.set_current_and_queue_draw(&f64sbuff.format_and_get(current));
 								vimetr.set_limit_and_queue_draw(&f64sbuff.format_and_get(max));
-								
+
 								vimetr.queue_draw();
 							},
 						}
@@ -424,7 +424,7 @@ pub fn vinotebook_append_page(
 				}
 			));
 		}
-		
+
 		Some(())
 	}).is_none() {
 		error!("#[lm_sensors, recv] Feedback is broken, i can't continue initialization.");
