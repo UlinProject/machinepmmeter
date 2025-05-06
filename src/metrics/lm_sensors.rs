@@ -1,4 +1,5 @@
 use crate::app::config::AppConfig;
+use crate::core::f64sbuff::F64SBuff;
 use crate::core::maybe::Maybe;
 use crate::widgets::ViMeter;
 use crate::widgets::notebook::ViNotebook;
@@ -15,7 +16,6 @@ use lm_sensors::SubFeatureRef;
 use lm_sensors::Value;
 use lm_sensors::value::Unit;
 use log::error;
-use std::fmt::Write;
 use std::num::NonZeroUsize;
 use std::rc::Rc;
 use std::sync::Arc;
@@ -410,20 +410,12 @@ pub fn vinotebook_append_page(
 
 			glib::MainContext::default().spawn_local(
 				enc!((item.recv => item) async move {
-					let mut f64buff = String::new();
+					let mut f64sbuff = F64SBuff::new();
 					while let Ok(event) = item.recv().await {
 						match event {
 							LmEvents::QueueDraw(current, max) => {
-								{
-									let _e = write!(&mut f64buff, "{}", current);
-									vimetr.set_current_and_queue_draw(&f64buff);
-									f64buff.clear();
-								}
-								{
-									let _e = write!(&mut f64buff, "{}", max);
-									vimetr.set_limit_and_queue_draw(&f64buff);
-									f64buff.clear();
-								}
+								vimetr.set_current_and_queue_draw(&f64sbuff.format_and_get(current));
+								vimetr.set_limit_and_queue_draw(&f64sbuff.format_and_get(max));
 								vimetr.queue_draw();
 							},
 						}
