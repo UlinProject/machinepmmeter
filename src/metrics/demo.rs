@@ -35,7 +35,8 @@ pub fn vinotebook_append_page(
 			Some(vigraph_surface.clone()),
 			1.0,
 		);
-		vbox.pack_start(&*vimetr, false, false, 0);
+		vimetr.set_visible_graph(true);
+		vimetr.set_visible_limit(true);
 		glib::timeout_add_local(std::time::Duration::from_millis(80), move || {
 			vimetr.push_next_and_queue_draw(0.7, 0.7, 1.0, 0.0, 0.0);
 
@@ -52,6 +53,8 @@ pub fn vinotebook_append_page(
 			Some(vigraph_surface.clone()),
 			1.0,
 		);
+		vimetr.set_visible_graph(true);
+		vimetr.set_visible_limit(true);
 		let data = RefCell::new(0.0);
 		vbox.pack_start(&*vimetr, false, false, 0);
 		glib::timeout_add_local(std::time::Duration::from_millis(10), move || {
@@ -76,6 +79,8 @@ pub fn vinotebook_append_page(
 			Some(vigraph_surface.clone()),
 			1.0,
 		);
+		vimetr.set_visible_graph(true);
+		vimetr.set_visible_limit(true);
 		let data = RefCell::new(0.0);
 		vbox.pack_start(&*vimetr, false, false, 0);
 		glib::timeout_add_local(std::time::Duration::from_millis(1), move || {
@@ -100,6 +105,8 @@ pub fn vinotebook_append_page(
 			Some(vigraph_surface.clone()),
 			1.0,
 		);
+		vimetr.set_visible_graph(true);
+		vimetr.set_visible_limit(true);
 		let data = RefCell::new(0.0);
 		vbox.pack_start(&*vimetr, false, false, 0);
 		glib::timeout_add_local(std::time::Duration::from_millis(1), move || {

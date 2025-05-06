@@ -148,12 +148,10 @@ impl ViNotebook {
 
 		let n_page = self.0.append_page(
 			&scrolled_window,
-			Some(&ViLabel::new(
-				"head_vinotebook",
-				f_app_config,
-				tab_label,
-				Weight::Bold,
-			).set_align(Align::Center)),
+			Some(
+				&ViLabel::new("head_vinotebook", f_app_config, tab_label, Weight::Bold)
+					.set_align(Align::Center),
+			),
 		);
 
 		match n_page {

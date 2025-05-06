@@ -10,12 +10,15 @@ use crate::widgets::primitives::label::ViLabel;
 use async_channel::Receiver;
 use enclose::enc;
 use gtk::Align;
+use gtk::Box;
 use gtk::pango::Weight;
 use gtk::traits::BoxExt;
+use gtk::traits::WidgetExt;
 use lm_sensors::SubFeatureRef;
 use lm_sensors::Value;
 use lm_sensors::value::Unit;
 use log::error;
+use log::trace;
 use std::num::NonZeroUsize;
 use std::rc::Rc;
 use std::sync::Arc;
@@ -114,12 +117,13 @@ pub fn vinotebook_append_page(
 	let waitinitlist: OnceWaitResult<(Vec<LmItem>, Option<String>)> = OnceWaitResult::new();
 	std::thread::spawn(enc!((waitinitlist) move || {
 		let mut exp_init_sensors = Vec::with_capacity(12);
-
+		
 		let mut a_sensors = Vec::with_capacity(12);
+		trace!("lm_sensors:");
 		if let Ok(lmsensors) = lm_sensors::Initializer::default().initialize() {
 			for chip in lmsensors.chip_iter(None) {
 				if let Ok(chip_name) = chip.name() {
-					println!("{} (chip_name):", chip_name);
+					trace!("{} (chip_name):", chip_name);
 					let mut chip_info = Some(ChipInfo {
 						name: chip_name,
 						bus: chip.bus().to_string(),
@@ -127,7 +131,7 @@ pub fn vinotebook_append_page(
 
 					for feature in chip.feature_iter() {
 						if let Some(Ok(feature_name)) = feature.name() {
-							println!("	{}(feature_name): {}(feature)", feature_name, feature);
+							trace!("	{}(feature_name): {}(feature)", feature_name, feature);
 
 
 							#[derive(Debug, Clone, Default)]
@@ -142,10 +146,10 @@ pub fn vinotebook_append_page(
 							let mut c_value = LmSensor::default();
 							for sub_feature in feature.sub_feature_iter() {
 								if let Some(Ok(name)) = sub_feature.name() {
-									println!("		{}(name):", name);
+									trace!("		{}(name):", name);
 
 									if let Ok(value) = sub_feature.value() {
-										match dbg!(dbg!(value) ) {
+										match value {
 											/*Value::VoltageInput(_) => {},
 											Value::VoltageMinimum(_) => {},
 											Value::VoltageMaximum(_) => {},
@@ -370,29 +374,70 @@ pub fn vinotebook_append_page(
 			return Some(());
 		}
 
-		let vbox = vinotebook.append_page(
+		let rvbox = vinotebook.append_page(
 			&**app_config,
 			"lm_sensors",
 			lmversion.as_deref(),
 		);
 		for item in exp_init_sensors {
 			if let Some(ref chip_info) = item.chip_info {
+				let vbox = Box::new(gtk::Orientation::Horizontal, 0);
+				vbox.set_valign(gtk::Align::Baseline);
+				vbox.set_halign(gtk::Align::Fill);
+
+				vbox.set_visible(true);
+
 				vbox.pack_start(
 					&ViLabel::new(
 						"info_vitextmeter",
 						&**app_config,
-						&format!("# {} ({})", &chip_info.name, &chip_info.bus),
+						"#",
 						Weight::Bold,
 					)
 					.set_margin_top(4)
 					.set_margin_start(4)
 					.set_margin_bottom(2)
-					.set_align(Align::Start)
-					.connect_nonblack_background(0.0, 0.0, 0.0, 1.0),
+					.set_align(Align::Start),
 					false,
 					false,
 					0,
 				);
+
+				vbox.pack_start(
+					&ViLabel::new(
+						"info_vitextmeter",
+						&**app_config,
+						&chip_info.name,
+						Weight::Bold,
+					)
+					.set_margin_top(4)
+					.set_margin_start(4)
+					.set_margin_bottom(2)
+					.set_align(Align::Start),
+					false,
+					false,
+					0,
+				);
+
+				vbox.pack_start(
+					&ViLabel::new(
+						"info_vitextmeter",
+						&**app_config,
+						&chip_info.bus,
+						Weight::Normal,
+					)
+					.set_margin_top(4)
+					.set_margin_start(4)
+					.set_margin_bottom(2)
+					.set_align(Align::Start),
+					false,
+					false,
+					0,
+				);
+
+				rvbox.pack_start(&vbox, false,
+					false,
+					0,);
 			}
 
 			let vimetr = ViMeter::new_visender(
@@ -406,16 +451,25 @@ pub fn vinotebook_append_page(
 			);
 			vimetr.set_visible_graph(true);
 			vimetr.set_visible_limit(true);
-			vbox.pack_start(&*vimetr, false, false, 0);
+			rvbox.pack_start(&*vimetr, false, false, 0);
 
 			glib::MainContext::default().spawn_local(
 				enc!((item.recv => item) async move {
 					let mut f64sbuff = F64SBuff::new();
+					
+					let mut old_current = Default::default();
+					let mut old_max = Default::default();
 					while let Ok(event) = item.recv().await {
 						match event {
 							LmEvents::QueueDraw(current, max) => {
-								vimetr.set_current_and_queue_draw(&f64sbuff.format_and_get(current));
-								vimetr.set_limit_and_queue_draw(&f64sbuff.format_and_get(max));
+								if current != old_current {
+									vimetr.set_current_and_queue_draw(&f64sbuff.format_and_get(current));
+									old_current = current;
+								}
+								if max != old_max {
+									vimetr.set_limit_and_queue_draw(&f64sbuff.format_and_get(max));
+									old_max = max;
+								}
 
 								vimetr.queue_draw();
 							},
