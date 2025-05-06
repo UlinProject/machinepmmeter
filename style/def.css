@@ -115,6 +115,8 @@
 	border-left-color: rgba(220, 220, 220, 0);
 	border-right-color: rgba(220, 220, 220, 0);
 	color: rgb(0, 0, 0);
+	
+	text-shadow: -2px -2px 0 rgba(220, 220, 220, 0.3), 2px -2px 0 rgba(220, 220, 220, 0.3), -2px 2px 0 rgba(220, 220, 220, 0.3), 2px 2px 0 rgba(220, 220, 220, 0.3);
 }
 
 .vinotebook .vinotebookpage {

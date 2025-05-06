@@ -48,7 +48,7 @@ impl ViHotkeyItem {
 
 			cl.set_visible(true);
 		}
-		
+
 		{
 			let image = Image::from_icon_name(Some(icon), gtk::IconSize::Button);
 			image.set_margin_start(10);

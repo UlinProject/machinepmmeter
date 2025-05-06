@@ -64,6 +64,7 @@ pub mod metrics {
 	#[cfg_attr(docsrs, doc(cfg(feature = "demo_mode")))]
 	pub mod demo;
 	pub mod lm_sensors;
+	pub mod udisks2;
 }
 
 #[cfg(all(not(target_env = "msvc"), feature = "demo_mode"))]
@@ -183,6 +184,7 @@ fn build_ui(
 	#[cfg(feature = "demo_mode")]
 	#[cfg_attr(docsrs, doc(cfg(feature = "demo_mode")))]
 	{
+		// demo
 		crate::metrics::demo::vinotebook_append_page(
 			app_config,
 			&vigraph_surface,
@@ -194,7 +196,22 @@ fn build_ui(
 	}
 
 	{
+		// lm_sensors
 		crate::metrics::lm_sensors::vinotebook_append_page(
+			app_config,
+			&vigraph_surface,
+			(),
+			(),
+			1200,
+			Duration::from_millis(16),
+			unsafe { NonZero::new_unchecked(5) },
+			Duration::from_millis(1),
+			&vinotebook,
+		);
+	}
+	{
+		// udisks2
+		crate::metrics::udisks2::vinotebook_append_page(
 			app_config,
 			&vigraph_surface,
 			(),

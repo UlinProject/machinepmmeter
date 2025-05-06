@@ -2,7 +2,7 @@
 name = "machinepmmeter"
 version = "0.1.0-alpa"
 edition = "2024"
-description = "Real-time system performance monitor for apps/games, lm_sensors/ryzenadj."
+description = "Real-time system performance monitor for apps/games, lm_sensors/udisks2/ryzenadj."
 license = "GPL-3.0-or-later" 
 repository = "https://github.com/UlinProject/machinepmmeter/tree/main"
 authors = ["Denis Kotlyarov (Денис Котляров) <denis2005991@gmail.com>"]
@@ -27,6 +27,7 @@ x11 = { version = "2.21.0", features = ["xlib", "xrecord", "xinput"], optional =
 glib = "0.20.9"
 jemallocator = { version = "0.5.4", optional = true }
 ryu = { version = "1.0.20", optional = true }
+dbus-udisks2 = "0.3.0"
 
 # docs.rs-specific configuration
 [package.metadata.docs.rs]

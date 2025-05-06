@@ -117,7 +117,7 @@ pub fn vinotebook_append_page(
 	let waitinitlist: OnceWaitResult<(Vec<LmItem>, Option<String>)> = OnceWaitResult::new();
 	std::thread::spawn(enc!((waitinitlist) move || {
 		let mut exp_init_sensors = Vec::with_capacity(12);
-		
+
 		let mut a_sensors = Vec::with_capacity(12);
 		trace!("lm_sensors:");
 		if let Ok(lmsensors) = lm_sensors::Initializer::default().initialize() {
@@ -287,7 +287,7 @@ pub fn vinotebook_append_page(
 							}
 							if c_value.input.is_some() && c_value.r#type != SensorType::Unknown {
 								let stream = ViGraphArcSyncStream::with_len(len);
-								let (sender, recv) = async_channel::bounded(16);
+								let (sender, recv) = async_channel::bounded(32);
 								exp_init_sensors.push(LmItem {
 									chip_info: chip_info.take(),
 									feature_name: feature_name.to_string(),
@@ -456,7 +456,7 @@ pub fn vinotebook_append_page(
 			glib::MainContext::default().spawn_local(
 				enc!((item.recv => item) async move {
 					let mut f64sbuff = F64SBuff::new();
-					
+
 					let mut old_current = Default::default();
 					let mut old_max = Default::default();
 					while let Ok(event) = item.recv().await {

@@ -123,12 +123,12 @@ impl ViNotebook {
 				&ViLabel::new((), &f_app_config, notice, Weight::Bold)
 					.set_margin_start(3)
 					.set_margin_end(3)
+					.set_margin_top(1)
 					.set_margin_bottom(3)
 					.set_wrap(true)
 					.set_wrap_mode(WrapMode::Word)
 					.set_max_width_chars(45)
-					.set_align(Align::Center)
-					.connect_nonblack_background(0.0, 0.0, 0.0, 1.0),
+					.set_align(Align::Center),
 				false,
 				false,
 				0,

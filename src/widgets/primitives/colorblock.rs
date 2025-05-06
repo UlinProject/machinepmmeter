@@ -52,7 +52,7 @@ impl ViColorBlock {
 
 		self
 	}
-	
+
 	pub fn connect_state_background(self, rcptr: &Rc<RefCell<(f64, f64, f64, f64)>>) -> Self {
 		self.0.connect_draw(enc!((rcptr) move |da, cr| {
 			let allocation = da.allocation();
