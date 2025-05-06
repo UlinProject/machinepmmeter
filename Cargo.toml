@@ -39,7 +39,7 @@ rustdoc-args = ["--cfg", "docsrs"]
 lto = true
 
 [features]
-default = [ "x11_keyboard", "graph-background-cache", "graph-shadows", "no-gui-root", "f64_string_optimized", "jemalloc" ]
+default = [ "x11_keyboard", "graph-background-cache", "graph-shadows", "no-gui-root", "f64_string_optimized" ]
 x11_keyboard = [ "x11", "libc" ]
 demo_mode = []
 no-gui-root = [ "libc" ]

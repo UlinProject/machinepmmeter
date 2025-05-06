@@ -64,10 +64,6 @@ impl ViNotebook {
 									if !style.has_class("active_head_vinotebook") {
 										style.add_class("active_head_vinotebook");
 
-										label.read_text(|text| {
-											label.set_text(&format!("# {}", text));
-										});
-
 										if let Ok(scrolled_window) = child.downcast::<ScrolledWindow>() {
 											let height = if let Some(child) = scrolled_window.child() {
 												let (m, _) = child.preferred_size();
@@ -88,12 +84,6 @@ impl ViNotebook {
 
 								if style.has_class("active_head_vinotebook") {
 									style.remove_class("active_head_vinotebook");
-
-									label.read_text(|text| {
-										if let Some(next_text) = text.strip_prefix("# ") {
-											label.set_text(next_text);
-										}
-									});
 
 									if let Ok(scrolled_window) = child.downcast::<ScrolledWindow>() {
 										scrolled_window.set_hexpand(false);

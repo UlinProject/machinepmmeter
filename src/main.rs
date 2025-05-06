@@ -200,7 +200,7 @@ fn build_ui(
 			(),
 			(),
 			2400,
-			Duration::from_millis(12),
+			Duration::from_millis(16),
 			unsafe { NonZero::new_unchecked(10) },
 			Duration::from_millis(1),
 			&vinotebook,

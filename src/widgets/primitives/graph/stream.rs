@@ -17,7 +17,6 @@ pub trait ViGraphStream: Clone + 'static {
 
 pub type ViGraphRcStream = Rc<RefCell<ViGraphData>>;
 impl ViGraphStream for ViGraphRcStream {
-	#[inline]
 	fn with_len(len: usize) -> Self {
 		Rc::new(RefCell::new(ViGraphData::with_len(len)))
 	}
@@ -43,7 +42,6 @@ impl ViGraphStream for ViGraphRcStream {
 
 pub type ViGraphArcSyncStream = Arc<Mutex<ViGraphData>>;
 impl ViGraphStream for ViGraphArcSyncStream {
-	#[inline]
 	fn with_len(len: usize) -> Self {
 		Arc::new(Mutex::new(ViGraphData::with_len(len)))
 	}

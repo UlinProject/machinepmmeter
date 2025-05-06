@@ -39,7 +39,12 @@ impl ViLabel {
 	) -> Self {
 		let f_app_config = f_app_config.as_ref();
 		let label = Label::new(Some(value));
-
+		{
+			let style = label.style_context();
+			style.add_class("vilabel");
+			maybe!((class) style.add_class(class));
+		}
+		
 		{
 			// font
 			let mut font_desc;
@@ -54,11 +59,6 @@ impl ViLabel {
 			let attrs = AttrList::new();
 			attrs.insert(font_attr);
 			label.set_attributes(Some(&attrs));
-		}
-		{
-			let style = label.style_context();
-			style.add_class("vilabel");
-			maybe!((class) style.add_class(class));
 		}
 		label.set_visible(true);
 

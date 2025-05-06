@@ -1,4 +1,4 @@
-use crate::{__gen_transparent_gtk_type, app::config::ColorAppConfig};
+use crate::__gen_transparent_gtk_type;
 use enclose::enc;
 use gtk::{
 	DrawingArea,
@@ -37,37 +37,6 @@ impl ViColorBlock {
 		drawing_area.set_visible(true);
 
 		Self(drawing_area)
-	}
-
-	pub fn connect_color(
-		self,
-		c_app_config: impl AsRef<ColorAppConfig>,
-
-		get_color: impl FnOnce(&ColorAppConfig) -> (u8, u8, u8),
-		alpha: f64,
-	) -> Self {
-		let (red, green, blue) = get_color(c_app_config.as_ref());
-
-		self.connect_background(red, green, blue, alpha)
-	}
-
-	pub fn connect_background(self, red: u8, green: u8, blue: u8, alpha: f64) -> Self {
-		self.0.connect_draw(move |da, cr| {
-			let allocation = da.allocation();
-
-			cr.set_source_rgba(
-				(red as f64) / 255.0,
-				(green as f64) / 255.0,
-				(blue as f64) / 255.0,
-				alpha,
-			);
-			cr.rectangle(0.0, 0.0, allocation.width() as _, allocation.height() as _);
-			let _ = cr.fill();
-
-			true.into()
-		});
-
-		self
 	}
 
 	pub fn connect_state_background(self, rcptr: &Rc<RefCell<(f64, f64, f64, f64)>>) -> Self {
