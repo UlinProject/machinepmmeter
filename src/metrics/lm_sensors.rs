@@ -386,7 +386,7 @@ pub fn vinotebook_append_page(
 					)
 					.set_margin_top(4)
 					.set_margin_start(4)
-					.set_margin_bottom(3)
+					.set_margin_bottom(2)
 					.set_align(Align::Start)
 					.connect_nonblack_background(0.0, 0.0, 0.0, 1.0),
 					false,

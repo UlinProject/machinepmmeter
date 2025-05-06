@@ -75,7 +75,7 @@ impl ViMeter {
 				&ViLabel::new("info_vitextmeter", &*app_config, head, ())
 					.set_margin_top(4)
 					.set_margin_start(4)
-					.set_margin_bottom(3)
+					.set_margin_bottom(4)
 					.set_align(Align::Start)
 					.connect_nonblack_background(0.0, 0.0, 0.0, transparent),
 				true,

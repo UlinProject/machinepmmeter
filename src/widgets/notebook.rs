@@ -153,7 +153,7 @@ impl ViNotebook {
 				f_app_config,
 				tab_label,
 				Weight::Bold,
-			)),
+			).set_align(Align::Center)),
 		);
 
 		match n_page {

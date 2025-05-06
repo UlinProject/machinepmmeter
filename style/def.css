@@ -1,5 +1,6 @@
 
 .appvidockwindow * {
+	all: unset;
 	color: inherit;
 	font-size: inherit;
 	background-color: initial;
@@ -63,6 +64,9 @@
 	padding: 0;
 	margin: 0;
 	border: 0;
+	min-height: 0px;
+	min-width: 0px;
+	border-radius: 0px;
 }
 
 .vilabel {
@@ -78,8 +82,6 @@
 }
 
 .vinotebook .head_vinotebook {
-	padding: 0px;
-	margin: 0px;
 	background-color: rgba(220, 220, 220, 0);
 	color: rgba(255, 255, 255, 0.8);
 	border-top-color: rgba(220, 220, 220, 0.2);
@@ -95,8 +97,8 @@
 	
 	padding-left: 5px;
 	padding-right: 5px;
-	padding-top: 3px;
-	padding-bottom: 3px;
+	padding-top: 6px;
+	padding-bottom: 5px;
 }
 
 .vinotebook .notfirst_head_vinotebook {
@@ -130,7 +132,7 @@
 	margin-top: 6px;
 }
 
-.namehead .namehead_vilabel {
+.namehead > .namehead_vilabel {
 	padding-top: 2px;
 	padding-bottom: 2px;
 	color: rgb(0, 0, 0);
@@ -139,7 +141,7 @@
 	text-shadow: -2px -2px 0 rgba(220, 220, 220, 0.3), 2px -2px 0 rgba(220, 220, 220, 0.3), -2px 2px 0 rgba(220, 220, 220, 0.3), 2px 2px 0 rgba(220, 220, 220, 0.3);
 }
 
-.namehead .versionhead_vilabel {
+.namehead > .versionhead_vilabel {
 	padding-top: 2px;
 	padding-bottom: 2px;
 	padding-right: 2px;
@@ -155,17 +157,17 @@
 	border-bottom-style: solid;
 }
 
-.vitextmeter .vicolorblock {
+.vitextmeter > .vicolorblock {
 	border-bottom-color: rgba(220, 220, 220, 0.2);
 	border-bottom-width: 1px;
 	border-bottom-style: solid;
 }
 
-.vitextmeter .info_vitextmeter {
+.vitextmeter > .info_vitextmeter {
 	font-weight: bold;
 }
 
-.vitextmeter .arg_vitextmeter {
+.vitextmeter > .arg_vitextmeter {
 	padding-top: 5px;
 	padding: 0;
 	margin: 0;

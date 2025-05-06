@@ -39,6 +39,8 @@ impl ViLabel {
 	) -> Self {
 		let f_app_config = f_app_config.as_ref();
 		let label = Label::new(Some(value));
+		label.set_xalign(0.0);
+		label.set_yalign(0.0);
 		{
 			let style = label.style_context();
 			style.add_class("vilabel");
