@@ -1,11 +1,11 @@
 use crate::app::config::AppConfig;
 use crate::core::f64sbuff::F64SBuff;
 use crate::core::maybe::Maybe;
-use crate::widgets::primitives::graph::stream::ViGraphArcSyncStream;
-use crate::widgets::primitives::graph::stream::ViGraphStream;
-use crate::widgets::primitives::graph::vi::ViGraphBackgroundSurface;
 use crate::widgets::ViMeter;
 use crate::widgets::notebook::ViNotebook;
+use crate::widgets::primitives::graph::background::ViGraphBackgroundSurface;
+use crate::widgets::primitives::graph::stream::ViGraphArcSyncStream;
+use crate::widgets::primitives::graph::stream::ViGraphStream;
 use crate::widgets::primitives::label::ViLabel;
 use async_channel::Receiver;
 use enclose::enc;

@@ -1,5 +1,5 @@
-use std::collections::VecDeque;
 use log::warn;
+use std::collections::VecDeque;
 
 #[repr(transparent)]
 pub struct ViGraphData(VecDeque<f64>);

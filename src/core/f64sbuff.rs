@@ -1,4 +1,3 @@
-
 #[cfg(not(feature = "f64_string_optimized"))]
 #[cfg_attr(docsrs, doc(cfg(not(feature = "f64_string_optimized"))))]
 pub use __def::*;
@@ -77,8 +76,8 @@ mod _ryu {
 			F64SBuffAutoClear(self.0.format(v))
 		}
 	}
-	
-	// makes almost no sense but allows you to exclude clippy warnings (clippy::needless_borrow) 
+
+	// makes almost no sense but allows you to exclude clippy warnings (clippy::needless_borrow)
 	// when switching `f64_string_optimized`
 	#[repr(transparent)]
 	pub struct F64SBuffAutoClear<'a>(&'a str);

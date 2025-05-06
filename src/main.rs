@@ -13,7 +13,7 @@ use crate::core::display::ViGraphDisplayInfo;
 use crate::widgets::dockhead::ViDockHead;
 use crate::widgets::hotkeys::ViHotkeyItems;
 use crate::widgets::notebook::ViNotebook;
-use crate::widgets::primitives::graph::vi::ViGraphBackgroundSurface;
+use crate::widgets::primitives::graph::background::ViGraphBackgroundSurface;
 use anyhow::{Context, Result as anyhowResult};
 use async_channel::Receiver;
 use clap::Parser;
@@ -52,11 +52,11 @@ pub mod app {
 	pub mod aboutdialog;
 	pub mod cli;
 	pub mod config;
+	pub mod consts;
 	pub mod dockwindow;
 	pub mod events;
 	pub mod keyboard;
 	pub mod traymenu;
-	pub mod consts;
 }
 
 pub mod metrics {

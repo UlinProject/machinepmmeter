@@ -1,4 +1,3 @@
-use std::ops::Deref;
 use crate::__gen_transparent_gtk_type;
 use crate::app::consts::APP_PKG_AUTHORS;
 use crate::app::consts::APP_PKG_COPYRIGHT;
@@ -11,6 +10,7 @@ use gtk::ffi::GtkAboutDialog;
 use gtk::traits::AboutDialogExt;
 use gtk::traits::DialogExt;
 use gtk::traits::GtkWindowExt;
+use std::ops::Deref;
 
 #[repr(transparent)]
 #[derive(Debug)]

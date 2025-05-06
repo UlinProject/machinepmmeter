@@ -2,9 +2,9 @@ use crate::__gen_transparent_gtk_type;
 use crate::app::config::AppConfig;
 use crate::core::maybe::Maybe;
 use crate::maybe;
+use crate::widgets::primitives::graph::background::ViGraphBackgroundSurface;
 use crate::widgets::primitives::graph::stream::ViGraphStream;
 use crate::widgets::primitives::graph::vi::ViGraph;
-use crate::widgets::primitives::graph::vi::ViGraphBackgroundSurface;
 use crate::widgets::primitives::graph::vi::ViGraphSender;
 use crate::widgets::primitives::label::ViLabel;
 use crate::widgets::textmeter::ViTextMeter;
@@ -22,12 +22,12 @@ pub mod primitives {
 	pub mod hotkeyitem;
 	pub mod iconmenuitem;
 	pub mod label;
-	
+
 	pub mod graph {
+		pub mod background;
 		pub mod data;
 		pub mod stream;
 		pub mod vi;
-		pub mod background;
 	}
 }
 

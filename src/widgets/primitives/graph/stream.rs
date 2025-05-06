@@ -7,7 +7,6 @@ use log::warn;
 
 use crate::widgets::primitives::graph::data::ViGraphData;
 
-
 pub trait ViGraphStream: Clone + 'static {
 	fn with_len(len: usize) -> Self;
 
