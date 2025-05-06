@@ -34,6 +34,9 @@ all-features = true
 # defines the configuration attribute `docsrs`
 rustdoc-args = ["--cfg", "docsrs"]
 
+[profile.release]
+lto = true
+
 [features]
 default = [ "x11_keyboard", "graph-background-cache", "graph-shadows", "no-gui-root", "jemalloc" ]
 x11_keyboard = [ "x11", "libc" ]
