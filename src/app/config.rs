@@ -31,7 +31,7 @@ impl Default for WindowAppConfig {
 			head: None,
 			width: None,
 			height: None,
-			transparent: 0.5.into(),
+			transparent: 0.4.into(),
 			num_monitor: 0,
 			pos: Default::default(),
 		}

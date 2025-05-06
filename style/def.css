@@ -127,11 +127,12 @@
 	border-top-width: 2px;
 	border-top-style: solid;
 	
-	margin-top: 4px;
+	margin-top: 6px;
 }
 
 .namehead .namehead_vilabel {
-	padding-top: 3px;
+	padding-top: 2px;
+	padding-bottom: 2px;
 	color: rgb(0, 0, 0);
 	font-weight: bold;
 	
@@ -140,6 +141,7 @@
 
 .namehead .versionhead_vilabel {
 	padding-top: 2px;
+	padding-bottom: 2px;
 	padding-right: 2px;
 	color: rgb(0, 0, 0);
 	font-weight: bold;
@@ -153,7 +155,7 @@
 	border-bottom-style: solid;
 }
 
-.vicolorblock {
+.vitextmeter .vicolorblock {
 	border-bottom-color: rgba(220, 220, 220, 0.2);
 	border-bottom-width: 1px;
 	border-bottom-style: solid;

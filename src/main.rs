@@ -199,7 +199,7 @@ fn build_ui(
 			&vigraph_surface,
 			(),
 			(),
-			2400,
+			1200,
 			Duration::from_millis(16),
 			unsafe { NonZero::new_unchecked(10) },
 			Duration::from_millis(1),
