@@ -4,6 +4,7 @@
 use crate::app::aboutdialog::AppAboutDialog;
 use crate::app::cli::AppCli;
 use crate::app::config::AppConfig;
+use crate::app::consts::{APP_ID, UPPERCASE_APP_PKG_VERSION};
 use crate::app::dockwindow::{AppViDockWindow, PosINScreen};
 use crate::app::events::{AppEventSender, AppEvents};
 use crate::app::keyboard::{AppKeyboardEvents, spawn_keyboard_thread};
@@ -55,7 +56,9 @@ pub mod app {
 	pub mod events;
 	pub mod keyboard;
 	pub mod traymenu;
+	pub mod consts;
 }
+
 pub mod metrics {
 	#[cfg(feature = "demo_mode")]
 	#[cfg_attr(docsrs, doc(cfg(feature = "demo_mode")))]
@@ -71,19 +74,6 @@ use jemallocator::Jemalloc;
 #[cfg_attr(docsrs, doc(cfg(all(not(target_env = "msvc"), feature = "demo_mode"))))]
 #[global_allocator]
 static GLOBAL: Jemalloc = Jemalloc;
-
-const APP_ID: &str = "com.ulinkot.machinepmmeter";
-const PKG_ICON: &str = env!("CARGO_PKG_NAME");
-const PKG_WEBSITE: &str = env!("CARGO_PKG_REPOSITORY");
-const PKG_AUTHORS: &str = env!("CARGO_PKG_AUTHORS");
-const PKG_COPYRIGHT: &str = "© 2025 Denis Kotlyarov";
-const PKG_NAME: &str = env!("CARGO_PKG_NAME");
-const UPPERCASE_PKG_NAME: &str = const_ascii_uppercase!(PKG_NAME);
-
-const PKG_VERSION: &str = env!("CARGO_PKG_VERSION");
-const UPPERCASE_PKG_VERSION: &str = const_ascii_uppercase!(PKG_VERSION);
-
-const PKG_DESCRIPTION: &str = env!("CARGO_PKG_DESCRIPTION");
 
 fn main() -> anyhowResult<()> {
 	panic::set_hook(Box::new(|p_hook_info| {
@@ -248,7 +238,7 @@ fn build_ui(
 
 	vbox.pack_start(&vinotebook, true, true, 0);
 	vbox.pack_end(
-		&ViDockHead::new(app_config, name_window, UPPERCASE_PKG_VERSION, 1.0),
+		&ViDockHead::new(app_config, name_window, UPPERCASE_APP_PKG_VERSION, 1.0),
 		true,
 		true,
 		0,

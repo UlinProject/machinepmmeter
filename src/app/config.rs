@@ -1,4 +1,4 @@
-use crate::UPPERCASE_PKG_NAME;
+use crate::app::consts::UPPERCASE_APP_PKG_NAME;
 use crate::app::dockwindow::PosINScreen;
 use crate::core::eightbitcolor::EightBitColor;
 use gtk::pango;
@@ -153,7 +153,7 @@ impl AppConfig {
 
 	#[inline]
 	pub fn get_name_or_default(&self) -> &str {
-		self.get_name().unwrap_or(UPPERCASE_PKG_NAME)
+		self.get_name().unwrap_or(UPPERCASE_APP_PKG_NAME)
 	}
 
 	#[inline]

@@ -1,5 +1,3 @@
-use crate::PKG_DESCRIPTION;
-use crate::PKG_NAME;
 use anyhow::Result as anyhowResult;
 use anyhow::anyhow;
 use clap::Parser;
@@ -7,10 +5,13 @@ use directories::ProjectDirs;
 use std::path::Path;
 use std::path::PathBuf;
 
+use crate::app::consts::APP_PKG_DESCRIPTION;
+use crate::app::consts::APP_PKG_NAME;
+
 #[derive(Parser, Debug)]
 #[clap(
-	name = PKG_NAME,
-	about = PKG_DESCRIPTION
+	name = APP_PKG_NAME,
+	about = APP_PKG_DESCRIPTION
 )]
 pub struct AppCli {
 	/// Path to the TOML AppConfiguration file
@@ -40,7 +41,7 @@ impl AppCli {
 		let mut owned_path = PathBuf::new();
 		let appconfig_path = self.get_app_config().map_or_else(
 			|| {
-				ProjectDirs::from("com", "ulinkot", PKG_NAME)
+				ProjectDirs::from("com", "ulinkot", APP_PKG_NAME)
 					.ok_or(anyhow!("Could not determine project directories"))
 					.map(|a| {
 						owned_path = a.config_dir().join("AppConfig.toml");

@@ -1,7 +1,7 @@
-use crate::APP_ID;
-use crate::PKG_DESCRIPTION;
-use crate::PKG_ICON;
-use crate::PKG_NAME;
+use crate::app::consts::APP_ID;
+use crate::app::consts::APP_PKG_DESCRIPTION;
+use crate::app::consts::APP_PKG_ICON;
+use crate::app::consts::APP_PKG_NAME;
 use crate::app::events::AppEventSender;
 use crate::core::traymenu::TrayMenu;
 use crate::core::traymenu::TrayMenuItem;
@@ -50,9 +50,9 @@ pub fn app_traymenu(tx_appevents: &AppEventSender) -> TrayMenu {
 
 	let tray_menu = TrayMenu::new(
 		APP_ID,
-		PKG_ICON,
-		PKG_NAME,
-		PKG_DESCRIPTION,
+		APP_PKG_ICON,
+		APP_PKG_NAME,
+		APP_PKG_DESCRIPTION,
 		[
 			TrayMenuItem::icon_item("view-conceal-symbolic", "Hide | Show", hide_or_show),
 			TrayMenuItem::Separator,
