@@ -116,38 +116,38 @@ pub fn vinotebook_append_page(
 	let waitinitlist: OnceWaitResult<Vec<U2Item>> = OnceWaitResult::new();
 	std::thread::spawn(enc!((waitinitlist) move || {
 		let mut exp_init_sensors = Vec::with_capacity(12);
-		
+
 		let mut a_sensors = Vec::with_capacity(12);
 		trace!("udisks2:");
 		if let Ok(udisks2) = UDisks2::new() {
 			let disks = Disks::new(&udisks2);
 			for device in disks.devices {
 				trace!("	{}(model), {}(serial)", device.drive.model, device.drive.serial);
-				
+
 				if let Ok(SmartValue::Enabled(smart_data)) = udisks2.smart_attributes(&device.drive, true) {
 					let model = device.drive.model.clone();
 					let serial = device.drive.serial.clone();
-					
+
 					let model_info = ModelInfo {
 						name: model,
 						serial,
 					};
-					
+
 					//println!("{:?}", smart_data.attributes);
 					let c_value = smart_data.temperature - 273.15;
 					trace!("		{}", c_value);
-					
+
 					/*let min = 0.0;
 					let max = 100.0;
-					
+
 					for a in smart_data.attributes {
 						if a.name == "airflow-temperature-celsius" {
 							println!("{:?}", a);
-							
+
 							break;
 						}
 					}*/
-					
+
 					let stream = ViGraphArcSyncStream::with_len(len);
 					let (sender, recv) = async_channel::bounded(32);
 					exp_init_sensors.push(U2Item {
@@ -159,7 +159,7 @@ pub fn vinotebook_append_page(
 					a_sensors.push((device.drive, stream, sender));
 				}
 			}
-		
+
 			if let Err(_exp_init_sensors) = waitinitlist.set_and_waitend(exp_init_sensors) {
 				error!("#[udisks2, send] Feedback is broken, i can't continue initialization.");
 
@@ -175,7 +175,7 @@ pub fn vinotebook_append_page(
 						loop {
 							if let Ok(SmartValue::Enabled(smart_data)) = udisks2.smart_attributes(device, true) {
 								current = smart_data.temperature - 273.15;
-								
+
 								let a = (current - min) / (max - min);
 								stream.write(|stream| {
 									stream.push_next(a);
@@ -296,4 +296,3 @@ pub fn vinotebook_append_page(
 		error!("#[lm_sensors, recv] Feedback is broken, i can't continue initialization.");
 	}
 }
-
