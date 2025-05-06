@@ -64,6 +64,7 @@ pub mod metrics {
 	#[cfg_attr(docsrs, doc(cfg(feature = "demo_mode")))]
 	pub mod demo;
 	pub mod lm_sensors;
+	pub mod sysinfo;
 	pub mod udisks2;
 }
 
@@ -222,6 +223,10 @@ fn build_ui(
 			Duration::from_millis(1),
 			&vinotebook,
 		);
+	}
+	{
+		// sysinfo
+		crate::metrics::sysinfo::vinotebook_append_page(app_config, &vinotebook);
 	}
 
 	if let Some(level) = app_config.get_window_app_config().get_transparent() {
@@ -402,7 +407,7 @@ fn build_ui(
 
 								_ => &[
 									("view-conceal-symbolic", "Hide | Show", "(Shift and F8)"),
-									("zoom-original-symbolic", "Selecting a tab", "(Shift and 1 | 2 | ..)"),
+									("zoom-original-symbolic", "Selecting a tab", "(Shift and 1 | ..)"),
 									("go-next-symbolic", "Next tab", "(Shift and D)"),
 									("go-previous-symbolic", "Previous tab", "(Shift and A)"),
 									(

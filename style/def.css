@@ -175,3 +175,11 @@
 	margin: 0;
 	font-weight: bold;
 }
+
+.viboxsysinfo .head {
+	text-shadow: -2px -2px 0 rgba(255, 255, 255, 0.01), 2px -2px 0 rgba(255, 255, 255, 0.01), -2px 2px 0 rgba(255, 255, 255, 0.01), 2px 2px 0 rgba(255, 255, 255, 0.01);
+}
+
+.viboxsysinfo .head0 {
+	text-shadow: -2px -2px 0 rgba(255, 255, 255, 0.01), 2px -2px 0 rgba(255, 255, 255, 0.01), -2px 2px 0 rgba(255, 255, 255, 0.01), 2px 2px 0 rgba(255, 255, 255, 0.01);
+}

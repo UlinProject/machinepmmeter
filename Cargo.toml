@@ -28,6 +28,7 @@ glib = "0.20.9"
 jemallocator = { version = "0.5.4", optional = true }
 ryu = { version = "1.0.20", optional = true }
 dbus-udisks2 = "0.3.0"
+sys_metrics = "0.2.7"
 
 # docs.rs-specific configuration
 [package.metadata.docs.rs]
