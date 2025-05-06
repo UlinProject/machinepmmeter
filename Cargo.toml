@@ -26,6 +26,7 @@ libc = { version = "0.2.172", optional = true }
 x11 = { version = "2.21.0", features = ["xlib", "xrecord", "xinput"], optional = true }
 glib = "0.20.9"
 jemallocator = { version = "0.5.4", optional = true }
+ryu = { version = "1.0.20", optional = true }
 
 # docs.rs-specific configuration
 [package.metadata.docs.rs]
@@ -38,10 +39,11 @@ rustdoc-args = ["--cfg", "docsrs"]
 lto = true
 
 [features]
-default = [ "x11_keyboard", "graph-background-cache", "graph-shadows", "no-gui-root", "jemalloc" ]
+default = [ "x11_keyboard", "graph-background-cache", "graph-shadows", "no-gui-root", "f64_string_optimized", "jemalloc" ]
 x11_keyboard = [ "x11", "libc" ]
 demo_mode = []
 no-gui-root = [ "libc" ]
 graph-background-cache = []
 graph-shadows = []
 jemalloc = [ "jemallocator" ]
+f64_string_optimized = [ "ryu" ]

@@ -1,48 +1,78 @@
-use std::fmt::Write;
-use std::ops::Deref;
 
-#[repr(transparent)]
-pub struct F64SBuff(String);
+#[cfg(not(feature = "f64_string_optimized"))]
+#[cfg_attr(docsrs, doc(cfg(not(feature = "f64_string_optimized"))))]
+pub use __def::*;
+#[cfg(not(feature = "f64_string_optimized"))]
+#[cfg_attr(docsrs, doc(cfg(not(feature = "f64_string_optimized"))))]
+mod __def {
+	use std::fmt::Write;
+	use std::ops::Deref;
 
-impl F64SBuff {
-	#[inline]
-	pub fn with_capacity(len: usize) -> Self {
-		Self(String::with_capacity(len))
+	#[repr(transparent)]
+	pub struct F64SBuff(String);
+
+	impl F64SBuff {
+		#[inline]
+		pub fn with_capacity(len: usize) -> Self {
+			Self(String::with_capacity(len))
+		}
+
+		#[inline]
+		pub fn new() -> Self {
+			Self::with_capacity(24)
+		}
+
+		#[allow(dead_code)]
+		#[inline]
+		pub const fn empty() -> Self {
+			Self(String::new())
+		}
+
+		pub fn format_and_get(&mut self, v: f64) -> F64SBuffAutoClear {
+			let _e = write!(&mut self.0, "{}", v);
+
+			F64SBuffAutoClear(self)
+		}
 	}
 
-	#[inline]
-	pub fn new() -> Self {
-		Self::with_capacity(24)
+	#[repr(transparent)]
+	pub struct F64SBuffAutoClear<'a>(&'a mut F64SBuff);
+
+	impl Deref for F64SBuffAutoClear<'_> {
+		type Target = str;
+
+		#[inline]
+		fn deref(&self) -> &Self::Target {
+			&self.0.0
+		}
 	}
 
-	#[allow(dead_code)]
-	#[inline]
-	pub const fn empty() -> Self {
-		Self(String::new())
-	}
-
-	pub fn format_and_get(&mut self, v: f64) -> F64SBuffAutoClear {
-		let _e = write!(&mut self.0, "{}", v);
-
-		F64SBuffAutoClear(self)
+	impl Drop for F64SBuffAutoClear<'_> {
+		#[inline]
+		fn drop(&mut self) {
+			self.0.0.clear();
+		}
 	}
 }
 
-#[repr(transparent)]
-pub struct F64SBuffAutoClear<'a>(&'a mut F64SBuff);
+#[cfg(feature = "f64_string_optimized")]
+#[cfg_attr(docsrs, doc(cfg(feature = "f64_string_optimized")))]
+pub use _ryu::*;
+#[cfg(feature = "f64_string_optimized")]
+#[cfg_attr(docsrs, doc(cfg(feature = "f64_string_optimized")))]
+mod _ryu {
+	#[repr(transparent)]
+	pub struct F64SBuff(ryu::Buffer);
 
-impl Deref for F64SBuffAutoClear<'_> {
-	type Target = str;
+	impl F64SBuff {
+		#[inline]
+		pub fn new() -> Self {
+			Self(ryu::Buffer::new())
+		}
 
-	#[inline]
-	fn deref(&self) -> &Self::Target {
-		&self.0.0
-	}
-}
-
-impl Drop for F64SBuffAutoClear<'_> {
-	#[inline]
-	fn drop(&mut self) {
-		self.0.0.clear();
+		#[inline]
+		pub fn format_and_get(&mut self, v: f64) -> &str {
+			self.0.format(v)
+		}
 	}
 }
