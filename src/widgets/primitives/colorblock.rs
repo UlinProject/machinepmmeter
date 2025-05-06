@@ -51,13 +51,7 @@ impl ViColorBlock {
 		self.connect_background(red, green, blue, alpha)
 	}
 
-	pub fn connect_background(
-		self,
-		red: u8,
-		green: u8,
-		blue: u8,
-		alpha: f64,
-	) -> Self {
+	pub fn connect_background(self, red: u8, green: u8, blue: u8, alpha: f64) -> Self {
 		self.0.connect_draw(move |da, cr| {
 			let allocation = da.allocation();
 
@@ -67,12 +61,7 @@ impl ViColorBlock {
 				(blue as f64) / 255.0,
 				alpha,
 			);
-			cr.rectangle(
-				0.0,
-				0.0,
-				allocation.width() as _,
-				allocation.height() as _,
-			);
+			cr.rectangle(0.0, 0.0, allocation.width() as _, allocation.height() as _);
 			let _ = cr.fill();
 
 			true.into()
@@ -81,10 +70,7 @@ impl ViColorBlock {
 		self
 	}
 
-	pub fn connect_state_background(
-		self,
-		rcptr: &Rc<RefCell<(f64, f64, f64, f64)>>,
-	) -> Self {
+	pub fn connect_state_background(self, rcptr: &Rc<RefCell<(f64, f64, f64, f64)>>) -> Self {
 		self.0.connect_draw(enc!((rcptr) move |da, cr| {
 			let allocation = da.allocation();
 

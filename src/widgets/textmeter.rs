@@ -61,8 +61,7 @@ impl ViTextMeter {
 				.into_rgba(transparent);
 
 			let state_color = Rc::new(RefCell::new((red, green, blue, transparent)));
-			let color_block =
-				ViColorBlock::new(2, 0).connect_state_background(&state_color);
+			let color_block = ViColorBlock::new(2, 0).connect_state_background(&state_color);
 
 			hbox.pack_start(&color_block, false, true, 0);
 

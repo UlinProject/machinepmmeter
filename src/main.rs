@@ -40,6 +40,7 @@ mod core {
 	pub mod constuppercase;
 	pub mod display;
 	pub mod eightbitcolor;
+	pub mod f64sbuff;
 	pub mod gtkcodegen;
 	pub mod keyboard;
 	pub mod maybe;
