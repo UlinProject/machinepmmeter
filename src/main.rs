@@ -13,7 +13,7 @@ use crate::core::display::ViGraphDisplayInfo;
 use crate::widgets::dockhead::ViDockHead;
 use crate::widgets::hotkeys::ViHotkeyItems;
 use crate::widgets::notebook::ViNotebook;
-use crate::widgets::primitives::graph::ViGraphBackgroundSurface;
+use crate::widgets::primitives::graph::vi::ViGraphBackgroundSurface;
 use anyhow::{Context, Result as anyhowResult};
 use async_channel::Receiver;
 use clap::Parser;

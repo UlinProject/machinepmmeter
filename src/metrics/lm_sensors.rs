@@ -1,11 +1,11 @@
 use crate::app::config::AppConfig;
 use crate::core::f64sbuff::F64SBuff;
 use crate::core::maybe::Maybe;
+use crate::widgets::primitives::graph::stream::ViGraphArcSyncStream;
+use crate::widgets::primitives::graph::stream::ViGraphStream;
+use crate::widgets::primitives::graph::vi::ViGraphBackgroundSurface;
 use crate::widgets::ViMeter;
 use crate::widgets::notebook::ViNotebook;
-use crate::widgets::primitives::graph::ViGraphArcStream;
-use crate::widgets::primitives::graph::ViGraphBackgroundSurface;
-use crate::widgets::primitives::graph::ViGraphStream;
 use crate::widgets::primitives::label::ViLabel;
 use async_channel::Receiver;
 use enclose::enc;
@@ -75,7 +75,7 @@ struct _WaitResult<T> {
 struct LmItem {
 	chip_info: Option<ChipInfo>,
 	feature_name: String,
-	stream: ViGraphArcStream,
+	stream: ViGraphArcSyncStream,
 	recv: Receiver<LmEvents>,
 }
 
@@ -282,7 +282,7 @@ pub fn vinotebook_append_page(
 								}
 							}
 							if c_value.input.is_some() && c_value.r#type != SensorType::Unknown {
-								let stream = ViGraphArcStream::with_len(len);
+								let stream = ViGraphArcSyncStream::with_len(len);
 								let (sender, recv) = async_channel::bounded(16);
 								exp_init_sensors.push(LmItem {
 									chip_info: chip_info.take(),

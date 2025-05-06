@@ -2,10 +2,10 @@ use crate::__gen_transparent_gtk_type;
 use crate::app::config::AppConfig;
 use crate::core::maybe::Maybe;
 use crate::maybe;
-use crate::widgets::primitives::graph::ViGraph;
-use crate::widgets::primitives::graph::ViGraphBackgroundSurface;
-use crate::widgets::primitives::graph::ViGraphSender;
-use crate::widgets::primitives::graph::ViGraphStream;
+use crate::widgets::primitives::graph::stream::ViGraphStream;
+use crate::widgets::primitives::graph::vi::ViGraph;
+use crate::widgets::primitives::graph::vi::ViGraphBackgroundSurface;
+use crate::widgets::primitives::graph::vi::ViGraphSender;
 use crate::widgets::primitives::label::ViLabel;
 use crate::widgets::textmeter::ViTextMeter;
 use crate::widgets::textmeter::ViTextMeterSender;
@@ -19,10 +19,16 @@ use std::rc::Rc;
 
 pub mod primitives {
 	pub mod colorblock;
-	pub mod graph;
 	pub mod hotkeyitem;
 	pub mod iconmenuitem;
 	pub mod label;
+	
+	pub mod graph {
+		pub mod data;
+		pub mod stream;
+		pub mod vi;
+		pub mod background;
+	}
 }
 
 pub mod dockhead;

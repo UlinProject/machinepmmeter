@@ -2,6 +2,7 @@ use crate::__gen_transparent_gtk_type;
 use crate::app::config::AppConfig;
 use crate::core::maybe::Maybe;
 use crate::maybe;
+use crate::widgets::primitives::graph::stream::ViGraphStream;
 use anyhow::Result as anyhowResult;
 use enclose::enc;
 use gtk::DrawingArea;
@@ -10,13 +11,9 @@ use gtk::cairo::Context;
 use gtk::cairo::ImageSurface;
 use gtk::ffi::GtkDrawingArea;
 use gtk::traits::WidgetExt;
-use log::warn;
 use std::cell::RefCell;
-use std::collections::VecDeque;
 use std::ops::Deref;
 use std::rc::Rc;
-use std::sync::Arc;
-use std::sync::Mutex;
 
 #[repr(transparent)]
 #[derive(Debug)]
@@ -35,116 +32,6 @@ __gen_transparent_gtk_type! {
 			sself.0
 		},
 	)
-}
-
-#[repr(transparent)]
-pub struct ViGraphData(VecDeque<f64>);
-
-impl ViGraphData {
-	pub fn with_len(len: usize) -> Self {
-		Self(VecDeque::from(vec![0.0; len]))
-	}
-
-	#[inline]
-	pub fn back(&self) -> Option<f64> {
-		self.0.back().copied()
-	}
-
-	#[inline]
-	pub fn front(&self) -> Option<f64> {
-		self.0.front().copied()
-	}
-
-	#[inline]
-	pub fn len(&self) -> usize {
-		self.0.len()
-	}
-
-	#[inline]
-	pub fn iter(&self) -> impl Iterator<Item = &f64> {
-		self.0.iter()
-	}
-
-	#[inline]
-	pub fn push_next(&mut self, mut v: f64) {
-		if !(0.0..=1.0).contains(&v) {
-			warn!("#[ViGraphData, push_next] Very strange {}f for a graph.", v);
-
-			v = v.clamp(0.0, 1.0);
-		}
-
-		self.0.pop_front();
-		self.0.push_back(v);
-	}
-}
-
-pub trait ViGraphStream: Clone + 'static {
-	fn with_len(len: usize) -> Self;
-
-	fn read<R>(&self, read: impl FnMut(&ViGraphData) -> R) -> R;
-	fn write<R>(&self, write: impl FnMut(&mut ViGraphData) -> R) -> R;
-	fn push_next(&self, v: f64);
-}
-
-pub type ViGraphRcStream = Rc<RefCell<ViGraphData>>;
-impl ViGraphStream for ViGraphRcStream {
-	#[inline]
-	fn with_len(len: usize) -> Self {
-		Rc::new(RefCell::new(ViGraphData::with_len(len)))
-	}
-
-	fn write<R>(&self, mut write: impl FnMut(&mut ViGraphData) -> R) -> R {
-		let mut w = RefCell::borrow_mut(self);
-
-		write(&mut w)
-	}
-
-	fn read<R>(&self, mut read: impl FnMut(&ViGraphData) -> R) -> R {
-		let rdata = RefCell::borrow(self);
-
-		read(&rdata)
-	}
-
-	fn push_next(&self, v: f64) {
-		let mut w = RefCell::borrow_mut(self);
-
-		w.push_next(v);
-	}
-}
-
-pub type ViGraphArcStream = Arc<Mutex<ViGraphData>>;
-impl ViGraphStream for ViGraphArcStream {
-	#[inline]
-	fn with_len(len: usize) -> Self {
-		Arc::new(Mutex::new(ViGraphData::with_len(len)))
-	}
-
-	fn read<R>(&self, mut read: impl FnMut(&ViGraphData) -> R) -> R {
-		let rdata = match Mutex::try_lock(self) {
-			Ok(a) => a,
-			Err(_) => {
-				warn!(
-					"#[ViGraphStream, read] Fix the timings, rendering is requested at the moment of filling the data."
-				);
-
-				self.lock().unwrap_or_else(|e| e.into_inner())
-			} // always Err(TryLockError::WouldBlock)
-		};
-
-		read(&rdata)
-	}
-
-	fn write<R>(&self, mut write: impl FnMut(&mut ViGraphData) -> R) -> R {
-		let mut w = self.lock().unwrap_or_else(|e| e.into_inner());
-
-		write(&mut w)
-	}
-
-	fn push_next(&self, v: f64) {
-		let mut w = self.lock().unwrap_or_else(|e| e.into_inner());
-
-		w.push_next(v);
-	}
 }
 
 impl ViGraph {
