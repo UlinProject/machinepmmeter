@@ -14,7 +14,7 @@ use crate::widgets::dockhead::ViDockHead;
 use crate::widgets::hotkeys::ViHotkeyItems;
 use crate::widgets::notebook::ViNotebook;
 use crate::widgets::primitives::graph::background::ViGraphBackgroundSurface;
-use anyhow::{Context, Result as anyhowResult};
+use anyhow::{bail, Context, Result as anyhowResult};
 use async_channel::Receiver;
 use clap::Parser;
 use enclose::enc;
