@@ -97,7 +97,7 @@ fn main() -> anyhowResult<()> {
 	#[cfg(feature = "no-gui-root")]
 	#[cfg_attr(docsrs, doc(cfg(feature = "no-gui-root")))]
 	if unsafe { libc::getuid() == 0 } {
-		panic!("Do not run graphical applications with root user rights.");
+		bail!("Do not run graphical applications with root user rights.");
 	}
 
 	env_logger::try_init()?;
