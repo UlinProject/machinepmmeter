@@ -21,8 +21,8 @@ gtk = "0.18.2"
 lm-sensors = "0.3.2"
 log = "0.4.27"
 serde = { version = "1.0.219", features = ["derive"] }
-toml = "0.8.20"
-libc = { version = "0.2.172", optional = true }
+toml = "0.8.23"
+libc = { version = "0.2.174", optional = true }
 x11 = { version = "2.21.0", features = ["xlib", "xrecord", "xinput"], optional = true }
 glib = "0.20.12"
 jemallocator = { version = "0.5.4", optional = true }
