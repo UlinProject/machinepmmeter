@@ -7,6 +7,8 @@ use std::path::PathBuf;
 
 use crate::app::consts::APP_PKG_DESCRIPTION;
 use crate::app::consts::APP_PKG_NAME;
+use crate::app::consts::CONFIG_ORGANIZATION;
+use crate::app::consts::CONFIG_QUALIFIER;
 
 #[derive(Parser, Debug)]
 #[clap(
@@ -41,7 +43,7 @@ impl AppCli {
 		let mut owned_path = PathBuf::new();
 		let appconfig_path = self.get_app_config().map_or_else(
 			|| {
-				ProjectDirs::from("com", "ulinkot", APP_PKG_NAME)
+				ProjectDirs::from(CONFIG_QUALIFIER, CONFIG_ORGANIZATION, APP_PKG_NAME)
 					.ok_or(anyhow!("Could not determine project directories"))
 					.map(|a| {
 						owned_path = a.config_dir().join("AppConfig.toml");

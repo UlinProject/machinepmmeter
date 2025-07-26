@@ -1,5 +1,10 @@
 use crate::const_ascii_uppercase;
 
+// config
+pub const CONFIG_QUALIFIER: &str = "com";
+pub const CONFIG_ORGANIZATION: &str = "ulinkot";
+
+// app
 pub const APP_ID: &str = "com.ulinkot.machinepmmeter";
 pub const APP_PKG_ICON: &str = env!("CARGO_PKG_NAME");
 pub const APP_PKG_WEBSITE: &str = env!("CARGO_PKG_REPOSITORY");
