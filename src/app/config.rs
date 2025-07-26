@@ -64,7 +64,7 @@ impl WindowAppConfig {
 	}
 
 	#[inline]
-	pub fn get_pos(&self) -> PosINScreen {
+	pub const fn get_pos(&self) -> PosINScreen {
 		self.pos
 	}
 }
