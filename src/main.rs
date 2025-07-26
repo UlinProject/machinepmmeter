@@ -6,7 +6,7 @@ use crate::app::cli::AppCli;
 use crate::app::config::AppConfig;
 use crate::app::consts::{APP_ID, UPPERCASE_APP_PKG_VERSION};
 use crate::app::dockwindow::{AppViDockWindow, PosINScreen};
-use crate::app::events::{AppEventSender, AppEvents};
+use crate::app::events::{AppEventsSender, AppEvents};
 use crate::app::keyboard::{AppKeyboardEvents, spawn_keyboard_thread};
 use crate::app::traymenu::app_traymenu;
 use crate::core::display::ViGraphDisplayInfo;
@@ -141,7 +141,7 @@ fn main() -> anyhowResult<()> {
 		a_css
 	};
 
-	let (tx_appevents, rx_appevents) = crate::app::events::app_event_channel();
+	let (tx_appevents, rx_appevents) = crate::app::events::app_events_channel();
 	let rx_appevents = Rc::new(rx_appevents);
 	let app_traymenu = app_traymenu(&tx_appevents);
 
@@ -169,7 +169,7 @@ fn build_ui(
 	app_config: &Rc<AppConfig>,
 	c_display: &Rc<ViGraphDisplayInfo>,
 
-	esender: AppEventSender,
+	esender: AppEventsSender,
 	receiver: Rc<Receiver<AppEvents>>,
 ) {
 	trace!("#[gui] Start initialization, name: {:?}", name_window);

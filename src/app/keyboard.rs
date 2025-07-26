@@ -1,4 +1,4 @@
-use crate::app::events::AppEventSender;
+use crate::app::events::AppEventsSender;
 use crate::core::keyboard::KeyboardListenerBuilder;
 use crate::core::keyboard::key::Key;
 use enclose::enc;
@@ -24,7 +24,7 @@ pub enum AppKeyboardEvents {
 	Escape,
 }
 
-pub fn spawn_keyboard_thread(esender: AppEventSender) {
+pub fn spawn_keyboard_thread(esender: AppEventsSender) {
 	std::thread::spawn(move || {
 		let keyboard_listener = KeyboardListenerBuilder::with_len::<18>()
 			.key_mapping(|key_mapping| {

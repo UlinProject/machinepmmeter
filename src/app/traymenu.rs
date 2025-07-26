@@ -2,7 +2,7 @@ use crate::app::consts::APP_ID;
 use crate::app::consts::APP_PKG_DESCRIPTION;
 use crate::app::consts::APP_PKG_ICON;
 use crate::app::consts::APP_PKG_NAME;
-use crate::app::events::AppEventSender;
+use crate::app::events::AppEventsSender;
 use crate::core::traymenu::TrayMenu;
 use crate::core::traymenu::TrayMenuItem;
 use crate::widgets::primitives::iconmenuitem::ViIconMenuItem;
@@ -10,7 +10,7 @@ pub use appindicator3::IndicatorCategory;
 use enclose::enc;
 use gtk::traits::GtkMenuItemExt;
 
-pub fn app_traymenu(tx_appevents: &AppEventSender) -> TrayMenu {
+pub fn app_traymenu(tx_appevents: &AppEventsSender) -> TrayMenu {
 	// Tray menu
 	let hide_or_show = enc!((tx_appevents) &mut move |vi: &mut ViIconMenuItem| {
 		vi.connect_activate(enc!((tx_appevents) move |_| {
