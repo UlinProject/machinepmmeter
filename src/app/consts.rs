@@ -3,6 +3,7 @@ use crate::const_ascii_uppercase;
 // config
 pub const CONFIG_QUALIFIER: &str = "com";
 pub const CONFIG_ORGANIZATION: &str = "ulinkot";
+pub const CONFIG_FILE_NAME: &str = "AppConfig.toml";
 
 // app
 pub const APP_ID: &str = "com.ulinkot.machinepmmeter";

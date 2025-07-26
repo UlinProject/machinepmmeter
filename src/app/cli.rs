@@ -7,6 +7,7 @@ use std::path::PathBuf;
 
 use crate::app::consts::APP_PKG_DESCRIPTION;
 use crate::app::consts::APP_PKG_NAME;
+use crate::app::consts::CONFIG_FILE_NAME;
 use crate::app::consts::CONFIG_ORGANIZATION;
 use crate::app::consts::CONFIG_QUALIFIER;
 
@@ -46,7 +47,7 @@ impl AppCli {
 				ProjectDirs::from(CONFIG_QUALIFIER, CONFIG_ORGANIZATION, APP_PKG_NAME)
 					.ok_or(anyhow!("Could not determine project directories"))
 					.map(|a| {
-						owned_path = a.config_dir().join("AppConfig.toml");
+						owned_path = a.config_dir().join(CONFIG_FILE_NAME);
 
 						owned_path.as_path()
 					})
