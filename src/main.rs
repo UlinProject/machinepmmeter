@@ -68,13 +68,7 @@ pub mod metrics {
 	pub mod udisks2;
 }
 
-#[cfg(all(not(target_env = "msvc"), feature = "jemalloc"))]
-#[global_allocator]
-static GLOBAL: tikv_jemallocator::Jemalloc = tikv_jemallocator::Jemalloc;
-
-#[cfg(all(not(target_env = "msvc"), feature = "mimalloc"))]
-#[global_allocator]
-static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
+mod allocators;
 
 fn main() -> anyhowResult<()> {
 	println!("{APP_ID}:");
