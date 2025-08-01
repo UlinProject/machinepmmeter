@@ -6,8 +6,19 @@ description = "Real-time system performance monitor for apps/games, lm_sensors/u
 license = "GPL-3.0-or-later" 
 repository = "https://github.com/UlinProject/machinepmmeter/tree/main"
 authors = ["Denis Kotlyarov (Денис Котляров) <denis2005991@gmail.com>"]
-keywords = ["performance", "monitor", "system", "real-time", "lm_sensors", "ryzenadj"]
-categories = ["gui", "system-utilities", "monitoring"]
+keywords = [
+	"performance", 
+	"monitor", 
+	"system", 
+	"real-time", 
+	"lm_sensors", 
+	"ryzenadj"
+]
+categories = [
+	"gui", 
+	"system-utilities", 
+	"monitoring"
+]
 
 [dependencies]
 anyhow = "1.0.98"
@@ -42,7 +53,14 @@ rustdoc-args = ["--cfg", "docsrs"]
 #lto = true
 
 [features]
-default = [ "x11_keyboard", "graph-background-cache", "graph-shadows", "no-gui-root", "f64_string_optimized", "jemalloc" ]
+default = [ 
+	"x11_keyboard", 
+	"graph-background-cache", 
+	"graph-shadows", 
+	"no-gui-root", 
+	"f64_string_optimized", 
+	"jemalloc" 
+]
 x11_keyboard = [ "x11", "libc" ]
 demo_mode = []
 no-gui-root = [ "libc" ]
