@@ -22,7 +22,7 @@ mod core {
 	pub mod eightbitcolor;
 	pub mod f64sbuff;
 	pub mod gtkcodegen;
-	pub mod keyboard;
+	pub mod keyboard_listener;
 	pub mod maybe;
 	pub mod traymenu;
 	mod allocators;
