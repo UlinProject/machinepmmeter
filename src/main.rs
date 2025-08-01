@@ -6,7 +6,7 @@ use crate::app::cli::AppCli;
 use crate::app::config::AppConfig;
 use crate::app::consts::{APP_ID, UPPERCASE_APP_PKG_VERSION};
 use crate::app::dockwindow::{AppViDockWindow, PosINScreen};
-use crate::app::events::{AppEventsSender, AppEvents};
+use crate::app::events::{AppEvents, AppEventsSender};
 use crate::app::keyboard::{AppKeyboardEvents, spawn_keyboard_thread};
 use crate::app::traymenu::app_traymenu;
 use crate::core::display::ViGraphDisplayInfo;
@@ -14,7 +14,7 @@ use crate::widgets::dockhead::ViDockHead;
 use crate::widgets::hotkeys::ViHotkeyItems;
 use crate::widgets::notebook::ViNotebook;
 use crate::widgets::primitives::graph::background::ViGraphBackgroundSurface;
-use anyhow::{bail, Context, Result as anyhowResult};
+use anyhow::{Context, Result as anyhowResult, bail};
 use async_channel::Receiver;
 use clap::Parser;
 use enclose::enc;
@@ -78,6 +78,7 @@ use jemallocator::Jemalloc;
 static GLOBAL: Jemalloc = Jemalloc;
 
 fn main() -> anyhowResult<()> {
+	println!("{APP_ID}:");
 	panic::set_hook(Box::new(|p_hook_info| {
 		{
 			let stderr = stderr();

@@ -1,4 +1,5 @@
 use crate::const_ascii_uppercase;
+use cluConstData::concat_str;
 
 // config
 pub const CONFIG_QUALIFIER: &str = "com";
@@ -6,7 +7,14 @@ pub const CONFIG_ORGANIZATION: &str = "ulinkot";
 pub const CONFIG_FILE_NAME: &str = "AppConfig.toml";
 
 // app
-pub const APP_ID: &str = "com.ulinkot.machinepmmeter";
+pub const APP_ID: &str = concat_str!(
+	CONFIG_QUALIFIER, // com
+	".",
+	CONFIG_ORGANIZATION, // ulinkot
+	".",
+	APP_PKG_ICON // machinepmmeter
+);
+
 pub const APP_PKG_ICON: &str = env!("CARGO_PKG_NAME");
 pub const APP_PKG_WEBSITE: &str = env!("CARGO_PKG_REPOSITORY");
 pub const APP_PKG_AUTHORS: &str = env!("CARGO_PKG_AUTHORS");

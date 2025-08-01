@@ -29,6 +29,7 @@ jemallocator = { version = "0.5.4", optional = true }
 ryu = { version = "1.0.20", optional = true }
 dbus-udisks2 = "0.3.0"
 sys_metrics = "0.2.7"
+cluConstData = { version = "2.1.1", default-features = false }
 
 # docs.rs-specific configuration
 [package.metadata.docs.rs]
