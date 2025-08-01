@@ -1,7 +1,6 @@
 use crate::__gen_transparent_gtk_type;
+use crate::Maybe;
 use crate::app::config::AppConfig;
-use crate::core::maybe::Maybe;
-use crate::maybe;
 use crate::widgets::primitives::graph::background::ViGraphBackgroundSurface;
 use crate::widgets::primitives::graph::stream::ViGraphStream;
 use crate::widgets::primitives::graph::vi::ViGraph;
@@ -14,6 +13,7 @@ use gtk::Box;
 use gtk::ffi::GtkBox;
 use gtk::traits::BoxExt;
 use gtk::traits::WidgetExt;
+use maybe::maybe;
 use std::ops::Deref;
 use std::rc::Rc;
 

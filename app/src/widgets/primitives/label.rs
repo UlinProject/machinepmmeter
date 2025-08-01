@@ -1,6 +1,6 @@
+use crate::__gen_transparent_gtk_type;
+use crate::Maybe;
 use crate::app::config::FontAppConfig;
-use crate::maybe;
-use crate::{__gen_transparent_gtk_type, core::maybe::Maybe};
 use gtk::pango;
 use gtk::{
 	Align, Label,
@@ -8,6 +8,7 @@ use gtk::{
 	pango::{AttrFontDesc, AttrList, FontDescription},
 	traits::{LabelExt, StyleContextExt, WidgetExt},
 };
+use maybe::maybe;
 pub use pango::Weight;
 pub use pango::WrapMode;
 

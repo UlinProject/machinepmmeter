@@ -1,6 +1,6 @@
+use crate::Maybe;
 use crate::{
-	__gen_transparent_gtk_type, app::config::AppConfig, core::maybe::Maybe, maybe,
-	widgets::primitives::label::ViLabel,
+	__gen_transparent_gtk_type, app::config::AppConfig, widgets::primitives::label::ViLabel,
 };
 use enclose::enc;
 use gtk::{
@@ -9,6 +9,7 @@ use gtk::{
 	ffi::GtkBox,
 	traits::{BoxExt, StyleContextExt, WidgetExt},
 };
+use maybe::maybe;
 use std::{cell::RefCell, rc::Rc};
 
 #[repr(transparent)]

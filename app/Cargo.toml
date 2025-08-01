@@ -34,6 +34,7 @@ toml = "0.8.23"
 cluConstData = { version = "2.1.1", default-features = false }
 log = "0.4.27"
 constuppercase = { path = "../libs/constuppercase" }
+maybe = { path = "../libs/maybe" }
 
 # Core (optimizers):
 f64s_buff = { path = "../libs/f64s_buff" }

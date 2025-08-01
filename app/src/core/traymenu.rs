@@ -1,5 +1,4 @@
-use crate::core::maybe::Maybe;
-use crate::maybe;
+use crate::Maybe;
 use crate::widgets::primitives::iconmenuitem::ViIconMenuItem;
 use appindicator3::Indicator;
 pub use appindicator3::IndicatorCategory;
@@ -7,6 +6,7 @@ use appindicator3::IndicatorStatus;
 use appindicator3::traits::AppIndicatorExt;
 use gtk::traits::MenuShellExt;
 use gtk::traits::WidgetExt;
+use maybe::maybe;
 
 #[repr(transparent)]
 #[derive(Debug)]

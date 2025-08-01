@@ -1,4 +1,5 @@
-use crate::{__gen_transparent_gtk_type, app::config::WindowAppConfig, core::maybe::Maybe, maybe};
+use crate::Maybe;
+use crate::{__gen_transparent_gtk_type, app::config::WindowAppConfig};
 use gtk::{
 	Application, ApplicationWindow, cairo,
 	ffi::GtkApplicationWindow,
@@ -6,6 +7,7 @@ use gtk::{
 	traits::{BinExt, GtkWindowExt, StyleContextExt, WidgetExt},
 };
 use log::trace;
+use maybe::maybe;
 use serde::Deserialize;
 use std::ops::Deref;
 

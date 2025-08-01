@@ -1020,10 +1020,15 @@ dependencies = [
  "libc",
  "lm-sensors",
  "log",
+ "maybe",
  "serde",
  "sys_metrics",
  "toml",
 ]
+
+[[package]]
+name = "maybe"
+version = "0.1.0-alpa2"
 
 [[package]]
 name = "memchr"

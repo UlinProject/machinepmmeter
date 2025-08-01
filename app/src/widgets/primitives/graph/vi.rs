@@ -1,7 +1,6 @@
 use crate::__gen_transparent_gtk_type;
+use crate::Maybe;
 use crate::app::config::AppConfig;
-use crate::core::maybe::Maybe;
-use crate::maybe;
 use crate::widgets::primitives::graph::background::ViGraphBackgroundSurface;
 use crate::widgets::primitives::graph::stream::ViGraphStream;
 use anyhow::Result as anyhowResult;
@@ -12,6 +11,7 @@ use gtk::cairo::Context;
 use gtk::cairo::ImageSurface;
 use gtk::ffi::GtkDrawingArea;
 use gtk::traits::WidgetExt;
+use maybe::maybe;
 use std::cell::RefCell;
 use std::ops::Deref;
 use std::rc::Rc;

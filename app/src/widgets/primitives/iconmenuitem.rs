@@ -1,8 +1,9 @@
-use crate::maybe;
-use crate::{__gen_transparent_gtk_type, core::maybe::Maybe};
+use crate::__gen_transparent_gtk_type;
+use crate::Maybe;
 use gtk::MenuItem;
 use gtk::ffi::GtkMenuItem;
 use gtk::traits::{ContainerExt, WidgetExt};
+use maybe::maybe;
 use std::ops::Deref;
 
 #[repr(transparent)]

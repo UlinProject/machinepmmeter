@@ -1,5 +1,5 @@
+use crate::Maybe;
 use crate::app::config::AppConfig;
-use crate::core::maybe::Maybe;
 use crate::widgets::ViMeter;
 use crate::widgets::notebook::ViNotebook;
 use crate::widgets::primitives::graph::background::ViGraphBackgroundSurface;

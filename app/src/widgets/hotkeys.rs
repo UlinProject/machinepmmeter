@@ -1,7 +1,6 @@
 use crate::__gen_transparent_gtk_type;
+use crate::Maybe;
 use crate::app::config::FontAppConfig;
-use crate::core::maybe::Maybe;
-use crate::maybe;
 use crate::widgets::primitives::hotkeyitem::ViHotkeyItem;
 use crate::widgets::primitives::label::ViLabel;
 use gtk::Align;
@@ -11,6 +10,7 @@ use gtk::ffi::GtkBox;
 use gtk::pango::Weight;
 use gtk::traits::BoxExt;
 use gtk::traits::WidgetExt;
+use maybe::maybe;
 use std::ops::Deref;
 
 #[repr(transparent)]

@@ -1,7 +1,6 @@
+use crate::Maybe;
+use maybe::maybe;
 use serde::Deserialize;
-
-use crate::core::maybe::Maybe;
-use crate::maybe;
 
 #[derive(Clone, Copy, Debug)]
 pub struct EightBitColor {

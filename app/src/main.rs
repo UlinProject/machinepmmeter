@@ -11,6 +11,7 @@ use crate::core::display::ViGraphDisplayInfo;
 use anyhow::{Context, Result as anyhowResult, bail};
 use clap::Parser;
 use log::{info, trace};
+use maybe::maybetype;
 use std::io::{Write, stderr};
 use std::rc::Rc;
 use std::{fs, panic};
@@ -20,7 +21,6 @@ mod core {
 	pub mod display;
 	pub mod eightbitcolor;
 	pub mod gtkcodegen;
-	pub mod maybe;
 	pub mod traymenu;
 }
 
@@ -46,6 +46,10 @@ pub mod metrics {
 	pub mod sysinfo;
 	pub mod udisks2;
 }
+
+maybetype!(
+	Maybe: (i32, f64, gtk::gdk::RGBA, &'_ str, String, usize, gtk::pango::Weight);
+);
 
 #[global_allocator]
 pub static GLOBAL: allocators::Allocator = allocators::GLOBAL;
