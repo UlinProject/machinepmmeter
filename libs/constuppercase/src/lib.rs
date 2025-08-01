@@ -5,9 +5,16 @@ pub struct ConstUppercaseData<const CAPACITY: usize> {
 	len: usize,
 }
 
+impl<const CAPACITY: usize> Default for ConstUppercaseData<CAPACITY> {
+	#[inline]
+	fn default() -> Self {
+		Self::new()
+	}
+}
+
 impl<const CAPACITY: usize> ConstUppercaseData<CAPACITY> {
 	#[inline]
-	pub const fn zeroed() -> Self {
+	pub const fn new() -> Self {
 		Self {
 			arr: [MaybeUninit::uninit(); CAPACITY],
 			len: 0,
@@ -59,7 +66,7 @@ pub const fn const_ascii_uppercase<const CAPACITY: usize>(
 	if CAPACITY < len {
 		panic!("The input array is not long enough to store the data.");
 	}
-	let mut out = ConstUppercaseData::zeroed();
+	let mut out = ConstUppercaseData::new();
 
 	let mut i = 0;
 	let max = len;
