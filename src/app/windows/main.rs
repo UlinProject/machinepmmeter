@@ -1,5 +1,4 @@
 use crate::app::config::AppConfig;
-use crate::app::consts::UPPERCASE_APP_PKG_VERSION;
 use crate::app::dockwindow::AppViDockWindow;
 use crate::app::dockwindow::PosINScreen;
 use crate::app::events::AppEvents;
@@ -43,6 +42,7 @@ pub struct AppMain(Application);
 impl AppMain {
 	pub fn new(
 		id: &str,
+		version: &'static str,
 		cssdata: &[u8],
 		app_config: Rc<AppConfig>,
 		display: &Rc<ViGraphDisplayInfo>,
@@ -65,7 +65,7 @@ impl AppMain {
 			);
 
 			let name_window = app_config.get_name_or_default();
-			Self::build_ui(app, name_window, &app_config, &display, rx_appevents.clone());
+			Self::build_ui(app, version, name_window, &app_config, &display, rx_appevents.clone());
 		}));
 
 		let sself = Self(app);
@@ -76,12 +76,13 @@ impl AppMain {
 	fn build_ui(
 		app: &gtk::Application,
 		name_window: &str,
+		version: &str,
 		app_config: &Rc<AppConfig>,
 		c_display: &Rc<ViGraphDisplayInfo>,
 
 		receiver: Rc<Receiver<AppEvents>>,
 	) {
-		trace!("#[gui] AppMain::build_ui, start initialization, name: {name_window:?}");
+		trace!("#[gui] AppMain::build_ui, start initialization, name: {name_window:?}, version: {version:?}");
 
 		let dock_window = AppViDockWindow::new(app, name_window, &**app_config);
 		let pos_inscreen = Rc::new(RefCell::new(app_config.get_window_app_config().get_pos()));
@@ -171,7 +172,7 @@ impl AppMain {
 
 		vbox.pack_start(&vinotebook, true, true, 0);
 		vbox.pack_end(
-			&ViDockHead::new(app_config, name_window, UPPERCASE_APP_PKG_VERSION, 1.0),
+			&ViDockHead::new(app_config, name_window, version, 1.0),
 			true,
 			true,
 			0,

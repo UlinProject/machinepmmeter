@@ -10,6 +10,7 @@ use gtk::ffi::GtkAboutDialog;
 use gtk::traits::AboutDialogExt;
 use gtk::traits::DialogExt;
 use gtk::traits::GtkWindowExt;
+use log::trace;
 use std::ops::Deref;
 
 #[repr(transparent)]
@@ -54,6 +55,8 @@ impl AppAboutDialog {
 		about_dialog.set_website(Some(APP_PKG_WEBSITE));
 
 		about_dialog.connect_response(move |dialog, _| {
+			trace!("#[gui] AboutDialog::response");
+			
 			dialog.close();
 			close_event();
 		});

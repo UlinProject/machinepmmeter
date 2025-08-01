@@ -3,7 +3,7 @@
 
 use crate::app::cli::AppCli;
 use crate::app::config::AppConfig;
-use crate::app::consts::APP_ID;
+use crate::app::consts::{APP_ID, UPPERCASE_APP_PKG_VERSION};
 use crate::app::keyboard::spawn_keyboard_thread;
 use crate::app::traymenu::app_traymenu;
 use crate::app::windows::main::AppMain;
@@ -115,6 +115,7 @@ fn main() -> anyhowResult<()> {
 	// App
 	let app = AppMain::new(
 		APP_ID,
+		UPPERCASE_APP_PKG_VERSION,
 		include_bytes!("../style/def.css"),
 		app_config,
 		&display,
