@@ -36,11 +36,11 @@ toml = "0.8.23"
 libc = { version = "0.2.174", optional = true }
 x11 = { version = "2.21.0", features = ["xlib", "xrecord", "xinput"], optional = true }
 glib = "0.20.12"
-jemallocator = { version = "0.5.4", optional = true }
 ryu = { version = "1.0.20", optional = true }
 dbus-udisks2 = "0.3.0"
 sys_metrics = "0.2.7"
 cluConstData = { version = "2.1.1", default-features = false }
+tikv-jemallocator = { version = "0.6.0", optional = true }
 
 # docs.rs-specific configuration
 [package.metadata.docs.rs]
@@ -54,17 +54,17 @@ rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
 default = [ 
-	"x11_keyboard", 
-	"graph-background-cache", 
-	"graph-shadows", 
-	"no-gui-root", 
-	"f64_string_optimized", 
-	"jemalloc" 
+	"x11_keyboard",
+	"graph-background-cache",
+	"graph-shadows",
+	"no-gui-root",
+	"f64_string_optimized",
+	"jemalloc"
 ]
 x11_keyboard = [ "x11", "libc" ]
 demo_mode = []
 no-gui-root = [ "libc" ]
 graph-background-cache = []
 graph-shadows = []
-jemalloc = [ "jemallocator" ]
+jemalloc = [ "tikv-jemallocator" ]
 f64_string_optimized = [ "ryu" ]

@@ -68,12 +68,10 @@ pub mod metrics {
 	pub mod udisks2;
 }
 
-#[cfg(all(not(target_env = "msvc"), feature = "demo_mode"))]
-#[cfg_attr(docsrs, doc(cfg(all(not(target_env = "msvc"), feature = "demo_mode"))))]
-use jemallocator::Jemalloc;
+#[cfg(all(not(target_env = "msvc"), feature = "jemalloc"))]
+use tikv_jemallocator::Jemalloc;
 
-#[cfg(all(not(target_env = "msvc"), feature = "demo_mode"))]
-#[cfg_attr(docsrs, doc(cfg(all(not(target_env = "msvc"), feature = "demo_mode"))))]
+#[cfg(all(not(target_env = "msvc"), feature = "jemalloc"))]
 #[global_allocator]
 static GLOBAL: Jemalloc = Jemalloc;
 
