@@ -1,10 +1,8 @@
-
 #[cfg(all(not(target_env = "msvc"), feature = "jemalloc"))]
 pub type Allocator = tikv_jemallocator::Jemalloc;
 
 #[cfg(all(not(target_env = "msvc"), feature = "jemalloc"))]
 pub static GLOBAL: Allocator = tikv_jemallocator::Jemalloc;
-
 
 #[cfg(feature = "mimalloc")]
 pub type Allocator = mimalloc::MiMalloc;

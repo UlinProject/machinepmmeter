@@ -1,13 +1,15 @@
-pub struct ConstUppercaseData<const AVAILABLE_LEN: usize> {
-	arr: [u8; AVAILABLE_LEN],
+use std::mem::MaybeUninit;
+
+pub struct ConstUppercaseData<const CAPACITY: usize> {
+	arr: [MaybeUninit<u8>; CAPACITY],
 	len: usize,
 }
 
-impl<const AVAILABLE_LEN: usize> ConstUppercaseData<AVAILABLE_LEN> {
+impl<const CAPACITY: usize> ConstUppercaseData<CAPACITY> {
 	#[inline]
 	pub const fn zeroed() -> Self {
 		Self {
-			arr: unsafe { core::mem::zeroed() },
+			arr: [MaybeUninit::uninit(); CAPACITY],
 			len: 0,
 		}
 	}
@@ -19,13 +21,13 @@ impl<const AVAILABLE_LEN: usize> ConstUppercaseData<AVAILABLE_LEN> {
 	}
 
 	#[inline]
-	pub const fn as_ptr(&self) -> *const u8 {
+	pub const fn as_ptr(&self) -> *const MaybeUninit<u8> {
 		self.arr.as_ptr()
 	}
 
 	#[inline]
 	pub const fn as_slice(&self) -> &[u8] {
-		unsafe { core::slice::from_raw_parts(self.as_ptr(), self.len()) }
+		unsafe { core::slice::from_raw_parts(self.as_ptr() as *const u8, self.len) }
 	}
 
 	#[inline]
@@ -42,19 +44,19 @@ impl<const AVAILABLE_LEN: usize> ConstUppercaseData<AVAILABLE_LEN> {
 	pub const fn len(&self) -> usize {
 		self.len
 	}
-	
+
 	#[inline]
 	pub const fn is_empty(&self) -> bool {
 		self.len == 0
 	}
 }
 
-pub const fn const_ascii_uppercase<const AVAILABLE_LEN: usize>(
+pub const fn const_ascii_uppercase<const CAPACITY: usize>(
 	instr: &'_ str,
-) -> ConstUppercaseData<AVAILABLE_LEN> {
+) -> ConstUppercaseData<CAPACITY> {
 	let inarr = instr.as_bytes();
 	let len = inarr.len();
-	if AVAILABLE_LEN < len {
+	if CAPACITY < len {
 		panic!("The input array is not long enough to store the data.");
 	}
 	let mut out = ConstUppercaseData::zeroed();
@@ -63,11 +65,11 @@ pub const fn const_ascii_uppercase<const AVAILABLE_LEN: usize>(
 	let max = len;
 
 	while i < max {
-		let a = inarr[i];
-		out.arr[i] = match char::from_u32(a as _) {
+		let a: u8 = inarr[i];
+		out.arr[i].write(match char::from_u32(a as _) {
 			Some(m_lowcase) => m_lowcase.to_ascii_uppercase() as u8,
 			None => a,
-		};
+		});
 
 		i += 1;
 	}
