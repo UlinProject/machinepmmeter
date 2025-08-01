@@ -15,7 +15,7 @@ macro_rules! codegen_keystable {
 		impl $name {
 			#[allow(dead_code)]
 			pub const fn new(raw_key: std::ffi::c_uint) -> Option<Self> {
-				// 
+				// Add read of empty constant for mandatory condition check even if compiler doesn't want it
 				let _e = $crate::core::keyboard_listener::key::check_cuint_repr::CHECK_CUINT_REPR;
 				
 				match raw_key {
