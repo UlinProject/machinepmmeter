@@ -6,7 +6,7 @@ use crate::app::cli::AppCli;
 use crate::app::config::AppConfig;
 use crate::app::consts::{APP_ID, UPPERCASE_APP_PKG_VERSION};
 use crate::app::dockwindow::{AppViDockWindow, PosINScreen};
-use crate::app::events::{AppEvents, AppEventsSender};
+use crate::app::events::AppEvents;
 use crate::app::keyboard::{AppKeyboardEvents, spawn_keyboard_thread};
 use crate::app::main::AppMain;
 use crate::app::traymenu::app_traymenu;
@@ -19,16 +19,14 @@ use anyhow::{Context, Result as anyhowResult, bail};
 use async_channel::Receiver;
 use clap::Parser;
 use enclose::enc;
-use gtk::gdk::{Monitor, Screen};
-use gtk::gio::prelude::ApplicationExtManual;
-use gtk::gio::traits::ApplicationExt;
+use gtk::gdk::Monitor;
 use gtk::glib::Cast;
 use gtk::prelude::{NotebookExtManual, WidgetExt};
 use gtk::traits::{
-	BinExt, BoxExt, ContainerExt, CssProviderExt, GtkWindowExt, NotebookExt, ScrolledWindowExt,
+	BinExt, BoxExt, ContainerExt, GtkWindowExt, NotebookExt, ScrolledWindowExt,
 };
-use gtk::{Application, ScrolledWindow};
-use gtk::{Box as GtkBox, CssProvider};
+use gtk::ScrolledWindow;
+use gtk::Box as GtkBox;
 use log::{info, trace, warn};
 use std::cell::RefCell;
 use std::io::{Write, stderr};

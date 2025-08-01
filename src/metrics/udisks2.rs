@@ -90,6 +90,7 @@ struct ModelInfo {
 	serial: String,
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, PartialOrd, Ord)]
 enum SensorType {
 	#[default]

@@ -48,7 +48,7 @@ pub fn app_traymenu(tx_appevents: &AppEventsSender) -> TrayMenu {
 		}));
 	});
 
-	let tray_menu = TrayMenu::new(
+	TrayMenu::new(
 		APP_ID,
 		APP_PKG_ICON,
 		APP_PKG_NAME,
@@ -69,7 +69,5 @@ pub fn app_traymenu(tx_appevents: &AppEventsSender) -> TrayMenu {
 			TrayMenuItem::icon_item("system-shutdown-symbolic", "Exit", exit),
 		]
 		.into_iter(),
-	);
-
-	tray_menu
+	)
 }

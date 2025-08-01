@@ -32,7 +32,7 @@ impl ViGraphData {
 	#[inline]
 	pub fn push_next(&mut self, mut v: f64) {
 		if !(0.0..=1.0).contains(&v) {
-			warn!("#[ViGraphData, push_next] Very strange {}f for a graph.", v);
+			warn!("#[ViGraphData, push_next] Very strange {v}f for a graph.");
 
 			v = v.clamp(0.0, 1.0);
 		}

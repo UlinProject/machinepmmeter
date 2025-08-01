@@ -49,46 +49,43 @@ pub fn spawn_keyboard_thread(esender: AppEventsSender) {
 			})
 			.handler(enc!((esender) move |state_array, _key, _state| {
 				let mut sa_iter = state_array.iter();
-				match (
+				if let (Some(left), Some(right)) = (
 					sa_iter.next(), // ShiftLeft
 					sa_iter.next(), // ShiftRight
 				) {
-					(Some(left), Some(right)) => {
-						let left = left.is_pressed();
-						let right = right.is_pressed();
+					let left = left.is_pressed();
+					let right = right.is_pressed();
 
-						if (left && !right) || (!left && right) {
-							let mut pressed_key = None;
-							for astate in sa_iter {
-								if astate.is_pressed() {
-									if pressed_key.is_some() {
-										return;
-									}
-									pressed_key = Some(astate.get_key());
+					if (left && !right) || (!left && right) {
+						let mut pressed_key = None;
+						for astate in sa_iter {
+							if astate.is_pressed() {
+								if pressed_key.is_some() {
+									return;
 								}
+								pressed_key = Some(astate.get_key());
 							}
-							esender.keyboard_event(match pressed_key {
-								Some(Key::F8) => AppKeyboardEvents::ShiftF8,
-								Some(Key::KpPlus) => AppKeyboardEvents::KeyPlus,
-								Some(Key::KpMinus) => AppKeyboardEvents::KeyMinus,
-								Some(Key::Escape) => AppKeyboardEvents::Escape,
-								Some(Key::KeyA) => AppKeyboardEvents::KeyA,
-								Some(Key::KeyD) => AppKeyboardEvents::KeyD,
-								Some(Key::Num1) => AppKeyboardEvents::Num1,
-								Some(Key::Num2) => AppKeyboardEvents::Num2,
-								Some(Key::Num3) => AppKeyboardEvents::Num3,
-								Some(Key::Num4) => AppKeyboardEvents::Num4,
-								Some(Key::Num5) => AppKeyboardEvents::Num5,
-								Some(Key::Num6) => AppKeyboardEvents::Num6,
-								Some(Key::Num7) => AppKeyboardEvents::Num7,
-								Some(Key::Num8) => AppKeyboardEvents::Num8,
-								Some(Key::Num9) => AppKeyboardEvents::Num9,
-								Some(Key::KeyP) => AppKeyboardEvents::KeyP,
-								_ => return,
-							});
 						}
-					},
-					_ => {},
+						esender.keyboard_event(match pressed_key {
+							Some(Key::F8) => AppKeyboardEvents::ShiftF8,
+							Some(Key::KpPlus) => AppKeyboardEvents::KeyPlus,
+							Some(Key::KpMinus) => AppKeyboardEvents::KeyMinus,
+							Some(Key::Escape) => AppKeyboardEvents::Escape,
+							Some(Key::KeyA) => AppKeyboardEvents::KeyA,
+							Some(Key::KeyD) => AppKeyboardEvents::KeyD,
+							Some(Key::Num1) => AppKeyboardEvents::Num1,
+							Some(Key::Num2) => AppKeyboardEvents::Num2,
+							Some(Key::Num3) => AppKeyboardEvents::Num3,
+							Some(Key::Num4) => AppKeyboardEvents::Num4,
+							Some(Key::Num5) => AppKeyboardEvents::Num5,
+							Some(Key::Num6) => AppKeyboardEvents::Num6,
+							Some(Key::Num7) => AppKeyboardEvents::Num7,
+							Some(Key::Num8) => AppKeyboardEvents::Num8,
+							Some(Key::Num9) => AppKeyboardEvents::Num9,
+							Some(Key::KeyP) => AppKeyboardEvents::KeyP,
+							_ => return,
+						});
+					}
 				};
 			}))
 			.on_startup(|| {
@@ -98,8 +95,7 @@ pub fn spawn_keyboard_thread(esender: AppEventsSender) {
 
 		if let Err(e) = keyboard_listener {
 			error!(
-				"#[global keyboard] Error initializing global keyboard listener, keyboard shortcuts not available. {}",
-				e
+				"#[global keyboard] Error initializing global keyboard listener, keyboard shortcuts not available. {e}"
 			);
 			esender.keyboard_listener_enabled(false);
 		}

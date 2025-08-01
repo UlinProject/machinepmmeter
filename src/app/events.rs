@@ -30,10 +30,7 @@ pub struct AppEventsSender(Sender<AppEvents>);
 impl AppEventsSender {
 	fn __send(&self, ae: AppEvents) {
 		if let Err(e) = self.0.send_blocking(ae) {
-			error!(
-				"#[AppEventsSender] I can't send event: {:?}, err: {:?}",
-				ae, e
-			);
+			error!("#[AppEventsSender] I can't send event: {ae:?}, err: {e:?}");
 		}
 	}
 
@@ -45,13 +42,13 @@ impl AppEventsSender {
 
 	#[inline]
 	pub fn keyboard_event(&self, e: AppKeyboardEvents) {
-		trace!("#[AppEventsSender] keyboard_event: {:?}", e);
+		trace!("#[AppEventsSender] keyboard_event: {e:?}");
 		self.__send(AppEvents::Keyboard(e));
 	}
 
 	#[inline]
 	pub fn keyboard_listener_enabled(&self, en: bool) {
-		trace!("#[AppEventsSender] keyboard_listener_enabled: {:?}", en);
+		trace!("#[AppEventsSender] keyboard_listener_enabled: {en:?}");
 		self.__send(AppEvents::KeyboardListenerEnabled(en));
 	}
 

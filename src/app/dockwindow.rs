@@ -97,10 +97,7 @@ impl AppViDockWindow {
 
 			(w, h)
 		};
-		trace!(
-			"#[display] width: {}, height: {}",
-			display_width, display_height
-		);
+		trace!("#[display] width: {display_width}, height: {display_height}");
 
 		let x = match pos {
 			PosINScreen::TopLeft | PosINScreen::CenterLeft | PosINScreen::BottomLeft => 0,
@@ -144,7 +141,7 @@ impl AppViDockWindow {
 
 			None
 		})();
-		trace!("adjust_window_height, result: {:?}", result);
+		trace!("adjust_window_height, result: {result:?}");
 
 		result
 	}
