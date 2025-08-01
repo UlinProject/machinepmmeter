@@ -1,6 +1,6 @@
 [package]
 name = "machinepmmeter"
-version = "0.1.0-alpa"
+version = "0.1.0-alpa2"
 edition = "2024"
 description = "Real-time system performance monitor for apps/games, lm_sensors/udisks2/ryzenadj."
 license = "GPL-3.0-or-later" 

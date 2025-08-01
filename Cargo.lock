@@ -970,7 +970,7 @@ dependencies = [
 
 [[package]]
 name = "machinepmmeter"
-version = "0.1.0-alpa"
+version = "0.1.0-alpa2"
 dependencies = [
  "anyhow",
  "appindicator3",
