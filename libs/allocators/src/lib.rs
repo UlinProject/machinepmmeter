@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2025 Denis Kotlyarov (Денис Котляров) <denis2005991@gmail.com>
+
 #[cfg(all(not(target_env = "msvc"), feature = "jemalloc"))]
 pub type Allocator = tikv_jemallocator::Jemalloc;
 

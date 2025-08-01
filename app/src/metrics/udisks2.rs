@@ -1,5 +1,4 @@
 use crate::app::config::AppConfig;
-use crate::core::f64sbuff::F64SBuff;
 use crate::core::maybe::Maybe;
 use crate::widgets::ViMeter;
 use crate::widgets::notebook::ViNotebook;
@@ -12,6 +11,7 @@ use dbus_udisks2::Disks;
 use dbus_udisks2::UDisks2;
 use dbus_udisks2::smart::SmartValue;
 use enclose::enc;
+use f64s_buff::F64SBuff;
 use gtk::Align;
 use gtk::Box;
 use gtk::pango::Weight;

@@ -19,7 +19,6 @@ mod widgets;
 mod core {
 	pub mod display;
 	pub mod eightbitcolor;
-	pub mod f64sbuff;
 	pub mod gtkcodegen;
 	pub mod maybe;
 	pub mod traymenu;

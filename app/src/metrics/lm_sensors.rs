@@ -1,5 +1,4 @@
 use crate::app::config::AppConfig;
-use crate::core::f64sbuff::F64SBuff;
 use crate::core::maybe::Maybe;
 use crate::widgets::ViMeter;
 use crate::widgets::notebook::ViNotebook;
@@ -9,6 +8,7 @@ use crate::widgets::primitives::graph::stream::ViGraphStream;
 use crate::widgets::primitives::label::ViLabel;
 use async_channel::Receiver;
 use enclose::enc;
+use f64s_buff::F64SBuff;
 use gtk::Align;
 use gtk::Box;
 use gtk::pango::Weight;

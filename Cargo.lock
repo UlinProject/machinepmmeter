@@ -448,6 +448,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "f64s_buff"
+version = "0.1.0-alpa2"
+dependencies = [
+ "ryu",
+]
+
+[[package]]
 name = "field-offset"
 version = "0.3.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1006,13 +1013,13 @@ dependencies = [
  "directories",
  "enclose",
  "env_logger",
+ "f64s_buff",
  "glib 0.20.12",
  "gtk",
  "keyboard_listener",
  "libc",
  "lm-sensors",
  "log",
- "ryu",
  "serde",
  "sys_metrics",
  "toml",

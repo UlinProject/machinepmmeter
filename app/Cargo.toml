@@ -36,7 +36,7 @@ log = "0.4.27"
 constuppercase = { path = "../libs/constuppercase" }
 
 # Core (optimizers):
-ryu = { version = "1.0.20", optional = true }
+f64s_buff = { path = "../libs/f64s_buff" }
 
 # Tray:
 appindicator3 = { version = "0.3.0" }
@@ -70,11 +70,9 @@ rustdoc-args = ["--cfg", "docsrs"]
 default = [
 	"graph-background-cache",
 	"graph-shadows",
-	"no-gui-root",
-	"f64_string_optimized"
+	"no-gui-root"
 ]
 demo_mode = []
 no-gui-root = [ "libc" ]
 graph-background-cache = []
 graph-shadows = []
-f64_string_optimized = [ "ryu" ]
