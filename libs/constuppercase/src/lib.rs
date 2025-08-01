@@ -12,6 +12,7 @@ impl<const AVAILABLE_LEN: usize> ConstUppercaseData<AVAILABLE_LEN> {
 		}
 	}
 
+	#[allow(clippy::missing_safety_doc)]
 	#[inline]
 	pub const unsafe fn set_len(&mut self, len: usize) {
 		self.len = len;
@@ -40,6 +41,11 @@ impl<const AVAILABLE_LEN: usize> ConstUppercaseData<AVAILABLE_LEN> {
 	#[inline]
 	pub const fn len(&self) -> usize {
 		self.len
+	}
+	
+	#[inline]
+	pub const fn is_empty(&self) -> bool {
+		self.len == 0
 	}
 }
 
@@ -81,7 +87,7 @@ pub const fn const_ascii_uppercase<const AVAILABLE_LEN: usize>(
 macro_rules! const_ascii_uppercase {
 	[ $v: expr ] => {
 		{
-			const _IN: $crate::core::constuppercase::ConstUppercaseData<{ $v.len() }> = $crate::core::constuppercase::const_ascii_uppercase(
+			const _IN: constuppercase::ConstUppercaseData<{ $v.len() }> = constuppercase::const_ascii_uppercase(
 				$v
 			);
 

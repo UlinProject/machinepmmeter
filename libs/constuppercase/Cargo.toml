@@ -1,0 +1,19 @@
+[package]
+name = "constuppercase"
+version = "0.1.0-alpa2"
+edition = "2024"
+license = "GPL-3.0-or-later"
+authors = ["Denis Kotlyarov (Денис Котляров) <denis2005991@gmail.com>"]
+
+[dependencies]
+
+# docs.rs-specific configuration
+[package.metadata.docs.rs]
+# document all features
+all-features = true
+# defines the configuration attribute `docsrs`
+rustdoc-args = ["--cfg", "docsrs"]
+
+[features]
+default = [
+]

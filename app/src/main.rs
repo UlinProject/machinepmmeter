@@ -17,7 +17,6 @@ use std::{fs, panic};
 
 mod widgets;
 mod core {
-	pub mod constuppercase;
 	pub mod display;
 	pub mod eightbitcolor;
 	pub mod f64sbuff;

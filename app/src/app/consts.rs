@@ -1,5 +1,5 @@
-use crate::const_ascii_uppercase;
 use cluConstData::concat_str;
+use constuppercase::const_ascii_uppercase;
 
 // config
 pub const CONFIG_QUALIFIER: &str = "com";
