@@ -69,18 +69,12 @@ pub mod metrics {
 }
 
 #[cfg(all(not(target_env = "msvc"), feature = "jemalloc"))]
-use tikv_jemallocator::Jemalloc;
-
-#[cfg(all(not(target_env = "msvc"), feature = "jemalloc"))]
 #[global_allocator]
-static GLOBAL: Jemalloc = Jemalloc;
-
-#[cfg(all(not(target_env = "msvc"), feature = "mimalloc"))]
-use mimalloc::MiMalloc;
+static GLOBAL: tikv_jemallocator::Jemalloc = tikv_jemallocator::Jemalloc;
 
 #[cfg(all(not(target_env = "msvc"), feature = "mimalloc"))]
 #[global_allocator]
-static GLOBAL: MiMalloc = MiMalloc;
+static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
 
 fn main() -> anyhowResult<()> {
 	println!("{APP_ID}:");
