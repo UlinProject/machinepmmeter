@@ -11,7 +11,7 @@ anyhow = { workspace = true }
 serde = { workspace = true }
 
 # X11:
-libc = { version = "0.2.174", optional = true }
+libc = { workspace = true, optional = true }
 x11 = { version = "2.21.0", features = ["xlib", "xrecord", "xinput"], optional = true }
 
 # docs.rs-specific configuration

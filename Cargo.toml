@@ -9,3 +9,4 @@ resolver = "3"
 # Core:
 serde = { version = "1.0.219", features = ["derive"] }
 anyhow = "1.0.98"
+libc = { version = "0.2.174" }

@@ -1004,7 +1004,6 @@ dependencies = [
  "sys_metrics",
  "tikv-jemallocator",
  "toml",
- "x11",
 ]
 
 [[package]]
