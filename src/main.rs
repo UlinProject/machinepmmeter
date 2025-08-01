@@ -75,6 +75,13 @@ use tikv_jemallocator::Jemalloc;
 #[global_allocator]
 static GLOBAL: Jemalloc = Jemalloc;
 
+#[cfg(all(not(target_env = "msvc"), feature = "mimalloc"))]
+use mimalloc::MiMalloc;
+
+#[cfg(all(not(target_env = "msvc"), feature = "mimalloc"))]
+#[global_allocator]
+static GLOBAL: MiMalloc = MiMalloc;
+
 fn main() -> anyhowResult<()> {
 	println!("{APP_ID}:");
 	panic::set_hook(Box::new(|p_hook_info| {
