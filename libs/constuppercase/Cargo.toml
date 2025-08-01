@@ -1,6 +1,6 @@
 [package]
 name = "constuppercase"
-version = "0.1.0-alpa2"
+version = "0.1.0-alpha2"
 edition = "2024"
 license = "GPL-3.0-or-later"
 authors = ["Denis Kotlyarov (Денис Котляров) <denis2005991@gmail.com>"]

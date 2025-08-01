@@ -13,7 +13,7 @@ dependencies = [
 
 [[package]]
 name = "allocators"
-version = "0.1.0-alpa2"
+version = "0.1.0-alpha2"
 dependencies = [
  "mimalloc",
  "snmalloc-rs",
@@ -323,7 +323,7 @@ dependencies = [
 
 [[package]]
 name = "constuppercase"
-version = "0.1.0-alpa2"
+version = "0.1.0-alpha2"
 
 [[package]]
 name = "core-foundation-sys"
@@ -339,7 +339,7 @@ checksum = "d0a5c400df2834b80a4c3327b3aad3a4c4cd4de0629063962b03235697506a28"
 
 [[package]]
 name = "current_theme"
-version = "0.1.0-alpa2"
+version = "0.1.0-alpha2"
 dependencies = [
  "include_tt",
 ]
@@ -456,7 +456,7 @@ dependencies = [
 
 [[package]]
 name = "f64s_buff"
-version = "0.1.0-alpa2"
+version = "0.1.0-alpha2"
 dependencies = [
  "ryu",
 ]
@@ -909,7 +909,7 @@ dependencies = [
 
 [[package]]
 name = "keyboard_listener"
-version = "0.1.0-alpa2"
+version = "0.1.0-alpha2"
 dependencies = [
  "anyhow",
  "libc",
@@ -1018,7 +1018,7 @@ dependencies = [
 
 [[package]]
 name = "machinepmmeter"
-version = "0.1.0-alpa2"
+version = "0.1.0-alpha2"
 dependencies = [
  "allocators",
  "anyhow",
@@ -1047,7 +1047,7 @@ dependencies = [
 
 [[package]]
 name = "maybe"
-version = "0.1.0-alpa2"
+version = "0.1.0-alpha2"
 
 [[package]]
 name = "memchr"
