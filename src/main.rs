@@ -8,6 +8,7 @@ use crate::app::consts::{APP_ID, UPPERCASE_APP_PKG_VERSION};
 use crate::app::dockwindow::{AppViDockWindow, PosINScreen};
 use crate::app::events::{AppEvents, AppEventsSender};
 use crate::app::keyboard::{AppKeyboardEvents, spawn_keyboard_thread};
+use crate::app::main::AppMain;
 use crate::app::traymenu::app_traymenu;
 use crate::core::display::ViGraphDisplayInfo;
 use crate::widgets::dockhead::ViDockHead;
@@ -56,6 +57,7 @@ pub mod app {
 	pub mod dockwindow;
 	pub mod events;
 	pub mod keyboard;
+	pub mod main;
 	pub mod traymenu;
 }
 
@@ -123,45 +125,42 @@ fn main() -> anyhowResult<()> {
 	trace!("#[AppConfig file] current: {app_config:?}");
 
 	gtk::init()?;
-	let c_display = Rc::new(ViGraphDisplayInfo::new(
+	// Display
+	let display = Rc::new(ViGraphDisplayInfo::new(
 		app_config.get_window_app_config().get_num_monitor(),
 	)?);
-	let defcss = {
-		let a_css = CssProvider::new();
-		a_css.load_from_data(include_bytes!("../style/def.css"))?;
-
-		a_css
-	};
-
+	// AppEvents
 	let (tx_appevents, rx_appevents) = crate::app::events::app_events_channel();
 	let rx_appevents = Rc::new(rx_appevents);
+	// App
+	let app = AppMain::new(
+		APP_ID,
+		include_bytes!("../style/def.css"),
+		app_config,
+		&display,
+		rx_appevents,
+	)?;
+	// TrayMenu
 	let app_traymenu = app_traymenu(&tx_appevents);
+	//
 
-	let application = Application::new(Some(APP_ID), Default::default());
-	application.connect_activate(enc!((app_config, rx_appevents) move |app| {
-		gtk::StyleContext::add_provider_for_screen(
-			AsRef::<Screen>::as_ref(&c_display as &ViGraphDisplayInfo),
-			&defcss,
-			gtk::STYLE_PROVIDER_PRIORITY_APPLICATION,
-		);
+	// Keyboard
+	spawn_keyboard_thread(tx_appevents);
 
-		let name_window = app_config.get_name_or_default();
-		build_ui(app, name_window, &app_config, &c_display, tx_appevents.clone(), rx_appevents.clone());
-	}));
-
-	application.run();
+	// Run
+	app.run();
 	drop(app_traymenu);
+
 	Ok(())
 }
 
 #[allow(clippy::too_many_arguments)]
-fn build_ui(
+pub(crate) fn build_ui(
 	app: &gtk::Application,
 	name_window: &str,
 	app_config: &Rc<AppConfig>,
 	c_display: &Rc<ViGraphDisplayInfo>,
 
-	esender: AppEventsSender,
 	receiver: Rc<Receiver<AppEvents>>,
 ) {
 	trace!("#[gui] Start initialization, name: {name_window:?}");
@@ -260,8 +259,6 @@ fn build_ui(
 
 	dock_window.set_child(Some(&vbox));
 	vbox.set_visible(true);
-
-	spawn_keyboard_thread(esender);
 
 	dock_window.connect_show(
 		enc!((pos_inscreen, c_display, dock_window, vinotebook) move |_| {
