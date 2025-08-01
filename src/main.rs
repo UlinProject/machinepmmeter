@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2025 Denis Kotlyarov (Денис Котляров) <denis2005991@gmail.com>
 
-use crate::app::aboutdialog::AppAboutDialog;
 use crate::app::cli::AppCli;
 use crate::app::config::AppConfig;
 use crate::app::consts::{APP_ID, UPPERCASE_APP_PKG_VERSION};
 use crate::app::dockwindow::{AppViDockWindow, PosINScreen};
 use crate::app::events::AppEvents;
 use crate::app::keyboard::{AppKeyboardEvents, spawn_keyboard_thread};
-use crate::app::main::AppMain;
 use crate::app::traymenu::app_traymenu;
+use crate::app::windows::aboutdialog::AppAboutDialog;
+use crate::app::windows::main::AppMain;
 use crate::core::display::ViGraphDisplayInfo;
 use crate::widgets::dockhead::ViDockHead;
 use crate::widgets::hotkeys::ViHotkeyItems;
@@ -48,14 +48,16 @@ mod core {
 }
 
 pub mod app {
-	pub mod aboutdialog;
+	pub mod windows {
+		pub mod aboutdialog;
+		pub mod main;
+	}
 	pub mod cli;
 	pub mod config;
 	pub mod consts;
 	pub mod dockwindow;
 	pub mod events;
 	pub mod keyboard;
-	pub mod main;
 	pub mod traymenu;
 }
 

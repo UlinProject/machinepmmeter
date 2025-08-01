@@ -46,7 +46,7 @@ impl AppAboutDialog {
 
 		about_dialog.set_program_name(APP_PKG_NAME);
 		about_dialog.set_version(Some(APP_PKG_VERSION));
-		about_dialog.set_authors(&[APP_PKG_AUTHORS]);
+		about_dialog.set_authors(APP_PKG_AUTHORS);
 		about_dialog.set_copyright(Some(APP_PKG_COPYRIGHT));
 		about_dialog.set_comments(Some(APP_PKG_DESCRIPTION));
 		about_dialog.set_license_type(gtk::License::Gpl30);
