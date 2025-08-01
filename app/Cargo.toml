@@ -24,6 +24,7 @@ categories = [
 # Core:
 anyhow = { workspace = true }
 serde = { workspace = true }
+libc = { workspace = true, optional = true }
 async-channel = "2.3.1"
 clap = { version = "4.5.40", features = ["derive"] }
 directories = "6.0.0"
@@ -32,7 +33,6 @@ env_logger = "0.11.8"
 toml = "0.8.23"
 cluConstData = { version = "2.1.1", default-features = false }
 log = "0.4.27"
-libc = { workspace = true, optional = true }
 
 # Core (optimizers):
 ryu = { version = "1.0.20", optional = true }
@@ -49,10 +49,8 @@ lm-sensors = "0.3.2"
 dbus-udisks2 = "0.3.0"
 sys_metrics = "0.2.7"
 
-# Allocators:
-tikv-jemallocator = { version = "0.6.0", optional = true }
-mimalloc = { version = "0.1.47", optional = true }
-snmalloc-rs = { version = "0.3.8", optional = true }
+# Allocator
+allocators = { path = "../libs/allocators" }
 
 # Keyboard
 keyboard_listener = { path = "../libs/keyboard_listener" }
@@ -72,13 +70,10 @@ default = [
 	"graph-background-cache",
 	"graph-shadows",
 	"no-gui-root",
-	"f64_string_optimized",
-	"snmalloc"
+	"f64_string_optimized"
 ]
 demo_mode = []
 no-gui-root = [ "libc" ]
 graph-background-cache = []
 graph-shadows = []
-jemalloc = [ "tikv-jemallocator" ]
-snmalloc = [ "snmalloc-rs" ]
 f64_string_optimized = [ "ryu" ]

@@ -17,7 +17,6 @@ use std::{fs, panic};
 
 mod widgets;
 mod core {
-	mod allocators;
 	pub mod constuppercase;
 	pub mod display;
 	pub mod eightbitcolor;
@@ -49,6 +48,9 @@ pub mod metrics {
 	pub mod sysinfo;
 	pub mod udisks2;
 }
+
+#[global_allocator]
+pub static GLOBAL: allocators::Allocator = allocators::GLOBAL;
 
 fn main() -> anyhowResult<()> {
 	println!("{APP_ID}:");

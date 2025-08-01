@@ -12,6 +12,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "allocators"
+version = "0.1.0-alpa2"
+dependencies = [
+ "mimalloc",
+ "snmalloc-rs",
+ "tikv-jemallocator",
+]
+
+[[package]]
 name = "anstream"
 version = "0.6.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -982,6 +991,7 @@ dependencies = [
 name = "machinepmmeter"
 version = "0.1.0-alpa2"
 dependencies = [
+ "allocators",
  "anyhow",
  "appindicator3",
  "async-channel",
@@ -997,12 +1007,9 @@ dependencies = [
  "libc",
  "lm-sensors",
  "log",
- "mimalloc",
  "ryu",
  "serde",
- "snmalloc-rs",
  "sys_metrics",
- "tikv-jemallocator",
  "toml",
 ]
 
