@@ -123,7 +123,7 @@ pub fn vinotebook_append_page(
 		if let Ok(lmsensors) = lm_sensors::Initializer::default().initialize() {
 			for chip in lmsensors.chip_iter(None) {
 				if let Ok(chip_name) = chip.name() {
-					trace!("{} (chip_name):", chip_name);
+					trace!("{chip_name} (chip_name):");
 					let mut chip_info = Some(ChipInfo {
 						name: chip_name,
 						bus: chip.bus().to_string(),
@@ -131,7 +131,7 @@ pub fn vinotebook_append_page(
 
 					for feature in chip.feature_iter() {
 						if let Some(Ok(feature_name)) = feature.name() {
-							trace!("	{}(feature_name): {}(feature)", feature_name, feature);
+							trace!("	{feature_name}(feature_name): {feature}(feature)");
 
 
 							#[derive(Debug, Clone, Default)]
@@ -146,7 +146,7 @@ pub fn vinotebook_append_page(
 							let mut c_value = LmSensor::default();
 							for sub_feature in feature.sub_feature_iter() {
 								if let Some(Ok(name)) = sub_feature.name() {
-									trace!("		{}(name):", name);
+									trace!("		{name}(name):");
 
 									if let Ok(value) = sub_feature.value() {
 										match value {
@@ -304,7 +304,7 @@ pub fn vinotebook_append_page(
 
 			if let Err(_exp_init_sensors) = waitinitlist.set_and_waitend((exp_init_sensors, lmsensors
 				.version()
-				.map(|a| format!("lm_sensors: {}", a)))) {
+				.map(|a| format!("lm_sensors: {a}")))) {
 				error!("#[lm_sensors, send] Feedback is broken, i can't continue initialization.");
 
 				return;

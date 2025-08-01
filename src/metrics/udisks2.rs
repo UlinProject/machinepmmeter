@@ -135,7 +135,7 @@ pub fn vinotebook_append_page(
 
 					//println!("{:?}", smart_data.attributes);
 					let c_value = smart_data.temperature - 273.15;
-					trace!("		{}", c_value);
+					trace!("		{c_value}");
 
 					/*let min = 0.0;
 					let max = 100.0;

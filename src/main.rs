@@ -85,8 +85,7 @@ fn main() -> anyhowResult<()> {
 
 			let _e = writeln!(
 				lock,
-				"###\n## The application cannot continue its operation due to a panic detected:\n###\n{}",
-				p_hook_info
+				"###\n## The application cannot continue its operation due to a panic detected:\n###\n{p_hook_info}"
 			);
 			let _e = lock.flush();
 		}
@@ -106,8 +105,7 @@ fn main() -> anyhowResult<()> {
 	let app_config = cli.search_default_appconfigpath(|app_config_path| {
 		let allow_save_default_app_config = cli.get_allow_save_default_app_config();
 		info!(
-			"#[AppConfig file] open: {:?}, allow_save_default_AppConfig: {:?}",
-			app_config_path, allow_save_default_app_config
+			"#[AppConfig file] open: {app_config_path:?}, allow_save_default_AppConfig: {allow_save_default_app_config:?}"
 		);
 		let app_config = {
 			let context = || format!("Open AppConfig file {:?}.", cli.get_app_config());
@@ -128,7 +126,7 @@ fn main() -> anyhowResult<()> {
 
 		Ok(app_config)
 	})?;
-	trace!("#[AppConfig file] current: {:?}", app_config);
+	trace!("#[AppConfig file] current: {app_config:?}");
 
 	gtk::init()?;
 	let c_display = Rc::new(ViGraphDisplayInfo::new(
@@ -172,7 +170,7 @@ fn build_ui(
 	esender: AppEventsSender,
 	receiver: Rc<Receiver<AppEvents>>,
 ) {
-	trace!("#[gui] Start initialization, name: {:?}", name_window);
+	trace!("#[gui] Start initialization, name: {name_window:?}");
 
 	let dock_window = AppViDockWindow::new(app, name_window, &**app_config);
 	let pos_inscreen = Rc::new(RefCell::new(app_config.get_window_app_config().get_pos()));

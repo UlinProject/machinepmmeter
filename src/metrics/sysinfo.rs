@@ -20,7 +20,7 @@ pub fn vinotebook_append_page(app_config: &Rc<AppConfig>, vinotebook: &ViNoteboo
 		"?",
 		get_hostname()
 			.ok()
-			.map(|hn| format!("Hostname: {}", hn))
+			.map(|hn| format!("Hostname: {hn}"))
 			.as_deref(),
 	);
 	{
