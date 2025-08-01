@@ -15,6 +15,9 @@ macro_rules! codegen_keystable {
 		impl $name {
 			#[allow(dead_code)]
 			pub const fn new(raw_key: std::ffi::c_uint) -> Option<Self> {
+				// 
+				let _e = $crate::core::keyboard_listener::key::check_cuint_repr::CHECK_CUINT_REPR;
+				
 				match raw_key {
 					$($v => Some(Self::$n),)*
 
@@ -31,7 +34,7 @@ macro_rules! codegen_keystable {
 	};
 }
 
-mod _constassert_cuint_type_and_u32 {
+pub(crate) mod check_cuint_repr {
 	use std::ffi::c_uint;
 
 	/// If you get a compile error at this point, you have a very specific platform where
@@ -41,7 +44,7 @@ mod _constassert_cuint_type_and_u32 {
 	/// does not allow it (because c_uint is actually equal to u32!). In the code below,
 	///
 	/// I use repr(u32) which itself implies repr(std::ffi::c_uint).
-	const _: () = [()][const { size_of::<c_uint>() != size_of::<u32>() } as usize];
+	pub(crate) const CHECK_CUINT_REPR: () = [()][const { size_of::<c_uint>() != size_of::<u32>() } as usize];
 }
 
 codegen_keystable! {
