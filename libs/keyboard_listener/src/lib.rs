@@ -1,10 +1,10 @@
 use anyhow::bail;
 use std::ops::Deref;
 
-use crate::core::keyboard_listener::key::Key;
+use crate::key::Key;
 #[cfg(feature = "x11_keyboard")]
 #[cfg_attr(docsrs, doc(cfg(feature = "x11_keyboard")))]
-use crate::core::keyboard_listener::x11::xlib;
+use crate::x11::xlib;
 
 pub mod key;
 #[cfg(feature = "x11_keyboard")]

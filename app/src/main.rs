@@ -17,15 +17,14 @@ use std::{fs, panic};
 
 mod widgets;
 mod core {
+	mod allocators;
 	pub mod constuppercase;
 	pub mod display;
 	pub mod eightbitcolor;
 	pub mod f64sbuff;
 	pub mod gtkcodegen;
-	pub mod keyboard_listener;
 	pub mod maybe;
 	pub mod traymenu;
-	mod allocators;
 }
 
 pub mod app {

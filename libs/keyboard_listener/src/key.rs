@@ -16,8 +16,8 @@ macro_rules! codegen_keystable {
 			#[allow(dead_code)]
 			pub const fn new(raw_key: std::ffi::c_uint) -> Option<Self> {
 				// Add read of empty constant for mandatory condition check even if compiler doesn't want it
-				let _e = $crate::core::keyboard_listener::key::check_cuint_repr::CHECK_CUINT_REPR;
-				
+				let _e = $crate::key::check_cuint_repr::CHECK_CUINT_REPR;
+
 				match raw_key {
 					$($v => Some(Self::$n),)*
 
@@ -44,7 +44,8 @@ pub(crate) mod check_cuint_repr {
 	/// does not allow it (because c_uint is actually equal to u32!). In the code below,
 	///
 	/// I use repr(u32) which itself implies repr(std::ffi::c_uint).
-	pub(crate) const CHECK_CUINT_REPR: () = [()][const { size_of::<c_uint>() != size_of::<u32>() } as usize];
+	pub(crate) const CHECK_CUINT_REPR: () =
+		[()][const { size_of::<c_uint>() != size_of::<u32>() } as usize];
 }
 
 codegen_keystable! {

@@ -1,0 +1,28 @@
+[package]
+name = "keyboard_listener"
+version = "0.1.0-alpa2"
+edition = "2024"
+license = "GPL-3.0-or-later"
+authors = ["Denis Kotlyarov (Денис Котляров) <denis2005991@gmail.com>"]
+
+[dependencies]
+# Core:
+anyhow = { workspace = true }
+serde = { workspace = true }
+
+# X11:
+libc = { version = "0.2.174", optional = true }
+x11 = { version = "2.21.0", features = ["xlib", "xrecord", "xinput"], optional = true }
+
+# docs.rs-specific configuration
+[package.metadata.docs.rs]
+# document all features
+all-features = true
+# defines the configuration attribute `docsrs`
+rustdoc-args = ["--cfg", "docsrs"]
+
+[features]
+default = [
+	"x11_keyboard"
+]
+x11_keyboard = [ "x11", "libc" ]

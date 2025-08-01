@@ -1,5 +1,5 @@
-use crate::core::keyboard_listener::x11::context::XRecordContext;
-use crate::core::keyboard_listener::x11::record::range::XRecordRange;
+use crate::x11::context::XRecordContext;
+use crate::x11::record::range::XRecordRange;
 use std::ffi::{CStr, c_int};
 use std::ops::Deref;
 use std::ptr::{NonNull, null};

@@ -82,7 +82,9 @@ impl AppMain {
 
 		receiver: Rc<Receiver<AppEvents>>,
 	) {
-		trace!("#[gui] AppMain::build_ui, start initialization, name: {name_window:?}, version: {version:?}");
+		trace!(
+			"#[gui] AppMain::build_ui, start initialization, name: {name_window:?}, version: {version:?}"
+		);
 
 		let dock_window = AppViDockWindow::new(app, name_window, &**app_config);
 		let pos_inscreen = Rc::new(RefCell::new(app_config.get_window_app_config().get_pos()));

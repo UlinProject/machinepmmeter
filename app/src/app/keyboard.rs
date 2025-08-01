@@ -1,7 +1,7 @@
 use crate::app::events::AppEventsSender;
-use crate::core::keyboard_listener::KeyboardListenerBuilder;
-use crate::core::keyboard_listener::key::Key;
 use enclose::enc;
+use keyboard_listener::KeyboardListenerBuilder;
+use keyboard_listener::key::Key;
 use log::error;
 
 #[derive(Debug, Clone, Copy)]

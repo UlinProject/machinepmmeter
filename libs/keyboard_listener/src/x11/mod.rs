@@ -1,9 +1,9 @@
-use crate::core::keyboard_listener::ButtonState;
-use crate::core::keyboard_listener::key::Key;
-use crate::core::keyboard_listener::x11::datacontaier::{ExterDataContainer, SafeDropExternDataContainer};
-use crate::core::keyboard_listener::x11::display::XDisplay;
-use crate::core::keyboard_listener::x11::record::interdata::XRecordInterceptData;
-use crate::core::keyboard_listener::x11::record::range::XRecordRange;
+use crate::ButtonState;
+use crate::key::Key;
+use crate::x11::datacontaier::{ExterDataContainer, SafeDropExternDataContainer};
+use crate::x11::display::XDisplay;
+use crate::x11::record::interdata::XRecordInterceptData;
+use crate::x11::record::range::XRecordRange;
 use libc::{fd_set, select};
 use std::error::Error;
 use std::ffi::CStr;

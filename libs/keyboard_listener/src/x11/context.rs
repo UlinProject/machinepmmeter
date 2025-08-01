@@ -1,9 +1,9 @@
 use x11::xrecord;
 
-use crate::core::keyboard_listener::ButtonState;
-use crate::core::keyboard_listener::key::Key;
-use crate::core::keyboard_listener::x11::datacontaier::SafeDropExternDataContainer;
-use crate::core::keyboard_listener::x11::display::XDisplay;
+use crate::ButtonState;
+use crate::key::Key;
+use crate::x11::datacontaier::SafeDropExternDataContainer;
+use crate::x11::display::XDisplay;
 use std::num::NonZeroI32;
 use std::os::raw::c_char;
 use std::ptr::null_mut;
@@ -43,6 +43,7 @@ impl Drop for XRecordEnContext<'_, '_> {
 }
 
 impl<'display> XRecordContext<'display> {
+	#[allow(clippy::missing_safety_doc)]
 	#[inline]
 	pub const unsafe fn from_raw(display: &'display mut XDisplay, ident: u64) -> Self {
 		Self { display, ident }

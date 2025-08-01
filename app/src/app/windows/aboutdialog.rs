@@ -56,7 +56,7 @@ impl AppAboutDialog {
 
 		about_dialog.connect_response(move |dialog, _| {
 			trace!("#[gui] AboutDialog::response");
-			
+
 			dialog.close();
 			close_event();
 		});
