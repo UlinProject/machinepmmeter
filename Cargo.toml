@@ -1,6 +1,7 @@
 [workspace]
 members = [
 	"libs/*",
+	"themes/current",
 	"app"
 ]
 resolver = "3"

@@ -118,7 +118,7 @@ fn main() -> anyhowResult<()> {
 	let app = AppMain::new(
 		APP_ID,
 		UPPERCASE_APP_PKG_VERSION,
-		include_bytes!("../../themes/udefstyle/main.css"),
+		current_theme::A_THEME_MAIN_CSS,
 		app_config,
 		&display,
 		rx_appevents,
