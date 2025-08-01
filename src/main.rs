@@ -25,6 +25,7 @@ mod core {
 	pub mod keyboard;
 	pub mod maybe;
 	pub mod traymenu;
+	mod allocators;
 }
 
 pub mod app {
@@ -49,8 +50,6 @@ pub mod metrics {
 	pub mod sysinfo;
 	pub mod udisks2;
 }
-
-mod allocators;
 
 fn main() -> anyhowResult<()> {
 	println!("{APP_ID}:");
