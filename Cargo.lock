@@ -1049,6 +1049,7 @@ dependencies = [
  "lm-sensors",
  "log",
  "maybe",
+ "project",
  "serde",
  "sys_metrics",
  "toml",

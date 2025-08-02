@@ -1,6 +1,6 @@
 use crate::app::config::AppConfig;
-use crate::app::consts::UPPERCASE_APP_PKG_NAME;
-use crate::app::consts::UPPERCASE_APP_PKG_VERSION;
+use project::UPPERCASE_APP_PKG_NAME;
+use project::UPPERCASE_APP_PKG_VERSION;
 use crate::widgets::notebook::ViNotebook;
 use crate::widgets::primitives::label::ViLabel;
 use gtk::Align;

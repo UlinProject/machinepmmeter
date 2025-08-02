@@ -3,7 +3,7 @@
 
 use crate::app::cli::AppCli;
 use crate::app::config::AppConfig;
-use crate::app::consts::{APP_ID, UPPERCASE_APP_PKG_VERSION};
+use project::{APP_ID, UPPERCASE_APP_PKG_VERSION};
 use crate::app::keyboard::spawn_keyboard_thread;
 use crate::app::traymenu::app_traymenu;
 use crate::app::windows::main::AppMain;
@@ -31,7 +31,6 @@ pub mod app {
 	}
 	pub mod cli;
 	pub mod config;
-	pub mod consts;
 	pub mod dockwindow;
 	pub mod events;
 	pub mod keyboard;

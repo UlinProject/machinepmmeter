@@ -1,14 +1,14 @@
 
-macro_rules! no_comments_toml {
+macro_rules! toml_decomment {
 	[ // comment
 		@in [
-			#$_: ident = $_2:tt
+			# $_: ident = $_2:tt
 			$($all:tt)*
 		]
 		@result [ $($result:tt)* ]
 		@end [ $($end:tt)* ]
 	] => {
-		$crate::no_comments_toml! {
+		$crate::toml_decomment! {
 			@in [ $($all)* ]
 			@result [ $($result)* ]
 			@end [ $($end)* ]
@@ -23,7 +23,7 @@ macro_rules! no_comments_toml {
 		@result [ $($result:tt)* ]
 		@end [ $($end:tt)* ]
 	] => {
-		$crate::no_comments_toml! {
+		$crate::toml_decomment! {
 			@in [ $($all)* ]
 			@result [
 				$($result)*
@@ -40,7 +40,7 @@ macro_rules! no_comments_toml {
 		@result [ $($result:tt)* ]
 		@end [ $($end:tt)* ]
 	] => {
-		$crate::no_comments_toml! {
+		$crate::toml_decomment! {
 			@in [ $($all)* ]
 			@result [
 				$($result)*
@@ -62,4 +62,4 @@ macro_rules! no_comments_toml {
 	};
 }
 
-pub (crate) use no_comments_toml;
+pub (crate) use toml_decomment;

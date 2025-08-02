@@ -5,11 +5,11 @@ use directories::ProjectDirs;
 use std::path::Path;
 use std::path::PathBuf;
 
-use crate::app::consts::APP_PKG_DESCRIPTION;
-use crate::app::consts::APP_PKG_NAME;
-use crate::app::consts::CONFIG_FILE_NAME;
-use crate::app::consts::CONFIG_ORGANIZATION;
-use crate::app::consts::CONFIG_QUALIFIER;
+use project::APP_PKG_DESCRIPTION;
+use project::APP_PKG_NAME;
+use project::CONFIG_FILE_NAME;
+use project::CONFIG_ORGANIZATION;
+use project::CONFIG_QUALIFIER;
 
 #[derive(Parser, Debug)]
 #[clap(

@@ -1,10 +1,10 @@
 use crate::__gen_transparent_gtk_type;
-use crate::app::consts::APP_PKG_AUTHORS;
-use crate::app::consts::APP_PKG_COPYRIGHT;
-use crate::app::consts::APP_PKG_DESCRIPTION;
-use crate::app::consts::APP_PKG_NAME;
-use crate::app::consts::APP_PKG_VERSION;
-use crate::app::consts::APP_PKG_WEBSITE;
+use project::APP_PKG_AUTHORS;
+use project::APP_PKG_COPYRIGHT;
+use project::APP_PKG_DESCRIPTION;
+use project::APP_PKG_NAME;
+use project::APP_PKG_VERSION;
+use project::APP_PKG_WEBSITE;
 use gtk::AboutDialog;
 use gtk::ffi::GtkAboutDialog;
 use gtk::traits::AboutDialogExt;

@@ -8,7 +8,7 @@ macro_rules! impl_current_project {
 		name_conf: $name:expr
 	] => {
 		$crate::include_tt! {
-			$crate::no_comments_toml! {
+			$crate::toml_decomment! {
 				@in [ #include_tt!([$name ".toml"]) ]
 				@result []
 				@end [ $crate::parse_and_impl_project_toml ]
@@ -18,7 +18,7 @@ macro_rules! impl_current_project {
 }
 
 mod parse_project_toml;
-mod no_comments_toml;
+mod decomment;
 
 #[allow(unused_imports)]
 pub(crate) use cluConstData::concat_str;
@@ -29,7 +29,7 @@ pub(crate) use impl_current_project;
 #[allow(unused_imports)]
 pub(crate) use include_tt::include_tt;
 #[allow(unused_imports)]
-pub(crate) use no_comments_toml::no_comments_toml;
+pub(crate) use decomment::toml_decomment;
 #[allow(unused_imports)]
 pub(crate) use parse_project_toml::parse_and_impl_project_toml;
 

@@ -1,4 +1,4 @@
-use crate::app::consts::UPPERCASE_APP_PKG_NAME;
+use project::UPPERCASE_APP_PKG_NAME;
 use crate::app::dockwindow::PosINScreen;
 use crate::core::eightbitcolor::EightBitColor;
 use gtk::pango;

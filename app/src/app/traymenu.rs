@@ -1,7 +1,7 @@
-use crate::app::consts::APP_ID;
-use crate::app::consts::APP_PKG_DESCRIPTION;
-use crate::app::consts::APP_PKG_ICON;
-use crate::app::consts::APP_PKG_NAME;
+use project::APP_ID;
+use project::APP_PKG_DESCRIPTION;
+use project::APP_PKG_ICON;
+use project::APP_PKG_NAME;
 use crate::app::events::AppEventsSender;
 use crate::core::traymenu::TrayMenu;
 use crate::core::traymenu::TrayMenuItem;

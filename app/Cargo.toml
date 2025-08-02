@@ -36,6 +36,7 @@ log = "0.4.27"
 constuppercase = { path = "../libs/constuppercase" }
 maybe = { path = "../libs/maybe" }
 current_theme = { path = "../themes/current" }
+project = { path = "../libs/project" }
 
 # Core (optimizers):
 f64s_buff = { path = "../libs/f64s_buff" }
