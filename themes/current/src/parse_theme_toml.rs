@@ -1,7 +1,7 @@
 macro_rules! parse_and_impl_theme_toml {
 	[ // START
 		[theme]
-		$( $name: tt = $expr:expr )*
+		$( $name: tt = $expr:tt )*
 	] => {
 		$crate::parse_and_impl_theme_toml! {
 			@toml_data [ // default data
@@ -10,7 +10,7 @@ macro_rules! parse_and_impl_theme_toml {
 				version = ["0.0.0"]
 				description = [""]
 			]
-			
+
 			$([
 				[$name][$expr]
 			])*
@@ -23,7 +23,7 @@ macro_rules! parse_and_impl_theme_toml {
 			version = [ $($version:tt)* ]
 			description = [ $($description:tt)* ]
 		]
-		
+
 		[[name][$expr:expr]]
 		$($all:tt)*
 	] => {
@@ -34,7 +34,7 @@ macro_rules! parse_and_impl_theme_toml {
 				version = [$($version)*]
 				description = [$($description)*]
 			]
-			
+
 			$($all)*
 		}
 	};
@@ -45,7 +45,7 @@ macro_rules! parse_and_impl_theme_toml {
 			version = [ $($version:tt)* ]
 			description = [ $($description:tt)* ]
 		]
-		
+
 		[[main_css][$expr:expr]]
 		$($all:tt)*
 	] => {
@@ -56,7 +56,7 @@ macro_rules! parse_and_impl_theme_toml {
 				version = [$($version)*]
 				description = [$($description)*]
 			]
-			
+
 			$($all)*
 		}
 	};
@@ -67,7 +67,7 @@ macro_rules! parse_and_impl_theme_toml {
 			version = [ $($version:tt)* ]
 			description = [ $($description:tt)* ]
 		]
-		
+
 		[[version][$expr:expr]]
 		$($all:tt)*
 	] => {
@@ -78,7 +78,7 @@ macro_rules! parse_and_impl_theme_toml {
 				version = [$expr]
 				description = [$($description)*]
 			]
-			
+
 			$($all)*
 		}
 	};
@@ -89,7 +89,7 @@ macro_rules! parse_and_impl_theme_toml {
 			version = [ $($version:tt)* ]
 			description = [ $($description:tt)* ]
 		]
-		
+
 		[[description][$expr:expr]]
 		$($all:tt)*
 	] => {
@@ -100,11 +100,11 @@ macro_rules! parse_and_impl_theme_toml {
 				version = [$($version)*]
 				description = [$expr]
 			]
-			
+
 			$($all)*
 		}
 	};
-	
+
 	[ // END
 		@toml_data [
 			name = [ $name: expr ]
@@ -116,7 +116,7 @@ macro_rules! parse_and_impl_theme_toml {
 		pub const A_THEME_NAME: &str = $name;
 		pub const A_THEME_VERSION: &str = $version;
 		pub const A_THEME_DESCRIPTION: &str = $description;
-		
+
 		$crate::include_tt! {
 			pub const A_THEME_MAIN_CSS: &[u8] = #include_arr!(["themes/" $name / $main_css]);
 		}

@@ -1,5 +1,5 @@
 [package]
-name = "current_theme"
+name = "project"
 version = "0.1.0-alpha2"
 edition = "2024"
 license = "GPL-3.0-or-later"
@@ -7,6 +7,8 @@ authors = ["Denis Kotlyarov (Денис Котляров) <denis2005991@gmail.co
 
 [dependencies]
 include_tt = { workspace = true }
+cluConstData = { workspace = true }
+constuppercase = { path = "../constuppercase" }
 
 # docs.rs-specific configuration
 [package.metadata.docs.rs]
@@ -16,5 +18,4 @@ all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
-default = [
-]
+default = []

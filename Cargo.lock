@@ -293,9 +293,18 @@ checksum = "b94f61472cee1439c0b966b47e3aca9ae07e45d070759512cd390ea2bebc6675"
 
 [[package]]
 name = "cluConstData"
-version = "2.1.1"
+version = "2.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3b5ffffe9911d960a599d0b93cd7dfa9e07ab98a5d18899c785682094cf52eda"
+checksum = "a26744a6ab8aaee8fc79ec0d2510b52adb45ee41d1636d39353c31d0ba3f7b31"
+dependencies = [
+ "cluFullTransmute",
+]
+
+[[package]]
+name = "cluFullTransmute"
+version = "1.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8a944d1a57577999b3bb0a705e01bee4b8cb361a5aeef428f7cfb740d929c41f"
 
 [[package]]
 name = "cmake"
@@ -1306,6 +1315,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "02b3e5e68a3a1a02aad3ec490a98007cbc13c37cbe84a3cd7b8e406d76e7f778"
 dependencies = [
  "unicode-ident",
+]
+
+[[package]]
+name = "project"
+version = "0.1.0-alpha2"
+dependencies = [
+ "cluConstData",
+ "constuppercase",
+ "include_tt",
 ]
 
 [[package]]
