@@ -7,9 +7,9 @@ macro_rules! impl_current_project {
 	[
 		name_conf: $name:expr
 	] => {
-		$crate::include_tt! {
+		$crate::inject! {
 			$crate::toml_decomment! {
-				@in [ #include_tt!([$name ".toml"]) ]
+				@in [ #tt($name ".toml") ]
 				@result []
 				@end [ $crate::parse_and_impl_project_toml ]
 			}
@@ -27,7 +27,7 @@ pub(crate) use constuppercase::const_ascii_uppercase;
 #[allow(unused_imports)]
 pub(crate) use impl_current_project;
 #[allow(unused_imports)]
-pub(crate) use include_tt::include_tt;
+pub(crate) use include_tt::inject;
 #[allow(unused_imports)]
 pub(crate) use decomment::toml_decomment;
 #[allow(unused_imports)]

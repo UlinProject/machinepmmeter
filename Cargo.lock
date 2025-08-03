@@ -848,9 +848,9 @@ checksum = "2304e00983f87ffb38b55b444b5e3b60a884b5d30c0fca7d82fe33449bbe55ea"
 
 [[package]]
 name = "include_tt"
-version = "1.0.6"
+version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "769fd0c69147c6bed630ae65520a71727f6f070dc89f49dea0713fb17ac7c2ee"
+checksum = "c24fbb560b855d381a7422e67b308a1c51460be38db88baf6682151cb99d4cfe"
 dependencies = [
  "proc-macro2",
  "quote",

@@ -117,8 +117,8 @@ macro_rules! parse_and_impl_theme_toml {
 		pub const A_THEME_VERSION: &str = $version;
 		pub const A_THEME_DESCRIPTION: &str = $description;
 
-		$crate::include_tt! {
-			pub const A_THEME_MAIN_CSS: &[u8] = #include_arr!(["themes/" $name / $main_css]);
+		$crate::inject! {
+			pub const A_THEME_MAIN_CSS: &[u8] = #arr("themes/" $name / $main_css);
 		}
 	};
 }

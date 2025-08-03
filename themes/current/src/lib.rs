@@ -7,9 +7,9 @@ macro_rules! impl_current_theme {
 	[
 		name_theme: $name:expr
 	] => {
-		$crate::include_tt! {
+		$crate::inject! {
 			$crate::parse_and_impl_theme_toml! {
-				#include_tt!(["themes/" $name "/theme.toml"])
+				#tt("themes/" $name "/theme.toml")
 			}
 		}
 	};
@@ -18,5 +18,5 @@ macro_rules! impl_current_theme {
 mod parse_theme_toml;
 
 pub(crate) use impl_current_theme;
-pub(crate) use include_tt::include_tt;
+pub(crate) use include_tt::inject;
 pub(crate) use parse_theme_toml::parse_and_impl_theme_toml;
