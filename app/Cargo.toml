@@ -1,6 +1,6 @@
 [package]
 name = "machinepmmeter"
-version = "0.1.0-alpha2"
+version = "0.1.0-alpha3"
 edition = "2024"
 description = "Real-time system performance monitor for apps/games, lm_sensors/udisks2/ryzenadj."
 license = "GPL-3.0-or-later" 
@@ -25,14 +25,14 @@ categories = [
 anyhow = { workspace = true }
 serde = { workspace = true }
 libc = { workspace = true, optional = true }
-async-channel = "2.3.1"
-clap = { version = "4.5.40", features = ["derive"] }
+async-channel = "2.5.0"
+clap = { version = "4.5.47", features = ["derive"] }
 directories = "6.0.0"
 enclose = "1.2.1"
 env_logger = "0.11.8"
-toml = "0.8.23"
+toml = "0.9.5"
 cluConstData = { workspace = true }
-log = "0.4.27"
+log = "0.4.28"
 constuppercase = { path = "../libs/constuppercase" }
 maybe = { path = "../libs/maybe" }
 current_theme = { path = "../themes/current" }
@@ -46,7 +46,7 @@ appindicator3 = { version = "0.3.0" }
 
 # Graphics:
 gtk = "0.18.2"
-glib = "0.20.12"
+glib = "0.21.1"
 
 # Sensors:
 lm-sensors = "0.3.2"
