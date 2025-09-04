@@ -1,0 +1,81 @@
+[package]
+name = "machinepmmeter"
+version = "0.1.0-alpha2"
+edition = "2024"
+description = "Real-time system performance monitor for apps/games, lm_sensors/udisks2/ryzenadj."
+license = "GPL-3.0-or-later" 
+repository = "https://github.com/UlinProject/machinepmmeter"
+authors = ["Denis Kotlyarov (Денис Котляров) <denis2005991@gmail.com>"]
+keywords = [
+	"performance",
+	"monitor",
+	"system",
+	"real-time",
+	"lm_sensors",
+	"ryzenadj"
+]
+categories = [
+	"gui",
+	"system-utilities",
+	"monitoring"
+]
+
+[dependencies]
+# Core:
+anyhow = { workspace = true }
+serde = { workspace = true }
+libc = { workspace = true, optional = true }
+async-channel = "2.3.1"
+clap = { version = "4.5.40", features = ["derive"] }
+directories = "6.0.0"
+enclose = "1.2.1"
+env_logger = "0.11.8"
+toml = "0.8.23"
+cluConstData = { workspace = true }
+log = "0.4.27"
+constuppercase = { path = "../libs/constuppercase" }
+maybe = { path = "../libs/maybe" }
+current_theme = { path = "../themes/current" }
+project = { path = "../libs/project" }
+
+# Core (optimizers):
+f64s_buff = { path = "../libs/f64s_buff" }
+
+# Tray:
+appindicator3 = { version = "0.3.0" }
+
+# Graphics:
+gtk = "0.18.2"
+glib = "0.20.12"
+
+# Sensors:
+lm-sensors = "0.3.2"
+dbus-udisks2 = "0.3.0"
+sys_metrics = "0.2.7"
+
+# Allocator
+allocators = { path = "../libs/allocators" }
+
+# Keyboard
+keyboard_listener = { path = "../libs/keyboard_listener" }
+
+# docs.rs-specific configuration
+[package.metadata.docs.rs]
+# document all features
+all-features = true
+# defines the configuration attribute `docsrs`
+rustdoc-args = ["--cfg", "docsrs"]
+
+#[profile.release]
+#lto = true
+
+[features]
+default = [
+	"graph-background-cache",
+	"graph-shadows",
+	"no-gui-root"
+]
+demo_mode = []
+no-gui-root = [ "libc" ]
+graph-background-cache = []
+graph-shadows = []

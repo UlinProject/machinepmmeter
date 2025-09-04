@@ -1,0 +1,23 @@
+[package]
+name = "f64s_buff"
+version = "0.1.0-alpha2"
+edition = "2024"
+license = "GPL-3.0-or-later"
+authors = ["Denis Kotlyarov (Денис Котляров) <denis2005991@gmail.com>"]
+
+[dependencies]
+# Core (optimizers):
+ryu = { version = "1.0.20", optional = true }
+
+# docs.rs-specific configuration
+[package.metadata.docs.rs]
+# document all features
+all-features = true
+# defines the configuration attribute `docsrs`
+rustdoc-args = ["--cfg", "docsrs"]
+
+[features]
+default = [
+	"f64_string_optimized"
+]
+f64_string_optimized = [ "ryu" ]

@@ -1,0 +1,5 @@
+[theme]
+name = "udefstyle"
+main_css = "main.css"
+version = "0.1.0-alpha2"
+description = "Classic Standard Theme"

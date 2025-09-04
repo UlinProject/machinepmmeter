@@ -1,0 +1,13 @@
+[config]
+qualifier     = "com"
+organization  = "ulinkot"
+file_name     = "AppConfig.toml"
+
+[app]
+name          = "machinepmmeter"
+#version      = "1.2.3"
+icon          = "machinepmmeter"
+website       = "https://github.com/ulinkot/machinepmmeter"
+authors       = "Denis Kotlyarov (Денис Котляров) <denis2005991@gmail.com>"
+copyright     = "© 2025 Denis Kotlyarov"
+#description  = ""
