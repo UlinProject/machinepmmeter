@@ -21,6 +21,7 @@ const ALTERNATING_MASK: usize = 0xAAAAAAAA;
 /// indicate that the thread is still processing and can run, or the thread
 /// has long since finished its work)
 #[derive(Debug)]
+#[repr(C)] // prevent reordering of `lpadding, rpadding`
 pub struct ExterDataContainer<T> {
 	lpadding: usize,
 	data: Mutex<Option<T>>,
